@@ -14,3 +14,6 @@ def home(request):
 @login_required(login_url="login/")
 def dashboard_main(request):
     return render(request,"dashboard_layout_example.html")
+
+def good_old_view(request):
+    return render(request,"view3.html")
