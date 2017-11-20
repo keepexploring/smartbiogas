@@ -25,7 +25,7 @@ SECRET_KEY = '0(0vjyk&smi$5v^g^rv_u+l&*l)swn$t213h54s791iq^mv*s&'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1']
 
 
 # Application definition
@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'leaflet',
     'bootstrap',
     'fontawesome',
+    'webpack_loader',
 ]
 
 MIDDLEWARE = [
@@ -140,3 +141,10 @@ BOWER_INSTALLED_APPS = (
     'jquery',
     'underscore',
 )
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/local/',  # end with slash
+        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats-local.json'),
+    }
+}
