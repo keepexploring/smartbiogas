@@ -1,1 +1,1 @@
-{"status":"done","chunks":{"App":[{"name":"App-27f55908a17f8fab4108.js","path":"/home/scene/Desktop/biogas/smartbiogas/assets/bundles/App-27f55908a17f8fab4108.js"}]}}
+{"status":"error","error":"ModuleNotFoundError","message":"Module not found: Error: Can't resolve '../images/logo_150.png ' in '/home/scene/Desktop/biogas/smartbiogas/reactjs/baseComp'"}

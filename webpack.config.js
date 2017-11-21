@@ -37,6 +37,11 @@ module.exports = {
             }, {
                 loader: "sass-loader" // compiles Sass to CSS
             }]
+          },
+          {
+            test: /\.(jpe?g|png|gif|svg|tif)$/,
+            loader: "file-loader"
+          
           }
         ]
     }
