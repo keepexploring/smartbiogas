@@ -25,12 +25,15 @@ SECRET_KEY = 'frobam8*+@h(p%#8ft+)x=e73d_t(jch3hn%-nf+6f=y5zq=kb'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1']
 
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
 
 # Application definition
 
 INSTALLED_APPS = (
+    'suit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -99,9 +102,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
+
+
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'assets'),
-    os.path.join(BASE_DIR, 'static'),
+     os.path.join(BASE_DIR, 'assets'),
 )
 
 WEBPACK_LOADER = {

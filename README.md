@@ -12,3 +12,7 @@
 * make virtualenv and install requirements.txt
 * $ npm install
 * $ webpack --config webpack.config.js
+
+python manage.py migrate
+python manage.py migrate jet
+python manage.py collectstatic

@@ -4,7 +4,9 @@ var BundleTracker = require('webpack-bundle-tracker');
 
 module.exports = {
     context: __dirname,
-    entry: './assets/js/index.js',
+    entry: {
+        App: './reactjs/js/index.jsx'
+           },
     output: {
         path: path.resolve('./assets/bundles/'),
         filename: "[name]-[hash].js"
@@ -16,12 +18,17 @@ module.exports = {
 
     module: {
         loaders: [
-            { test: /\.js$/, exclude: /node_modules/, loader: 'babel',
-                query:{
-                    cacheDirectory: true,
-                    presets: ['es2015', 'react']
+            {
+                test: /\.jsx$/,
+                exclude: /(node_modules|bower_components)/,
+                use: {
+                  loader: 'babel-loader',
+                  options: {
+                    presets: ['react','es2015','env']
+                  }
                 }
-            }
+              }
+            
         ]
     }
 };

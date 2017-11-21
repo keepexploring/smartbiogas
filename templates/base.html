@@ -1,0 +1,169 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en" data-textdirection="ltr" class="loading">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <title>Smart Biogas Network</title>
+  <link rel="shortcut icon" type="image/x-icon" href="assets/images/favicon.png">
+
+
+  <!-- BEGIN CSS -->
+  <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/bootstrap/css/bootstrap-grid.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/font-awesome.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/style.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/tabs.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/BootSideMenu.css' %}">
+  <!-- BEGIN CSS -->
+</head>
+
+<body>
+ <!-- Navigation -->
+    <div class="logo">
+        <a class="img_icon" href="#">
+          <img src="{% static 'basetemplates/images/logo_150.png' %}" alt=".">
+        </a>
+
+        <a class="profile_icon" href="#profile_data" data-toggle="collapse"><i class="fa fa-caret-down"></i></a>
+        <div class="list-group collapse profile_box" id="profile_data">
+            <nav id="mysidebarmenu" class="amazonmenu">
+               <ul>
+	             <li><img src="{% static 'basetemplates/images/prof_img.jpg' %}" alt="."><b>Sunil Ku. Sahu</b></li>
+               </ul>
+	           <ul>
+	             <li><a href="#">Messages</a></li>
+                 <li><a href="#">Alerts</a></li>
+                 <li><a href="#">Account Details</a></li>
+                 <li><a href="#">Settings</a></li>
+                 <li><a href="/logout">Log Out</a></li>
+               </ul>
+            </nav>
+        </div>
+    </div>
+
+
+
+    <div class="col-md-12">
+       <div class="row">
+         <main class="o-main">
+            <div class="o-section">
+      <div id="tabs" class="c-tabs no-js">
+        <div class="c-tabs-nav fixed-top">
+          <a href="#" class="c-tabs-nav__link first_box tab_white"> </a>
+
+
+          <a href="{% url 'home2' %}" class="c-tabs-nav__link2 is-active">
+            <i class="fa fa-dashboard"></i>
+            <span>DASHBOARD</span>
+          </a>
+
+
+          <a href="{% url 'home2' %}" class="c-tabs-nav__link2">
+            <i class="fa fa-leaf"></i>
+            <span>BIOGAS PLANTS</span>
+          </a>
+          <a href="#" class="c-tabs-nav__link2">
+            <i class="fa fa-wrench"></i>
+            <span>TECHNICIANS</span>
+          </a>
+          <a href="#" class="c-tabs-nav__link2">
+            <i class="fa fa-suitcase"></i>
+            <span>JOBS</span>
+          </a>
+        </div>
+
+        <div class="c-tab"></div>
+
+<!-- Dashboard Section -->
+{% block content %}
+{% endblock %}
+
+<!-- Sidebar Menu -->
+    <div id="sidebar">
+      <div class="list-group">
+
+        <a href="#item-1" class="list-group-item" data-toggle="collapse">Region</a>
+        <div class="list-group collapse" id="item-1">
+            <a href="#" class="list-group-item">Region 1</a>
+            <a href="#" class="list-group-item">Region 2</a>
+        </div>
+
+        <a href="#item-2" class="list-group-item" data-toggle="collapse">Supplier</a>
+        <div class="list-group collapse" id="item-2">
+            <a href="#" class="list-group-item">Supplier 1</a>
+            <a href="#" class="list-group-item">Supplier 2</a>
+        </div>
+
+        <a href="#item-3" class="list-group-item" data-toggle="collapse">Plant Type</a>
+        <div class="list-group collapse" id="item-3">
+            <a href="#" class="list-group-item">Plant Type 1</a>
+            <a href="#" class="list-group-item">Plant Type 2</a>
+        </div>
+
+        <a href="#item-4" class="list-group-item" data-toggle="collapse">Volume</a>
+        <div class="list-group collapse" id="item-4">
+            <a href="#" class="list-group-item">Volume 1</a>
+            <a href="#" class="list-group-item">Volume 2</a>
+        </div>
+
+        <a href="#item-5" class="list-group-item" data-toggle="collapse">Model</a>
+        <div class="list-group collapse" id="item-5">
+            <a href="#" class="list-group-item">Model 1</a>
+            <a href="#" class="list-group-item">Model 2</a>
+        </div>
+
+        <a href="#item-6" class="list-group-item" data-toggle="collapse">Funding Source</a>
+        <div class="list-group collapse" id="item-6">
+            <a href="#" class="list-group-item">Funding Source 1</a>
+            <a href="#" class="list-group-item">Funding Source 2</a>
+        </div>
+
+        <a href="#item-7" class="list-group-item" data-toggle="collapse">Reset Selection</a>
+        <div class="list-group collapse" id="item-7">
+            <a href="#" class="list-group-item">Reset Selection 1</a>
+            <a href="#" class="list-group-item">Reset Selection 2</a>
+        </div>
+      </div>
+    </div>
+<!--/Sidebar Menu -->
+
+<!-- Footer Section -->
+     <footer class="footer-section">
+        <p>© smart biogas connect 2017. All Rights Reserved.</p>
+     </footer>
+<!--/Footer Section -->
+
+
+  <!-- BEGIN JS-->
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" type="text/javascript"></script>
+  <script src="{% static 'basetemplates/bootstrap/js/bootstrap.min.js' %}" type="text/javascript"></script>
+  <script src="{% static 'basetemplates/js/tabs.js' %}" type="text/javascript"></script>
+  <script>
+  var myTabs = tabs({
+    el: '#tabs',
+    tabNavigationLinks: '.c-tabs-nav__link',
+    tabContentContainers: '.c-tab'
+  });
+
+  myTabs.init();
+  </script>
+  <script src="{% static 'basetemplates/js/BootSideMenu.js' %}" type="text/javascript"></script>
+  <script type="text/javascript">
+    $(document).ready(function () {
+        $('#sidebar').BootSideMenu({
+            side: "left",
+            pushBody: false,
+            duration: 1000
+        });
+    });
+</script>
+
+  <!-- BEGIN JS-->
+
+</body>
+
+</html>
