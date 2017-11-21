@@ -1,0 +1,409 @@
+
+@import url ('https://fonts.googleapis.com/css?family=Open+Sans');
+@import url ('https://fonts.googleapis.com/css?family=Roboto');
+
+@media (min-width:1200px) {
+  .container {
+    padding: 0px;
+  }
+}
+
+* {
+	margin:0px;
+	padding:0px;
+	border:none;
+	outline:none;
+}
+
+body {
+	font-size:15px;
+	color:#111111;
+	line-height:1.8em;
+	font-weight:400;
+	font-family: 'Open Sans', sans-serif;
+	background:#ffffff;
+	background-size:cover;
+}
+.page-wrapper{
+	overflow: hidden;
+}
+a{
+	text-decoration:none;
+	cursor:pointer;
+}
+a:hover,a:focus,a:visited{
+	text-decoration:none;
+	outline:none;
+}
+h1,h2,h3,h4,h5,h6{
+	margin:0px;
+}
+input,button,select,textarea{
+	font-family: 'Open Sans', sans-serif;
+}
+p{
+	position:relative;
+	line-height:1.8em;
+}
+
+/***
+
+====================================================================
+	Main Header
+====================================================================
+
+***/
+
+.head-nav {
+	background-color: #FFF;
+  height: 100px
+}
+.logo {
+  float: left;
+    z-index: 999;
+    height: 77px;
+    background: #fff;
+	text-align:center;
+	-webkit-box-shadow: 1px 0 20px rgba(0,0,0,.1);
+    box-shadow: 1px 0 20px rgba(0,0,0,.1);
+}
+.logo .profile_icon {
+   color:#f2b124;
+   font-size:18px;
+   border:1px #f2b124 solid;
+   -webkit-border-radius: 4px;
+   -moz-border-radius: 4px;
+   border-radius: 4px;
+   padding:0 7px;
+}
+.logo .img_icon img {
+   width:100%
+}
+.profile_box {
+  position: relative;
+  z-index: 999;
+  float:left;
+	text-align:left;
+	width:100%;
+	background:#2d4f18;
+	margin-top:20px;
+}
+
+
+/***
+
+====================================================================
+	Filters Section
+====================================================================
+
+***/
+
+.amazonmenu ul{
+	font: normal 12px Verdana;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+
+}
+
+.amazonmenu ul li{
+	position: static; /* menu li items should have position set to static */
+	border-bottom:#FFF 1px solid;
+	color:#fff;
+}
+
+.amazonmenu > ul{
+	position: relative;
+}
+.amazonmenu > ul li img{
+	padding: 10px;
+	position: relative;
+	width:66px;
+	border-radius:35px;
+	}
+.amazonmenu > ul li a{
+	color: #FFF;
+	display: block;
+	overflow: auto;
+	padding: 10px 0;
+	position: relative;
+	text-decoration: none;
+	text-indent: 10px;
+	font-size:14px;
+}
+
+.amazonmenu > ul li.hassub > a::after{ /* Arrow to indicate this item has sub menu (LI elements with sub menus have a ".hassub" class). */
+	border: 5px solid transparent;
+	border-left-color: gray; /* Default color of arrow */
+	content: '';
+	height: 0;
+	position: absolute;
+	right: 5px;
+	top: 35%;
+	width: 0;
+}
+
+.amazonmenu > ul li.hassub.selected > a::after{ /* Style of arrow when corresponding sub menu is open (LI element has a "selected" class during this state */
+	border-left-color: red;
+}
+
+.amazonmenu ul li a:hover, .amazonmenu ul li.hassub.selected > a{ /* style of hover and selected menu item links */
+	background: lightblue;
+	color: navy;
+}
+
+.amazonmenu ul li > div, .amazonmenu ul li > ul{ /* Sub menus (Could be a DIV or UL wrapper) style */
+	background: white;
+	border: 1px solid gray;
+	border-radius: 0 8px 8px 0;
+	box-shadow: 2px 2px 2px gray;
+	display: none;
+	font-weight: normal;
+	width: 300px;
+	height: 400px; /* height of sub menu */
+	left: 100%;
+	padding: 10px;
+	position: absolute;
+	top: 0;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	z-index: 1000;
+}
+/***
+
+====================================================================
+	Footer Section
+====================================================================
+
+***/
+.top-margin{
+  margin-top: 100px;
+}
+
+/***
+
+====================================================================
+	Dashboard Section
+====================================================================
+
+***/
+
+.dashboard {}
+.tab-header h6 {
+  font-size: 18px;
+	color:#2d4f18;
+	text-align:center;
+	margin-bottom:30px;
+}
+.box{
+  background:#fff;
+  margin-bottom:30px;
+	padding:5px;
+}
+
+.box_cont {
+	min-height:150px;
+	text-align:center
+}
+
+.bg_green{
+  background:#519c20;
+}
+.boxgreen {
+	border:#519c20 5px solid;
+}
+.boxblue {
+	border:#84e0eb 5px solid;
+}
+.bg_blue {
+	background:#84e0eb;
+}
+
+.box_cont .fa {
+    font-size: 40px;
+    margin: 10px;
+    color: #fff;
+}
+.box_cont h1 {
+    font-size: 48px;
+    color: #fff;
+}
+.box_cont p {
+    font-size: 14px;
+    color: #fff;
+	margin:0;
+}
+
+
+/***
+
+====================================================================
+	Footer Section
+====================================================================
+
+***/
+.footer-section {
+    background: #2d4f18 none repeat scroll 0 0;
+	padding:6px;
+	position:fixed;
+	bottom:0;
+	width:100%
+}
+.footer-section p {
+    margin:0;
+	padding:0;
+	color:#fff;
+	text-align:center;
+}
+
+
+/***
+
+====================================================================
+	CSS media querry
+====================================================================
+
+***/
+/* Custom, iPhone Retina */
+@media only screen and (min-width : 320px) {
+
+}
+
+/* Extra Small Devices, Phones */
+@media only screen and (min-width : 480px) {
+
+}
+
+/* Small Devices, Tablets */
+@media only screen and (min-width : 768px) {
+
+}
+
+/* Medium Devices, Desktops */
+@media only screen and (min-width : 992px) {
+
+}
+
+/* Large Devices, Wide Screens */
+@media only screen and (min-width : 1200px) {
+
+}
+/* iPad */
+@media all and (min-width:768px) and (max-width:1023px) {
+.logo {width:20%;}
+.logo .img_icon {
+	float:left;
+	margin:12px 0 0 5px;
+	width:70%
+}
+ .profile_icon {
+	float:right;
+	margin:20px 5px 0 0;
+}}
+
+/*==========  Non-Mobile First Method  ==========*/
+
+/* Large Devices, Wide Screens */
+@media only screen and (max-width : 1200px) {
+
+}
+
+/* Medium Devices, Desktops */
+@media only screen and (max-width : 992px) {
+
+}
+
+/* Small Devices, Tablets */
+@media only screen and (max-width : 768px) {
+
+}
+
+/* Extra Small Devices, Phones */
+@media only screen and (max-width : 480px) {
+
+}
+
+/* Custom, iPhone Retina */
+@media only screen and (max-width : 320px) {
+
+}
+
+@media all and (min-width:1024px) {
+.logo {width:20%;}
+.logo .img_icon {
+	float:left;
+	margin:12px 0 0 30px;
+}
+.logo .profile_icon {
+	float:right;
+	margin:25px 30px 0 0;
+}
+}
+
+
+@media all and (max-width:767px) {
+  .top-margin{
+    margin-top: 150px;
+  }
+  .head-nav{
+    height: 160px;
+  }
+  .logo {width:100%;}
+  .logo .img_icon {
+  	float:left;
+  	margin:12px 0 0 15px;
+  }
+  .logo .profile_icon {
+  	float:right;
+  	margin:25px 15px 0 0;
+  }
+  .c-tabs{
+    min-height: 160px;
+  }
+}
+
+@media all and (max-width: 480px){ /* When screen size is 480px */
+
+	.amazonmenu ul li > div, .amazonmenu ul li > ul{
+		left: 30px; /* Stack the sub menus so they take up less space */
+	}
+
+	.amazonmenu > ul li.hassub.selected::after{ /* Add "veil" to parent menus */
+		background: #eee;
+		content: '';
+		height: 100%;
+		left: 0;
+		opacity: .8;
+		pointer-events: none;
+		position: absolute;
+		top: 0;
+		width: 100%;
+		z-index: 1;
+	}
+  .head-nav{
+    height: 100px;
+  }
+  .head-nav, .navbar-default{
+    background-color: #2d4f18;
+  }
+  .c-tabs{
+    width: 100%!important;
+    box-shadow: none!important;
+    -webkit-box-shadow: none!important;
+    -moz-box-shadow:none!important;
+  }
+  .nav-tabs{
+    height: 100%;
+
+  }
+  .navbar-fixed-bottom .navbar-collapse, .navbar-fixed-top .navbar-collapse{
+    padding-right: 0;
+    padding-left: 0;
+    height: 100vh;
+    max-height:120%;
+  }
+}
