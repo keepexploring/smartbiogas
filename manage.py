@@ -3,6 +3,7 @@ import os
 import sys
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dashboard3.settings")
     try:
         from django.core.management import execute_from_command_line
@@ -19,4 +20,10 @@ if __name__ == "__main__":
                 "forget to activate a virtual environment?"
             )
         raise
+=======
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_react.settings")
+
+    from django.core.management import execute_from_command_line
+
+>>>>>>> 912107e8632bee6b0bd104ca0c0887cedbed48af
     execute_from_command_line(sys.argv)

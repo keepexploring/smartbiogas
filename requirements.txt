@@ -17,6 +17,10 @@ django-appconf==1.0.2
 django-autoslug==1.9.3
 django-bootstrap-form==3.3
 django-bootstrap-static==3.3.7.1
+<<<<<<< HEAD
+=======
+django-bootstrap3==9.1.0
+>>>>>>> 912107e8632bee6b0bd104ca0c0887cedbed48af
 django-bower==5.2.0
 django-dash==0.5.3
 django-debug-toolbar==1.4
