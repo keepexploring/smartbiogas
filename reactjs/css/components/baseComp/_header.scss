@@ -1,7 +1,8 @@
 @import 'logo';
 @import 'navigation';
 
+
 .head-nav {
     background-color: #FFF;
-    height: 100px
+    height: $headerHeight;
 }

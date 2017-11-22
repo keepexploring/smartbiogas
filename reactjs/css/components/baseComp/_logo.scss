@@ -1,14 +1,15 @@
 .logo {
     float: left;
       z-index: 999;
-      height: 77px;
+      height: $headerHeight;
+      width:20%;
       background: #fff;
       text-align:center;
       -webkit-box-shadow: 1px 0 20px rgba(0,0,0,.1);
       box-shadow: 1px 0 20px rgba(0,0,0,.1);
 
       .img_icon img {
-        width:100%
+        padding: 10px;
      }
 
      .profile_icon {

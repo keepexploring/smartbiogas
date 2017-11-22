@@ -15,17 +15,17 @@ export class Navigation extends React.Component {
                 </div>
                 <div className="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                     <ul className="nav nav-tabs ">
-                        <li className="c-tabs active"><a data-toggle="tab" href="#dashboard">
+                        <li className="  active"><a data-toggle="tab" href="#dashboard">
                             <i className="c-icon fa fa-dashboard"></i>
                             <span>Dashboard</span></a>
                         </li>
-                        <li className="c-tabs"><a data-toggle="tab" href="#plants">
+                        <li className=" "><a data-toggle="tab" href="#plants">
                             <i className="c-icon fa fa-leaf"></i>
                             <span>BIOGAS PLANTS</span></a></li>
-                        <li className="c-tabs"><a data-toggle="tab" href="#technicians">
+                        <li className=" "><a data-toggle="tab" href="#technicians">
                             <i className="c-icon fa fa-wrench"></i>
                             <span>TECHNICIANS</span></a></li>
-                        <li className="c-tabs"><a data-toggle="tab" href="#jobs">
+                        <li className=" "><a data-toggle="tab" href="#jobs">
                             <i className="c-icon fa fa-suitcase"></i>
                             <span>Jobs</span></a></li>
                     </ul>

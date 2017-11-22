@@ -1,4 +1,5 @@
 *.pyc
-db.sqlite3
 node_modules
 assets/bundles
+db.sqlite3
+webpack-stats.json
