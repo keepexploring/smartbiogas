@@ -1,1 +1,1 @@
-{"status":"done","chunks":{"App":[{"name":"App-27f55908a17f8fab4108.js","path":"/home/scene/Desktop/biogas/smartbiogas/assets/bundles/App-27f55908a17f8fab4108.js"}]}}
+{"status":"error","error":"ModuleParseError","message":"Module parse failed: Unexpected token (1:5)\nYou may need an appropriate loader to handle this file type.\n|   h1 {\n|         color: green;\n|     }"}

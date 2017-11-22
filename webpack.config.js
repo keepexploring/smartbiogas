@@ -1,6 +1,7 @@
 var path = require("path");
 var webpack = require('webpack');
 var BundleTracker = require('webpack-bundle-tracker');
+var ip = 'localhost'
 
 module.exports = {
     context: __dirname,
@@ -9,8 +10,11 @@ module.exports = {
            },
     output: {
         path: path.resolve('./assets/bundles/'),
+        publicPath: '/assets/bundles/'
         filename: "[name]-[hash].js"
-    },
+    }
+,
+config.output.publicPath = 'http://' + ip + ':3000' + '/assets/bundles/'
 
     plugins: [
         new BundleTracker({filename: './webpack-stats.json'})
@@ -27,17 +31,8 @@ module.exports = {
                     presets: ['react','es2015','env']
                   }
                 }
-              },
-              {
-            test: /\.scss$/,
-            use: [{
-                loader: "style-loader" // creates style nodes from JS strings
-            }, {
-                loader: "css-loader" // translates CSS into CommonJS
-            }, {
-                loader: "sass-loader" // compiles Sass to CSS
-            }]
           }
+            
         ]
     }
 };
