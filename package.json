@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "npm start & python manage.py runserver "
+    "dev": "npm start & python manage.py runserver ",
+    "build": "webpack --config webpack.config.js"
   },
   "author": "Jinsoo Park <ddwax89@gmail.com> (https://medium.com/@urangurang)",
   "license": "MIT",
