@@ -13,4 +13,8 @@ new WebpackDevServer(webpack(config), {
   }
 
   console.log('Listening at ' + config.ip + ':3000')
+<<<<<<< HEAD
 })
+=======
+})
+>>>>>>> origin/valia
