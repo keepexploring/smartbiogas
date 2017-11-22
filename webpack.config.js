@@ -1,7 +1,6 @@
 var path = require("path");
 var webpack = require('webpack');
 var BundleTracker = require('webpack-bundle-tracker');
-var ip = 'localhost';
 
 module.exports = {
     context: __dirname,
@@ -10,10 +9,8 @@ module.exports = {
            },
     output: {
         path: path.resolve('./assets/bundles/'),
-        // publicPath: '/Users/Joel/Documents/CREATIVenergie/Dashboard2/django_react3/SimpleReactDjango/assets/bundles/',
         filename: "[name]-[hash].js"
-    }
-,
+    },
 
     plugins: [
         new BundleTracker({filename: './webpack-stats.json'})
