@@ -15,7 +15,7 @@ export class NavSecond extends React.Component {
                  <li><a href="#">Alerts</a></li>
                  <li><a href="#">Account Details</a></li>
                  <li><a href="#">Settings</a></li>
-                 <li><a href="#">Log Out</a></li>
+                 <li><a href="/logout">Log Out</a></li>
                </ul>
             </nav>
         </div>
