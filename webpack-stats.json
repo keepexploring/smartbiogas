@@ -1,1 +1,1 @@
-{"status":"error","error":"ModuleNotFoundError","message":"Module not found: Error: Can't resolve '../images/logo_150.png ' in '/home/scene/Desktop/biogas/smartbiogas/reactjs/baseComp'"}
+{"status":"done","publicPath":"http://127.0.0.1:3000/assets/bundles/","chunks":{"App":[{"name":"App-eefa14d6050845543039.js","publicPath":"http://127.0.0.1:3000/assets/bundles/App-eefa14d6050845543039.js","path":"/home/scene/Desktop/biogas/smartbiogas/assets/bundles/App-eefa14d6050845543039.js"}]}}

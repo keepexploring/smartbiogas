@@ -18979,7 +18979,9 @@ var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _logo_ = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"../../images/logo_150.png \""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+var _logo_ = __webpack_require__(35);
+
+var _logo_2 = _interopRequireDefault(_logo_);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -19007,7 +19009,7 @@ var Logo = exports.Logo = function (_React$Component) {
                 _react2.default.createElement(
                     'a',
                     { 'class': 'img_icon', href: '#' },
-                    _react2.default.createElement('img', { src: _logo_.logoimg, alt: '.' })
+                    _react2.default.createElement('img', { src: _logo_2.default, alt: '.' })
                 )
             );
         }
@@ -19015,6 +19017,12 @@ var Logo = exports.Logo = function (_React$Component) {
 
     return Logo;
 }(_react2.default.Component);
+
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__.p + "500efb15f4e399fda88210aef3e86a44.png";
 
 /***/ })
 /******/ ]);
