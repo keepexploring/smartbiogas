@@ -31,6 +31,24 @@ config.output.publicPath = 'http://' + ip + ':3000' + '/assets/bundles/'
                     presets: ['react','es2015','env']
                   }
                 }
+<<<<<<< HEAD
+=======
+              },
+              {
+            test: /\.scss$/,
+            use: [{
+                loader: "style-loader" // creates style nodes from JS strings
+            }, {
+                loader: "css-loader" // translates CSS into CommonJS
+            }, {
+                loader: "sass-loader" // compiles Sass to CSS
+            }]
+          },
+          {
+            test: /\.(jpe?g|png|gif|svg|tif)$/,
+            loader: "file-loader"
+          
+>>>>>>> 46a7498c2dde1048bd30e656122b76ac71cce659
           }
             
         ]

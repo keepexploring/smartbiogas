@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"status":"error","error":"ModuleParseError","message":"Module parse failed: Unexpected token (1:5)\nYou may need an appropriate loader to handle this file type.\n|   h1 {\n|         color: green;\n|     }"}
+=======
+{"status":"error","error":"ModuleNotFoundError","message":"Module not found: Error: Can't resolve '../images/logo_150.png ' in '/home/scene/Desktop/biogas/smartbiogas/reactjs/baseComp'"}
+>>>>>>> 46a7498c2dde1048bd30e656122b76ac71cce659
