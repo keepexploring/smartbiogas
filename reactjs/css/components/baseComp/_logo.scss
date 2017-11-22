@@ -1,0 +1,24 @@
+.logo {
+    float: left;
+      z-index: 999;
+      height: 77px;
+      background: #fff;
+      text-align:center;
+      -webkit-box-shadow: 1px 0 20px rgba(0,0,0,.1);
+      box-shadow: 1px 0 20px rgba(0,0,0,.1);
+
+      .img_icon img {
+        width:100%
+     }
+
+     .profile_icon {
+      color:$yellow;
+      font-size:18px;
+      padding:0 7px;
+      @include border-solid(4px, $yellow);
+      @include border-radius(4px);
+   }
+  }
+
+
+  

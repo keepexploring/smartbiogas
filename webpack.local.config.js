@@ -22,8 +22,5 @@ config.plugins = config.plugins.concat([
   new BundleTracker({filename: './webpack-stats.json'}),
 ])
 
-// config.module.loaders.push(
-//   { test: /\.jsx?$/, exclude: /node_modules/, loaders: ['react-hot', 'babel-loader'] }
-// )
 
 module.exports = config

@@ -1,0 +1,21 @@
+.nav-tabs{
+	border-bottom: none;
+}
+.c-tabs {
+    display: block;
+	min-height: 100px;
+	width:20%;
+    padding:12px;
+    text-align:center;
+
+    @include tab-shadow(rgba(0,0,0,.5));
+    @extend %flexible;
+	
+	
+	color:#fff;
+    background-color:$greendark;
+    
+	
+-webkit-transition:color .3s;
+transition:color .3s
+}

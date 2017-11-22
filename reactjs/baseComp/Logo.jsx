@@ -8,6 +8,7 @@ export class Logo extends React.Component {
           <a class="img_icon" href="#">
             <img src={logoimg} alt="."/>
           </a>
+          <a class="profile_icon" href="#profile_data" data-toggle="collapse"><i class="fa fa-caret-down"></i></a>
       </div>
 
         )

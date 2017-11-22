@@ -1,0 +1,13 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+@import url(https://fonts.googleapis.com/css?family=Roboto);
+
+a{
+	text-decoration:none;
+    cursor:pointer;
+    &:hover,
+    focus,
+    visited{
+        text-decoration:none;
+        outline:none;
+    }
+}
