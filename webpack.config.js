@@ -1,7 +1,7 @@
 var path = require("path");
 var webpack = require('webpack');
 var BundleTracker = require('webpack-bundle-tracker');
-var ip = 'localhost'
+var ip = 'localhost';
 
 module.exports = {
     context: __dirname,
@@ -10,11 +10,10 @@ module.exports = {
            },
     output: {
         path: path.resolve('./assets/bundles/'),
-        publicPath: '/assets/bundles/'
+        // publicPath: '/Users/Joel/Documents/CREATIVenergie/Dashboard2/django_react3/SimpleReactDjango/assets/bundles/',
         filename: "[name]-[hash].js"
     }
 ,
-config.output.publicPath = 'http://' + ip + ':3000' + '/assets/bundles/'
 
     plugins: [
         new BundleTracker({filename: './webpack-stats.json'})
@@ -31,8 +30,6 @@ config.output.publicPath = 'http://' + ip + ':3000' + '/assets/bundles/'
                     presets: ['react','es2015','env']
                   }
                 }
-<<<<<<< HEAD
-=======
               },
               {
             test: /\.scss$/,
@@ -48,7 +45,6 @@ config.output.publicPath = 'http://' + ip + ':3000' + '/assets/bundles/'
             test: /\.(jpe?g|png|gif|svg|tif)$/,
             loader: "file-loader"
           
->>>>>>> 46a7498c2dde1048bd30e656122b76ac71cce659
           }
             
         ]
