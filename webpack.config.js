@@ -5,7 +5,8 @@ var BundleTracker = require('webpack-bundle-tracker');
 module.exports = {
     context: __dirname,
     entry: {
-        App: './reactjs/js/index.jsx'
+        Header:'./reactjs/js/Header.jsx'
+        Dashboard: './reactjs/js/Dashboard.jsx'
            },
     output: {
         path: path.resolve('./assets/bundles/'),

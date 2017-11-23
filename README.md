@@ -36,6 +36,9 @@ python manage.py collectstatic
 
 #run the App
 * python manage.py runserver
+* nmp start
+OR
+* npm run dev
 
 
 #====================Deployment=======================================

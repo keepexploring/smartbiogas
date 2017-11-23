@@ -7,10 +7,14 @@ var config = require('./webpack.config.js')
 
 
 config.entry = {
-  App: [
+  Header: [
     'webpack-dev-server/client?http://' + ip + ':3000',
     'webpack/hot/only-dev-server',
-    './reactjs/js/index.jsx',
+    './reactjs/js/Header.jsx',
+  ],Dashboard: [
+    'webpack-dev-server/client?http://' + ip + ':3000',
+    'webpack/hot/only-dev-server',
+    './reactjs/js/Dashboard.jsx',
   ],
 }
 

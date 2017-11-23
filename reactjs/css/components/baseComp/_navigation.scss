@@ -1,9 +1,10 @@
 .nav{
     border-bottom: none;
+    width:80%;
     li{
         display: block;
-        min-height: 100px;
-        width:20%;
+        min-height: $headerHeight;
+        width:25%;
         padding:12px;
         text-align:center;
         background-color:$greendark;
@@ -16,20 +17,21 @@
             font-size:18px;
             &:hover{
                 background-color:$greendark;
-                color: white;
+                color: $greydark;
                 border: none;
             }
         }
-        
+       
     }
     li.active{
         background-color:#fff;
-    }
-    li.active a{
-        border:none;
-        color:$greendark;
-        &focus  {
-            border: none;
+        a{
+            border:none;
+            color:$greendark;
+            &:hover{
+                border: none;
+                background-color:white;
+            }
         }
     }
 }
@@ -38,12 +40,113 @@
 	width: 100%;
 	font-size:22px
 }
-.nav li a:hover{
+/*.nav li a:hover{
     background-color:$greendark;
     color: white;
-}
+}*/
     
-	
+/***
+
+====================================================================
+	CSS media querry
+====================================================================
+
+***/
+/* Custom, iPhone Retina */
+@media only screen and (min-width : 320px) {
+    
+    }
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (min-width : 480px) {
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (min-width : 768px) {
+    
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (min-width : 992px) {
+    
+    }
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (min-width : 1200px) {
+    
+    }
+    /* iPad */
+    @media all and (min-width:768px) and (max-width:1023px) {
+        .head-nav li{
+           height: 120px;
+         }
+    }
+    
+    /*==========  Non-Mobile First Method  ==========*/
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (max-width : 1200px) {
+    
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (max-width : 992px) {
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (max-width : 768px) {
+    
+    }
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (max-width : 480px) {
+    
+    }
+    
+    /* Custom, iPhone Retina */
+    @media only screen and (max-width : 320px) {
+    
+    }
+    
+    @media all and (min-width:1024px) {
+    
+    }
+    
+    
+    @media all and (max-width:767px) {
+
+    
+      
+    }
+    
+    @media all and (max-width: 480px){ /* When screen size is 480px */
+    
+      .head-nav, .navbar-default{
+        background-color:$greendark;
+      }
+      .nav {
+        width: 100%;
+        li{
+            width: 100%;
+            box-shadow: none;
+            -webkit-box-shadow: none;
+            -moz-box-shadow:none;
+        }
+      }
+      .nav-tabs{
+        height: 100%;
+    
+      }
+      .navbar-fixed-bottom .navbar-collapse, .navbar-fixed-top .navbar-collapse{
+        padding-right: 0;
+        padding-left: 0;
+        height: 100vh;
+        max-height:120%;
+      }
+    }
+        
 	
 
     

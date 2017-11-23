@@ -1,5 +1,6 @@
 import React from 'react';
 import logoimg from '../images/logo_150.png';
+import {NavSecond} from './NavSecond.jsx'
 
 export class Logo extends React.Component {
     render() {
@@ -9,6 +10,7 @@ export class Logo extends React.Component {
             <img src={logoimg} alt="."/>
           </a>
           <a class="profile_icon" href="#profile_data" data-toggle="collapse"><i class="fa fa-caret-down"></i></a>
+          <NavSecond />
       </div>
 
         )
