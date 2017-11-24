@@ -1,23 +1,26 @@
-# Simple React Structure on Django
+# BioGas Poject
 
-### USAGE
-> Follow next article or Download this repository
+## USAGE
+Follow next article or Download this repository
 
 #### Follow this article.
 * https://medium.com/@urangurang/react-on-django-boilerplate-3c3735df41f2#.4dslhg6us
 
-- - -
-#====================Local Installation=======================================
+## Build With
+* Django
+* React
+
+## =============== Local Installation ===============
 #### Git Clone
 
 
-#Set up virtual environment
+### Set up virtual environment
 * pip install virtualenv (if you don't have it)
 * virtualenv ve_biogas
 * source [path to ve]/bin/activate
 (source /home/scene/Desktop/biogas/ve_biogas/bin/activate)
 
-#install libs
+### Install libs
 * cd (go to the saved folder smartbiogas)
 * pip install -r requirements.txt
 * sudo apt-get install binutils libproj-dev gdal-bin
@@ -27,32 +30,32 @@ sudo apt-get install binutils libproj-dev gdal-bin
 
 * python manage.py migrate
 
-#install react packages
+### Install react packages
 * npm install
 * webpack --config webpack.config.js
 * python manage.py migrate
 
 python manage.py collectstatic
 
-#run the App
+### Run the App
 * python manage.py runserver
 * nmp start
 OR
 * npm run dev
 
 
-#====================Deployment=======================================
-#Setting up server
+## ===============Deployment=======================
+### Setting up server
 * sudo pip install virtualenv
 * sudo pip install virtualenvwrapper
 * pip install -r requirements.txt
 
 
-#Install pip
+### Install pip
 sudo apt-get install python-setuptools python-dev build-essential
 sudo easy_install pip
 
-##Install services for deployment:
+### Install services for deployment:
 sudo apt-get update
 sudo apt-get install ufw
 sudo apt-get install nginx
@@ -62,7 +65,7 @@ sudo apt-get install git
 sudo pip install virtualenv
 sudo apt-get install binutils libproj-dev gdal-bin
 
-###Managing the Nginx Process
+### Managing the Nginx Process
 Now that you have your web server up and running, we can go over some basic management commands.
 
 To stop your web server, you can type:

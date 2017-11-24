@@ -1,0 +1,5 @@
+/* BASE FUNCTIONS .
+================================================================= */
+@function calculate-height ($percentage) {
+    @return 160px * $percentage;
+}

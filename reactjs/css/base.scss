@@ -1,37 +1,55 @@
+/* BASE - Base Variable file along with starting point Mixins and Placeholders.
+================================================================= */
 
-    @import 'base/all';
-    @import 'components/all';
-    /***
+@import 'base/variables';
+@import 'base/mixins';
+@import 'base/placeholders';
 
-====================================================================
-	General 
-====================================================================
-
-***/
-$headerHeight: 100px;
-.main{
-    
+/* BASE FONTS - Body, links, headers.
+================================================================= */
+body{
+    font-size:15px;
+    line-height:1.8em;
+	font-weight:400;
+	font-family:$font-primary;
+}
+a{
+	text-decoration:none;
+    // cursor:pointer;
+    color:$greendark;
+    &:hover,
+    focus,
+    visited{
+        text-decoration:none;
+        outline:none;
+    }
+}
+.text-white{
+    color:white;
 }
 
+/* FRAMEWORK - Header,Footer, Main.
+================================================================= */
+@import 'components/baseComp/header';
         
-/***
-
-====================================================================
-	Footer Section
-====================================================================
-
-***/
 .top-margin{
     margin-top: 100px;
   }
 
-  /***
+  /* ---Footer----*/
+  footer{
+      display:block;
+      padding: 15px;
+      background: $greendark;
+      p{
+          margin:0;
+          text-transform: uppercase;
+        }
+  }
 
-====================================================================
-	CSS media querry
-====================================================================
+/* MEDIA Queries 
+================================================================= */
 
-***/
 /* Custom, iPhone Retina */
 @media only screen and (min-width : 320px) {
     
@@ -58,7 +76,7 @@ $headerHeight: 100px;
     }
     /* iPad */
     @media all and (min-width:768px) and (max-width:1023px) {
-        $headerHeight: 160px;
+       
     }
     
     /*==========  Non-Mobile First Method  ==========*/
@@ -96,7 +114,7 @@ $headerHeight: 100px;
     
     @media all and (max-width:767px) {
       .top-margin{
-        margin-top: 150px;
+        margin-top: $margin-top-m;
       }
     
     }
