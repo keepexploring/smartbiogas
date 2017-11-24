@@ -1,5 +1,5 @@
 import React from 'react';
-import logoimg from '../images/logo_150.png';
+import logoimg from '../images/sb-logo-color.png';
 import {NavSecond} from './NavSecond.jsx'
 
 export class Logo extends React.Component {
