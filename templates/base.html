@@ -1,5 +1,6 @@
 {% load staticfiles %}
 
+
 <!DOCTYPE html>
 <html lang="en" data-textdirection="ltr" class="loading">
 
@@ -13,7 +14,6 @@
 
   <!-- BEGIN CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/bootstrap/css/bootstrap-grid.min.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/font-awesome.min.css' %}">
   <!-- <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/style.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/tabs.css' %}"> -->
@@ -24,8 +24,10 @@
 <body>
 
   {% load render_bundle from webpack_loader %}
-  <div  id="header"></div>
-  {% render_bundle 'Header' %}
+  <div  id="header">
+      {% include "navigation/header.html" %}
+  </div>
+  
   <!-- Dashboard Section -->
   {% block content %} {% endblock %}
   
@@ -54,7 +56,7 @@
   </script>
 
   <!-- BEGIN JS-->
-
+  {% include "svg_icons_sprite.html" %}
 </body>
 
 </html>

@@ -20,29 +20,17 @@ a{
     font-size: 18px;
 }
 
-/* Buttons */
-input[type=submit], .btn-submit{
-   background: transparent;
+/* Icons */
+.btn-submit{
+    background: none;
+    border: 0;
 }
-.svg-white path{
+.icon-white {
+    width:60px;
+    height: 60px;
     fill:white;
 }
-.btn-sign{
-    display:block;
-    position: relative;
-    bottom: 35px;
-    left: 10px;
-    border: 2px white solid;
-    border-top: none;
-    border-right: none;
-    width: 30px;
-    height: 12px;
-    transform: rotate(-45deg);
-}
-.btn-merge{
-    width: 100px;
-    height: 100px;
-}
+
 
 /* LOGIN - Header.
 ================================================================= */

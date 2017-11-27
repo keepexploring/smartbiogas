@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load icon %}
 
 <!DOCTYPE html>
 <html lang="en" data-textdirection="ltr" class="loading">
@@ -57,19 +58,15 @@
                     <label for="squaredThree" ><h4 >Remember me</h4></label>
                     
                   </div></td>
-                <td><a>Forgotten password?</a></td>
+                <td class="text-right"><a>Forgotten password?</a></td>
             </tr>    
         </table>
-        <div>
-            <button type="submit" value="" class="btn-submit">
-                    <img src="{% static 'basetemplates/img/sbn-icon-tick.svg' %}" width="90" height="50" alt="submit" />
+        <div class="col-md-12 text-center">
+            <button type="submit" value="" class="btn-submit" name="next" value="{{ next }}">
+                    {% svg_icon "sbn-tick" "white" %}
             </button>
-            <!-- <div class="btn-merge">
-                <input type="submit" value="" class="btn-submit" />
-                 <span class="btn-sign"></span> 
-            </div> -->
-            <input type="hidden" name="next" value="{{ next }}"/> 
         </div>
+        <a>New to the Network? Create a new admin profile</a>
         </form>
     </div>
     {% endblock %}
@@ -90,8 +87,8 @@
         });
     </script>
 
-    <!-- BEGIN JS-->
-
+    <!-- Icons-svg-->
+    {% include "svg_icons_sprite.html" %}
 </body>
 
 </html>

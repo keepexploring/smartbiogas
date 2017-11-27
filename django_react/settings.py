@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'webpack_loader',
     'django_dashboard',
+    'django_react',
 )
 
 MIDDLEWARE_CLASSES = (

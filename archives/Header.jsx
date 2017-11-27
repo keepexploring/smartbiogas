@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import base from '../css/base.scss';
-import {Logo} from '../baseComp/Logo.jsx'
-import {Navigation} from '../baseComp/Navigation.jsx'
+// import base from '../css/base.scss';
+// import {Logo} from '../baseComp/Logo.jsx'
+// import {Navigation} from '../baseComp/Navigation.jsx'
 
 export class Header extends React.Component {
     render() {
@@ -16,5 +16,5 @@ export class Header extends React.Component {
         )
     }
 }
-const rootElement = document.getElementById('header');
-ReactDOM.render(<Header/>, rootElement);
+// const rootElement = document.getElementById('header');
+// ReactDOM.render(<Header/>, rootElement);
