@@ -49,11 +49,7 @@ INSTALLED_APPS = (
     'django_postgres_extensions',
     'webpack_loader',
     'django_dashboard',
-<<<<<<< HEAD
-    
-=======
     'django_react',
->>>>>>> origin/valia
 )
 
 MIDDLEWARE_CLASSES = (
