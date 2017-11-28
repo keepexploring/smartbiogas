@@ -1,3 +1,148 @@
-  h1 {
-        color: green;
+/* BASE - Base Variable file along with starting point Mixins and Placeholders.
+================================================================= */
+
+@import 'base/variables';
+@import 'base/mixins';
+@import 'base/placeholders';
+
+/* BASE FONTS - Body, links, headers.
+================================================================= */
+body{
+    font-size:15px;
+    line-height:1.8em;
+	font-weight:400;
+	font-family:$font-primary;
+}
+h1{
+    text-transform: uppercase;
+}
+a{
+	text-decoration:none;
+    // cursor:pointer;
+    color:$greendark;
+    &:hover,
+    focus,
+    visited{
+        text-decoration:none;
+        outline:none;
     }
+}
+.text-white{
+    color:white;
+}
+.text-green{
+    color:$greendark;
+}
+.icon-white{
+    fill:white;
+ 
+}
+/* FRAMEWORK - Header,Footer, Main.
+================================================================= */
+@import 'components/baseComp/header';
+
+        
+.top-margin{
+    margin-top: 150px;
+  }
+
+  /* ---Footer----*/
+  footer{
+      display:block;
+      padding: 15px;
+      background: $greendark;
+      p{
+          margin:0;
+          text-transform: uppercase;
+        }
+  }
+
+
+  /* Components - Dashboard,Plans, Jobs
+================================================================= */
+/* Dashboard */
+@import 'components/dashboard/dashBox';
+.dashboard{
+    display: block;
+    h1{
+       margin-bottom: 20px; 
+    }
+}
+
+/* MEDIA Queries 
+================================================================= */
+
+/* Custom, iPhone Retina */
+@media only screen and (min-width : 320px) {
+    
+    }
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (min-width : 480px) {
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (min-width : 768px) {
+        
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (min-width : 992px) {
+    
+    }
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (min-width : 1200px) {
+    
+    }
+    /* iPad */
+    @media all and (min-width:768px) and (max-width:1023px) {
+       
+    }
+    
+    /*==========  Non-Mobile First Method  ==========*/
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (max-width : 1200px) {
+    
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (max-width : 992px) {
+       
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (max-width : 768px) {
+        
+    }
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (max-width : 480px) {
+    
+    }
+    
+    /* Custom, iPhone Retina */
+    @media only screen and (max-width : 320px) {
+    
+    }
+    
+    @media all and (min-width:1024px) {
+    
+    }
+    
+    
+    @media all and (max-width:767px) {
+      .top-margin{
+        margin-top: $margin-top-m;
+      }
+    
+    }
+    
+    @media all and (max-width: 480px){ /* When screen size is 480px */
+    
+     
+    }
+    

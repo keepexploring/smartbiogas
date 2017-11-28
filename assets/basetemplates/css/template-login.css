@@ -1,0 +1,218 @@
+/* LOGIN - General.
+================================================================= */
+body{
+    background:#315025;
+}
+h1,h2,h3,h4,p,a,label{
+    color: white;
+}
+h1{
+    text-transform: uppercase;
+}
+.container{
+    max-width:680px;
+}
+.h-inline{
+    display: inline-block;
+    margin-left: 5px;
+}
+a{
+    font-size: 18px;
+}
+
+/* Icons */
+.btn-submit{
+    background: none;
+    border: 0;
+}
+.icon-white {
+    width:60px;
+    height: 60px;
+    fill:white;
+}
+
+
+/* LOGIN - Header.
+================================================================= */
+header{
+    margin-top:150px;
+    margin-bottom:50px;
+}
+header img{
+    margin: 50px;
+}
+
+/* heading with lines */
+.fancy{
+    margin-bottom:50px;
+}
+.fancy span{
+    display: inline-block;
+    position: relative; 
+    width:25%
+}
+.fancy span:before,
+.fancy span:after {
+    content: "";
+    position: absolute;
+    height: 14px;
+    border-bottom: 1px solid white;
+    top: 0;
+    width: 150%;
+}
+.fancy span:before {
+    right: 100%;
+}
+.fancy span:after {
+    left: 100%;
+}
+
+/*Login table */
+tr {
+    border: 1px solid white;
+}
+.no-border{
+    border: none;
+}
+td{
+    width: 50%;
+    padding: 15px 10px 15px 10px;
+}
+
+/*Input styling*/
+input[type=checkbox]{
+    background-color: transparent;
+}
+input[type=text], input[type=password]{
+    width: 100%; 
+    background-color: transparent;
+    border-width: 0px 0px 1px 0px;
+}
+label{
+    font-weight: 300;
+    font-size:18px;
+}
+
+/* .square checkbox */
+.squaredThree {
+    width: 100%;
+    position: relative;
+    margin: 20px auto;  
+  }
+  .squaredThree input[type=checkbox] {
+    visibility: hidden;
+  }
+  .squaredThree input[type=checkbox]:checked + label:after {
+    opacity: 1;
+  }
+  .squaredThree label { /*box*/
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 1px solid #fcfff4;
+    /* background: transparent; */
+  }
+  .squaredThree label:after { /*checked tick*/
+    content: '';
+    width: 9px;
+    height: 5px;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    border: 1px solid #fcfff4;
+    border-top: none;
+    border-right: none;
+    background: transparent;
+    opacity: 0;
+    transform: rotate(-45deg);
+  }
+  
+  .squaredThree label h4{
+    width: 200px;
+    position: relative;
+    right: -30px;
+    top: -10px;
+  }
+
+
+/* MEDIA Queries 
+================================================================= */
+
+/* Custom, iPhone Retina */
+@media only screen and (min-width : 320px) {
+    
+    
+    }
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (min-width : 480px) {
+        
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (min-width : 768px) {
+       
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (min-width : 992px) {
+    
+    }
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (min-width : 1200px) {
+    
+    }
+    /* iPad */
+    @media all and (min-width:768px) and (max-width:1023px) {
+        
+}
+    
+    /*==========  Non-Mobile First Method  ==========*/
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (max-width : 1200px) {
+    
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (max-width : 992px) {
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (max-width : 768px) {
+        header{
+            margin-top:0;
+        }
+    }
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (max-width : 480px) {
+    
+    }
+    
+    /* Custom, iPhone Retina */
+    @media only screen and (max-width : 320px) {
+    
+    }
+    
+    @media all and (min-width:1024px) {
+  
+    }
+    
+    
+    @media all and (max-width:767px) {
+
+    }
+    
+    @media all and (max-width: 480px){ /* When screen size is 480px */
+        header img{
+            height: 30%;
+        } 
+        
+    }
+    
