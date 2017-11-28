@@ -30,7 +30,11 @@ sudo apt-get install binutils libproj-dev gdal-bin
 #install react packages
 * npm install
 * webpack --config webpack.config.js
-* python manage.py migrate
+
+# migrate database
+* python manage.py makemigrations
+* ./manage.py migrate
+* ./manage.py migrate --database=data
 
 python manage.py collectstatic
 
