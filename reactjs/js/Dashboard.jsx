@@ -29,6 +29,14 @@ export class Dashboard extends React.Component {
         "Average Repair Time (Days)",
         "Ongoing Jobs",
         "Faults fixed"
+      ],
+      icons:[
+        "sbn-icon-leaf",
+        "sbn-tick",
+        "sbn-icon-leaf",
+        "sbn-icon-leaf",
+        "sbn-icon-leaf",
+        "sbn-icon-leaf"
       ]
     };
   }
@@ -56,15 +64,17 @@ export class Dashboard extends React.Component {
     /* --Dashbox loop--*/
     const boxes = this.state.titles;
     const text = this.state.values;
+    const icon = this.state.icons;
     const boxList = boxes.map(function (item, index) {
       let v = text[index];
-      return <DashBox title={item.toString()} value={v} />
+      let ic = icon[index]
+      return <DashBox title={item.toString()} value={v} icon={ic} key={index} />
     });
 
     return (
 
         <div className="dashboard col-md-12" id="dashboard">
-          <h1 className="text-center">Data Widget </h1>
+          <h1 className="text-center text-green">Data Widget </h1>
           <div id="widgets"className="" >
           {boxList}
           </div>

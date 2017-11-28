@@ -30,7 +30,13 @@ a{
 .text-white{
     color:white;
 }
-
+.text-green{
+    color:$greendark;
+}
+.icon-white{
+    fill:white;
+ 
+}
 /* FRAMEWORK - Header,Footer, Main.
 ================================================================= */
 @import 'components/baseComp/header';
@@ -59,7 +65,6 @@ a{
 .dashboard{
     display: block;
     h1{
-       color: $greendark;
        margin-bottom: 20px; 
     }
 }

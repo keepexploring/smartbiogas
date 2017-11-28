@@ -1,6 +1,7 @@
 .box{
     display: block;
     background-color:$greenlight;
+    max-height:300px;
     max-width : 300px;
     margin-left: 2.5%;
     margin-right: 2.5%;
@@ -11,7 +12,13 @@
     }
 }
 .box_cont {
-	min-height:150px;
+    min-height:180px;
+    padding: 10px;
     text-align:center;
     border: 5px white solid;
+    h1{
+       font-size: 70px; 
+       font-weight: 900;
+    }
+    
 }
