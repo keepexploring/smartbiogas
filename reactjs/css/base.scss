@@ -13,6 +13,9 @@ body{
 	font-weight:400;
 	font-family:$font-primary;
 }
+h1{
+    text-transform: uppercase;
+}
 a{
 	text-decoration:none;
     // cursor:pointer;
@@ -34,10 +37,8 @@ a{
 
         
 .top-margin{
-    margin-top: 100px;
+    margin-top: 150px;
   }
-
-
 
   /* ---Footer----*/
   footer{
@@ -50,6 +51,18 @@ a{
         }
   }
 
+
+  /* Components - Dashboard,Plans, Jobs
+================================================================= */
+/* Dashboard */
+@import 'components/dashboard/dashBox';
+.dashboard{
+    display: block;
+    h1{
+       color: $greendark;
+       margin-bottom: 20px; 
+    }
+}
 
 /* MEDIA Queries 
 ================================================================= */
