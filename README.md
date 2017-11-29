@@ -33,7 +33,11 @@ sudo apt-get install binutils libproj-dev gdal-bin
 ### Install react packages
 * npm install
 * webpack --config webpack.config.js
+
+### Python database - supper user
 * python manage.py migrate
+* python manage.py createsuperuser
+ add user name and password
 
 python manage.py collectstatic
 
