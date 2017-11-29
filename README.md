@@ -18,29 +18,37 @@ Follow next article or Download this repository
 * pip install virtualenv (if you don't have it)
 * virtualenv ve_biogas
 * source [path to ve]/bin/activate
-(source /home/scene/Desktop/biogas/ve_biogas/bin/activate)
+(*source /home/scene/Desktop/biogas/ve_biogas/bin/activate*)
 
 ### Install libs
 * cd (go to the saved folder smartbiogas)
 * pip install -r requirements.txt
-* sudo apt-get install binutils libproj-dev gdal-bin
-Note: if an error with gdal library run
-apt-get -f install
-sudo apt-get install binutils libproj-dev gdal-bin
 
-* python manage.py migrate
+#### ====================Note: if an error =====================
+##### with gdal library run
+* apt-get -f install
+* sudo apt-get install binutils libproj-dev gdal-bin
+
+####  src/pyodbc.h:56:17: fatal error: sql.h: No such file or directory
+sudo apt-get install unixodbc-dev
+pip install pyodbc
+
+sudo apt-get install build-dep python-psycopg2
+pip install psycopg2 
+#### =========================================================== 
+
+# migrate database
+* python manage.py makemigrations
+* ./manage.py migrate  [_Note-Ubutnu: python manage.py migrate_ ]
+* ./manage.py migrate --database=data [_Note-Ubutnu: manage.py migrate --database=data_ ]
+* python manage.py createsuperuser
+
+python manage.py collectstatic
 
 ### Install react packages
 * npm install
 * webpack --config webpack.config.js
 
-# migrate database
-* python manage.py makemigrations
-* ./manage.py migrate
-* ./manage.py migrate --database=data
-* python manage.py createsuperuser
-
-python manage.py collectstatic
 
 ### Run the App
 * python manage.py runserver
