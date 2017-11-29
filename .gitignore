@@ -1,6 +1,9 @@
 *.pyc
 node_modules
 assets/bundles
+config/configs.ini
 db.sqlite3
 webpack-stats.json
 npm-debug.log
+
+

@@ -6,3 +6,4 @@ from django.apps import AppConfig
 
 class DjangoDashboardConfig(AppConfig):
     name = 'django_dashboard'
+    verbose_name = 'Biogas Owners, Plants and Technicans'

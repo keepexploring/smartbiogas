@@ -34,10 +34,11 @@ sudo apt-get install binutils libproj-dev gdal-bin
 * npm install
 * webpack --config webpack.config.js
 
-### Python database - supper user
-* python manage.py migrate
+# migrate database
+* python manage.py makemigrations
+* ./manage.py migrate
+* ./manage.py migrate --database=data
 * python manage.py createsuperuser
- add user name and password
 
 python manage.py collectstatic
 

@@ -12,15 +12,20 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import ConfigParser
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+Config = ConfigParser.ConfigParser() # we store security setting in another file
+Config.read(BASE_DIR+'/config/configs.ini')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'frobam8*+@h(p%#8ft+)x=e73d_t(jch3hn%-nf+6f=y5zq=kb'
+SECRET_KEY = Config.get("django","secret_key")
+#'frobam8*+@h(p%#8ft+)x=e73d_t(jch3hn%-nf+6f=y5zq=kb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -40,6 +45,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
+    'django_postgres_extensions',
     'webpack_loader',
     'django_dashboard',
     'django_react',
@@ -86,9 +93,35 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    },
+    # 'data': {
+    #     'ENGINE': 'sql_server.pyodbc',
+    #     'NAME': Config.get("azure", "database"),
+    #     'USER': Config.get("azure", "username"),
+    #     'PASSWORD': Config.get("azure", "password"),
+    #     'HOST': Config.get("azure", "server"),
+    #     'PORT': '',
+
+    #     'OPTIONS': {
+    #         'driver': 'ODBC Driver 13 for SQL Server',
+    #     },
+    
+    # },
+        'data': {
+            #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'NAME': Config.get("postgres_azure", "database_name"),
+            'USER': Config.get("postgres_azure", "username"),
+            'PASSWORD': Config.get("postgres_azure", "password"),
+            'HOST': Config.get("postgres_azure", "host"),
+            'PORT': Config.get("postgres_azure", "port"),
+
+        }
 }
 
+DATABASE_CONNECTION_POOLING = True
+
+DATABASE_ROUTERS = ['django_dashboard.routers.Dashboard_Router',]
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
