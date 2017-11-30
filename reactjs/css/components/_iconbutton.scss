@@ -1,0 +1,20 @@
+.btn-icon{
+    display: block;
+    width: 60px;
+    height:60px;
+    margin-bottom: 20px;
+    border-radius: 50%;
+    border: 6px $yellow solid;
+    background-color: white;
+    &:hover,selected{
+        background-color: $yellowlight;
+        i{
+            color:white;
+        }
+    }
+    i{
+        color:$yellow;
+        font-size: 30px;
+        line-height: 1.6;
+    }
+}

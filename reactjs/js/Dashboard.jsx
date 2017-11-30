@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom';
 import base from '../css/base.scss';
 
 import DashBox from '../components/DashBox.jsx';
+import DashGraph from '../components/DashGraph.jsx';
+import IconButton from '../components/IconButton.jsx';
+
 
 const testData = {
   "plants": 407,
@@ -32,13 +35,16 @@ export class Dashboard extends React.Component {
       ],
       icons:[
         "sbn-icon-leaf",
-        "sbn-tick",
-        "sbn-icon-leaf",
-        "sbn-icon-leaf",
-        "sbn-icon-leaf",
-        "sbn-icon-leaf"
-      ]
+        "sbn-icon-tick",
+        "sbn-icon-alert",
+        "sbn-icon-dial",
+        "sbn-icon-case",
+        "sbn-icon-technician"
+      ],
+      btnView: true
     };
+    this.btnWidg=this.btnWidg.bind(this);
+    this.btnGraph=this.btnGraph.bind(this);
   }
   componentDidMount() {
     /**
@@ -68,22 +74,38 @@ export class Dashboard extends React.Component {
     const boxList = boxes.map(function (item, index) {
       let v = text[index];
       let ic = icon[index]
-      return <DashBox title={item.toString()} value={v} icon={ic} key={index} />
+      return <DashBox title={item.toString()} value={v} icon={ic} />
     });
-
+    /*view*/
+    const view=this.state.btnView;
+    const graphView = <DashGraph />;
+    
     return (
-
+      
         <div className="dashboard col-md-12" id="dashboard">
           <h1 className="text-center text-green">Data Widget </h1>
-          <div id="widgets"className="" >
-          {boxList}
+          <div id="widgets" className="col-md-11" >
+         {view? boxList : graphView} 
+          </div>
+          <div className="col-md-1 dash-btn">
+            <IconButton icon="fa fa-info" action={this.btnWidg} key="1" active={this.state.btnView} />
+            <IconButton icon="fa fa-signal" action={this.btnGraph} key="2" />
           </div>
         </div>
-
-
     )
+  }
+  btnWidg(){
+    this.setState({
+      btnView:true
+    })
+    document.getElementById
+  }
+  btnGraph(){
+    this.setState({
+      btnView:false
+    })
   }
 }
 
-const rootElement = document.getElementById('app');
-ReactDOM.render(<Dashboard />, document.getElementById('app'));
+const rootElement = document.getElementById('dashboard');
+ReactDOM.render(<Dashboard />, rootElement);

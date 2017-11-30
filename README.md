@@ -30,11 +30,11 @@ Follow next article or Download this repository
 * sudo apt-get install binutils libproj-dev gdal-bin
 
 ####  src/pyodbc.h:56:17: fatal error: sql.h: No such file or directory
-sudo apt-get install unixodbc-dev
-pip install pyodbc
+* sudo apt-get install unixodbc-dev
+* pip install pyodbc
 
-sudo apt-get install build-dep python-psycopg2
-pip install psycopg2 
+* sudo apt-get install build-dep python-psycopg2
+* pip install psycopg2 
 #### =========================================================== 
 
 # migrate database
@@ -51,9 +51,8 @@ python manage.py collectstatic
 
 
 ### Run the App
-* python manage.py runserver
-* nmp start
-OR
+* terminal 1:python manage.py runserver  terminal 2: nmp start
+* _OR_
 * npm run dev
 
 

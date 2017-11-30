@@ -5,68 +5,21 @@
 @import 'base/mixins';
 @import 'base/placeholders';
 
-/* BASE FONTS - Body, links, headers.
-================================================================= */
-body{
-    font-size:15px;
-    line-height:1.8em;
-	font-weight:400;
-	font-family:$font-primary;
-}
-h1{
-    text-transform: uppercase;
-}
-a{
-	text-decoration:none;
-    // cursor:pointer;
-    color:$greendark;
-    &:hover,
-    focus,
-    visited{
-        text-decoration:none;
-        outline:none;
-    }
-}
-.text-white{
-    color:white;
-}
-.text-green{
-    color:$greendark;
-}
-.icon-white{
-    fill:white;
- 
-}
-/* FRAMEWORK - Header,Footer, Main.
-================================================================= */
-@import 'components/baseComp/header';
-
-        
-.top-margin{
-    margin-top: 150px;
-  }
-
-  /* ---Footer----*/
-  footer{
-      display:block;
-      padding: 15px;
-      background: $greendark;
-      p{
-          margin:0;
-          text-transform: uppercase;
-        }
-  }
 
 
   /* Components - Dashboard,Plans, Jobs
 ================================================================= */
 /* Dashboard */
 @import 'components/dashboard/dashBox';
+@import 'components/iconbutton';
 .dashboard{
     display: block;
     h1{
        margin-bottom: 20px; 
     }
+}
+.dash-btn{
+    margin-top:17%;
 }
 
 /* MEDIA Queries 
@@ -135,9 +88,7 @@ a{
     
     
     @media all and (max-width:767px) {
-      .top-margin{
-        margin-top: $margin-top-m;
-      }
+   
     
     }
     
