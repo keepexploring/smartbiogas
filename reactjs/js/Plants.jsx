@@ -4,8 +4,9 @@ import React from 'react';
 export class Plants extends React.Component {
     render() {
         return (
-            <h1>Hello plants</h1>
+            <div className="plants col-md-12 center-block" id="plants"> 
 
+            </div>
         )
     }
 }

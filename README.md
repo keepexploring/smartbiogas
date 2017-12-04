@@ -51,9 +51,11 @@ python manage.py collectstatic
 
 
 ### Run the App
+* Run the virtual environment source [path to ve]/bin/activate
 * terminal 1:python manage.py runserver  terminal 2: nmp start
 * _OR_
 * npm run dev
+* Open the browwser to http://127.0.0.1:8000
 
 
 ## ===============Deployment=======================

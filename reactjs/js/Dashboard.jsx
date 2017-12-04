@@ -17,9 +17,6 @@ const testData = {
 }
 
 
-
-
-
 export class Dashboard extends React.Component {
   constructor(props) {
     super(props);
@@ -82,15 +79,15 @@ export class Dashboard extends React.Component {
     
     return (
       
-        <div className="dashboard col-md-12" id="dashboard">
+        <div className="dashboard col-md-12 center-block" id="dashboard">
           <h1 className="text-center text-green">Data Widget </h1>
-          <div id="widgets" className="col-md-11" >
-         {view? boxList : graphView} 
-          </div>
-          <div className="col-md-1 dash-btn">
+          <div className="col-md-1 dash-btn text-center">
             <IconButton icon="fa fa-info" action={this.btnWidg} key="1" active={this.state.btnView} />
             <IconButton icon="fa fa-signal" action={this.btnGraph} key="2" />
           </div>
+          <div id="widgets" className="col-md-11 center-block" >
+         {view? boxList : graphView} 
+          </div> 
         </div>
     )
   }
@@ -107,5 +104,5 @@ export class Dashboard extends React.Component {
   }
 }
 
-const rootElement = document.getElementById('dashboard');
-ReactDOM.render(<Dashboard />, rootElement);
+// const rootElement = document.getElementById('dashboard');
+// ReactDOM.render(<Dashboard />, rootElement);

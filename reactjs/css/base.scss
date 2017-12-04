@@ -14,6 +14,7 @@
 @import 'components/iconbutton';
 .dashboard{
     display: block;
+    margin: auto;
     h1{
        margin-bottom: 20px; 
     }
@@ -37,7 +38,9 @@
     
     /* Small Devices, Tablets */
     @media only screen and (min-width : 768px) {
-        
+        .dash-btn{
+            margin-top:5%;
+        }
     }
     
     /* Medium Devices, Desktops */
@@ -69,12 +72,14 @@
     
     /* Small Devices, Tablets */
     @media only screen and (max-width : 768px) {
-        
+        .dash-btn{
+            margin-top:5%;
+        }
     }
     
     /* Extra Small Devices, Phones */
     @media only screen and (max-width : 480px) {
-    
+        
     }
     
     /* Custom, iPhone Retina */
