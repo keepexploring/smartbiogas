@@ -104,5 +104,5 @@ export class Dashboard extends React.Component {
   }
 }
 
-// const rootElement = document.getElementById('dashboard');
-// ReactDOM.render(<Dashboard />, rootElement);
+const rootElement = document.getElementById('dashboard');
+ReactDOM.render(<Dashboard />, rootElement);
