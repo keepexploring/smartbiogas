@@ -37,10 +37,14 @@ Follow next article or Download this repository
 * pip install psycopg2 
 #### =========================================================== 
 
+#conf
+* create a folder config
+* copy configs.ini (not incuded)
+
 # migrate database
 * python manage.py makemigrations
-* ./manage.py migrate  [_Note-Ubutnu: python manage.py migrate_ ]
-* ./manage.py migrate --database=data [_Note-Ubutnu: manage.py migrate --database=data_ ]
+* ./manage.py migrate 
+* ./manage.py migrate --database=data 
 * python manage.py createsuperuser
 
 python manage.py collectstatic
