@@ -3,11 +3,7 @@ db.sqlite3
 node_modules
 assets/bundles
 config/configs.ini
-<<<<<<< HEAD
-django_dashboard/migrations
-=======
 db.sqlite3
 npm-debug.log
 webpack-stats.json
 
->>>>>>> origin/valia

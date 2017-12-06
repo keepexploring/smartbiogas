@@ -28,14 +28,6 @@ Follow next article or Download this repository
 ##### with gdal library run
 * apt-get -f install
 * sudo apt-get install binutils libproj-dev gdal-bin
-<<<<<<< HEAD
-Note: if an error with gdal library run
-apt-get -f install
-sudo apt-get install binutils libproj-dev gdal-bin
-Install pushpin (for the real-time data streams)
-http://pushpin.org/docs/install/
-=======
->>>>>>> origin/valia
 
 ####  src/pyodbc.h:56:17: fatal error: sql.h: No such file or directory
 * sudo apt-get install unixodbc-dev
