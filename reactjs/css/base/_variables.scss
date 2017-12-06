@@ -6,9 +6,11 @@
 $greendark:#315025;
 $greenlight: #529C44;
 $yellow:#F1B123;
+$yellowlight:#F8D891;
 $bluelight:#96D7E2;
 $red: #ED1C24;
 $greydark:#2D2D2D;
+
 
 
 /* FONTS
@@ -27,3 +29,8 @@ $header-m-screen: 120px;
 /* Margin -top */
 $marin-top-l: 100px;
 $margin-top-m: 150px;
+
+/*screen size */ 
+$screen-l: 1024px;
+$screen-m: 768px;
+$screen-s: 480px;

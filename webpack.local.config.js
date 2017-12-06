@@ -7,10 +7,15 @@ var config = require('./webpack.config.js')
 
 
 config.entry = {
-Dashboard: [
+  Dashboard: [
     'webpack-dev-server/client?http://' + ip + ':3000',
     'webpack/hot/only-dev-server',
     './reactjs/js/Dashboard.jsx',
+  ],
+  Technicians: [
+    'webpack-dev-server/client?http://' + ip + ':3000',
+    'webpack/hot/only-dev-server',
+    './reactjs/js/Technicians.jsx',
   ],
 }
 
@@ -19,7 +24,7 @@ config.output.publicPath = 'http://' + ip + ':3000' + '/assets/bundles/'
 config.plugins = config.plugins.concat([
   new webpack.HotModuleReplacementPlugin(),
   new webpack.NoEmitOnErrorsPlugin(),
-  new BundleTracker({filename: './webpack-stats.json'}),
+  new BundleTracker({ filename: './webpack-stats.json' }),
 ])
 
 

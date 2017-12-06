@@ -18,36 +18,56 @@ Follow next article or Download this repository
 * pip install virtualenv (if you don't have it)
 * virtualenv ve_biogas
 * source [path to ve]/bin/activate
-(source /home/scene/Desktop/biogas/ve_biogas/bin/activate)
+(*source /home/scene/Desktop/biogas/ve_biogas/bin/activate*)
 
 ### Install libs
 * cd (go to the saved folder smartbiogas)
 * pip install -r requirements.txt
+
+#### ====================Note: if an error =====================
+##### with gdal library run
+* apt-get -f install
 * sudo apt-get install binutils libproj-dev gdal-bin
+<<<<<<< HEAD
 Note: if an error with gdal library run
 apt-get -f install
 sudo apt-get install binutils libproj-dev gdal-bin
 Install pushpin (for the real-time data streams)
 http://pushpin.org/docs/install/
+=======
+>>>>>>> origin/valia
 
-* python manage.py migrate
+####  src/pyodbc.h:56:17: fatal error: sql.h: No such file or directory
+* sudo apt-get install unixodbc-dev
+* pip install pyodbc
+
+* sudo apt-get install build-dep python-psycopg2
+* pip install psycopg2 
+#### =========================================================== 
+
+#conf
+* create a folder config
+* copy configs.ini (not incuded)
+
+# migrate database
+* python manage.py makemigrations
+* ./manage.py migrate 
+* ./manage.py migrate --database=data 
+* python manage.py createsuperuser
+
+python manage.py collectstatic
 
 ### Install react packages
 * npm install
 * webpack --config webpack.config.js
 
-# migrate database
-* python manage.py makemigrations
-* ./manage.py migrate
-* ./manage.py migrate --database=data
-
-python manage.py collectstatic
 
 ### Run the App
-* python manage.py runserver
-* nmp start
-OR
+* Run the virtual environment source [path to ve]/bin/activate
+* terminal 1:python manage.py runserver  terminal 2: nmp start
+* _OR_
 * npm run dev
+* Open the browwser to http://127.0.0.1:8000
 
 
 ## ===============Deployment=======================

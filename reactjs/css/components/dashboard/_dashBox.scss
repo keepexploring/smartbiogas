@@ -1,8 +1,9 @@
+@import 'base/variables';
 .box{
     display: block;
     background-color:$greenlight;
     max-height:300px;
-    max-width : 300px;
+    min-width : $screen-l*0.40;
     margin-left: 2.5%;
     margin-right: 2.5%;
     margin-bottom:30px;
@@ -17,8 +18,103 @@
     text-align:center;
     border: 5px white solid;
     h1{
-       font-size: 70px; 
+       font-size: $screen-l*0.07; 
        font-weight: 900;
     }
     
+    
 }
+/* MEDIA Queries 
+================================================================= */
+
+/* Custom, iPhone Retina */
+@media only screen and (min-width : 320px) {
+    
+    }
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (min-width : 480px) {
+       
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (min-width : 768px) {
+        .box{
+            min-width: $screen-m*0.35;
+        }
+        .box_cont {
+            h1{
+                font-size: $screen-m*0.07; 
+            }
+            
+        }
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (min-width : 992px) {
+    
+    }
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (min-width : 1200px) {
+    
+    }
+    /* iPad */
+    @media all and (min-width:768px) and (max-width:1023px) {
+       
+    }
+    
+    /*==========  Non-Mobile First Method  ==========*/
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (max-width : 1200px) {
+    
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (max-width : 992px) {
+       
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (max-width : 768px) {
+        
+    }
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (max-width : 480px) {
+        .box{
+            min-width: $screen-s*0.35;
+        }
+        .box_cont {
+            h1{
+                font-size: $screen-s*0.07; 
+            }
+            h4{
+                font-size: $screen-s*0.04; 
+            }
+        }
+    }
+    
+    /* Custom, iPhone Retina */
+    @media only screen and (max-width : 320px) {
+    
+    }
+    
+    @media all and (min-width:1024px) {
+    
+    }
+    
+    
+    @media all and (max-width:767px) {
+   
+    
+    }
+    
+    @media all and (max-width: 480px){ /* When screen size is 480px */
+    
+     
+    }
+    

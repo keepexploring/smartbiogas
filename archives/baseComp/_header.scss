@@ -1,26 +1,11 @@
-/* BASE - Base Variable file along with starting point Mixins and Placeholders.
-================================================================= */
-
-@import 'base/variables';
-@import 'base/mixins';
-@import 'base/placeholders';
+@import 'logo';
+@import 'navigation';
+@import 'navsecond';
 
 
-
-  /* Components - Dashboard,Plans, Jobs
-================================================================= */
-/* Dashboard */
-@import 'components/dashboard/dashBox';
-@import 'components/iconbutton';
-.dashboard{
-    display: block;
-    margin: auto;
-    h1{
-       margin-bottom: 20px; 
-    }
-}
-.dash-btn{
-    margin-top:17%;
+.head-nav {
+    background-color: #FFF;
+    height: $header-l-screen;
 }
 
 /* MEDIA Queries 
@@ -38,9 +23,7 @@
     
     /* Small Devices, Tablets */
     @media only screen and (min-width : 768px) {
-        .dash-btn{
-            margin-top:5%;
-        }
+    
     }
     
     /* Medium Devices, Desktops */
@@ -54,8 +37,10 @@
     }
     /* iPad */
     @media all and (min-width:768px) and (max-width:1023px) {
-       
-    }
+        .head-nav {
+            height: $header-m-screen;
+        }
+}
     
     /*==========  Non-Mobile First Method  ==========*/
     
@@ -66,20 +51,17 @@
     
     /* Medium Devices, Desktops */
     @media only screen and (max-width : 992px) {
-       
     
     }
     
     /* Small Devices, Tablets */
     @media only screen and (max-width : 768px) {
-        .dash-btn{
-            margin-top:5%;
-        }
+    
     }
     
     /* Extra Small Devices, Phones */
     @media only screen and (max-width : 480px) {
-        
+    
     }
     
     /* Custom, iPhone Retina */
@@ -88,17 +70,16 @@
     }
     
     @media all and (min-width:1024px) {
-    
+  
     }
     
     
     @media all and (max-width:767px) {
-   
-    
+
     }
     
     @media all and (max-width: 480px){ /* When screen size is 480px */
     
-     
+      
     }
     

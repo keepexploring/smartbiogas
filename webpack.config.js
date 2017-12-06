@@ -5,7 +5,8 @@ var BundleTracker = require('webpack-bundle-tracker');
 module.exports = {
     context: __dirname,
     entry: {
-        Dashboard: './reactjs/js/Dashboard.jsx'
+        Dashboard: './reactjs/js/Dashboard.jsx',
+        Technicians: './reactjs/js/Technicians.jsx'
            },
     output: {
         path: path.resolve('./assets/bundles/'),
