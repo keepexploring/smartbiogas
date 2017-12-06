@@ -27,6 +27,8 @@ Follow next article or Download this repository
 Note: if an error with gdal library run
 apt-get -f install
 sudo apt-get install binutils libproj-dev gdal-bin
+Install pushpin (for the real-time data streams)
+http://pushpin.org/docs/install/
 
 * python manage.py migrate
 
