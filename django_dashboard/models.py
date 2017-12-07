@@ -10,6 +10,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator, EmailVa
 from geopy.geocoders import Nominatim
 from django.utils import timezone
 import uuid
+from random import randint # for testing data streams
 
 class Technicians(models.Model):
     #uid = models.CharField(db_index=True)
@@ -228,3 +229,16 @@ class JobHistory(models.Model):
 #     average_repair_time_minor_faults
 #     average_repair_time_major_faults
 #     datetime
+
+class AggregatedStatistics(models.Model):
+    pass
+
+    def get_data(self):
+        data = {'plants':randint(0,100),
+            'active':randint(0,100),
+            'faults':randint(0,100),
+            'avtime':randint(0,100),
+            'jobs':randint(0,100),
+            'fixed':randint(0,100),
+         }
+        return data

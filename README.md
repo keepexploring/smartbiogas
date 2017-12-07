@@ -53,9 +53,17 @@ python manage.py collectstatic
 * npm install
 * webpack --config webpack.config.js
 
+* Install Elasticsearch
+* Ubuntu: https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-elasticsearch-on-ubuntu-16-04
+* Mac:
+brew update
+brew install elasticsearch
 
 ### Run the App
 * Run the virtual environment source [path to ve]/bin/activate
+# in a separate terminal. Remember to install redis (https://redis.io/topics/quickstart). Redis manages the period events in the background + long running tasks. On the server this is run as a service, but the easiest way to get things to run in development is just run things in separate terminals.
+* redis-server
+* ./manage.py run_huey 
 * terminal 1:python manage.py runserver  terminal 2: nmp start
 * _OR_
 * npm run dev

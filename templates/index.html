@@ -3,7 +3,7 @@
 {% load render_bundle from webpack_loader %}
 
 {% block content %}
-<div class="main top-margin container" id="dashboard"></div>
+<div class="main top-margin container" id="dashboard" data-data='{{data|safe}}'></div>
 
 {% render_bundle 'Dashboard' %}
 <!-- {% render_bundle 'Technicians' %} -->

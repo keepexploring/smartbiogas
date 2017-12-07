@@ -1,5 +1,6 @@
 import React from 'react';
 
+var dashboard_sock = 'ws://' + window.location.host + "/technicians/"
 
 export class Technicians extends React.Component {
     render() {

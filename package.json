@@ -27,6 +27,7 @@
     "file-loader": "^1.1.5",
     "i": "^0.3.6",
     "node-sass": "^4.7.2",
+    "react-websocket": "^2.0.0",
     "resolve-url-loader": "^2.2.0",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.19.0",

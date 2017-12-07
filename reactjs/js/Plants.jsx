@@ -1,5 +1,7 @@
 import React from 'react';
 
+var dashboard_sock = 'ws://' + window.location.host + "/biogasplants/"
+
 
 export class Plants extends React.Component {
     render() {

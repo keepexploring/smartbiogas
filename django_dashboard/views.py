@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.shortcuts import render
+from django_dashboard.models import AggregatedStatistics
+import json
 import pdb
 
 # Create your views here.
@@ -14,7 +16,9 @@ class index_main(View):
     template_name = 'index.html'
     @method_decorator(login_required)
     def get(self,request):
-        return render(request,self.template_name)
+        #pdb.set_trace()
+        data = AggregatedStatistics().get_data()
+        return render(request,self.template_name,{'data':json.dumps(data)})
 
 
 class Technicians(View):
