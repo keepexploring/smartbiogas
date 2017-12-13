@@ -22,7 +22,7 @@ Follow next article or Download this repository
 
 ### Install libs
 * cd (go to the saved folder smartbiogas)
-* pip install -r requirements.txt
+* sudo pip install -r requirements.txt
 
 #### ====================Note: if an error =====================
 ##### with gdal library run
@@ -42,7 +42,7 @@ Follow next article or Download this repository
 * copy configs.ini (not incuded)
 
 # migrate database
-* python manage.py makemigrations
+* sudo python manage.py makemigrations
 * ./manage.py migrate 
 * ./manage.py migrate --database=data 
 * python manage.py createsuperuser
@@ -67,7 +67,7 @@ brew install elasticsearch
 * terminal 1:python manage.py runserver  terminal 2: nmp start
 * _OR_
 * npm run dev
-* Open the browwser to http://127.0.0.1:8000
+* Open the browser to http://127.0.0.1:8000
 
 
 ## ===============Deployment=======================

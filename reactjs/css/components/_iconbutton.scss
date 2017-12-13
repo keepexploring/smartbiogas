@@ -6,7 +6,7 @@
     border-radius: 50%;
     border: 6px $yellow solid;
     background-color: white;
-    &:hover,selected{
+    &:hover{
         background-color: $yellowlight;
         i{
             color:white;
@@ -16,6 +16,12 @@
         color:$yellow;
         font-size: 30px;
         line-height: 1.6;
+    }   
+}
+.active{
+    background-color: $yellowlight;
+    i{
+        color:white;
     }
 }
 /* MEDIA Queries 

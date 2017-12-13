@@ -16,7 +16,11 @@ module.exports = {
     plugins: [
         new BundleTracker({filename: './webpack-stats.json'})
     ],
-
+    devServer: {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      },
     module: {
         loaders: [
             {
@@ -39,6 +43,7 @@ module.exports = {
                 loader: "sass-loader" // compiles Sass to CSS
             }]
           },
+          { test: /\.css$/, loader: "style-loader!css-loader" },
             {
              test: /\.(png|jpg|gif)$/,
              use: [
