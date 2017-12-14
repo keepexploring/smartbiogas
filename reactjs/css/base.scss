@@ -5,10 +5,16 @@
 @import 'base/mixins';
 @import 'base/placeholders';
 
-
-
-  /* Components - Dashboard,Plans, Jobs
+ /* BASE - Typography
 ================================================================= */
+h2,h3,h4,p,td{
+    color: white;
+}
+body{background-color:#2c2c2c;}
+  /* Components - Dashboard,Plans, Technicians, Jobs
+================================================================= */
+/*General */
+@import 'components/table';
 /* Dashboard */
 @import 'components/dashboard/dashBox';
 @import 'components/iconbutton';
@@ -18,9 +24,19 @@
     h1{
        margin-bottom: 20px; 
     }
+    
 }
 .dash-btn{
     margin-top:17%;
+}
+
+/* Technicians */
+
+.technicians{
+    .profile{
+        display: block;
+        margin-bottom: 20px;
+    }
 }
 
 /* MEDIA Queries 
