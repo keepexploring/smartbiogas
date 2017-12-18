@@ -38,7 +38,6 @@ const Table = (props) => {
     const data = props.data
     const columns = columnsConstructor(props.headers, data)
     const borders = "1px solid #6e6e6e";
-    console.log(columns)
     return (
         <ReactTable
             data={data}
@@ -47,6 +46,9 @@ const Table = (props) => {
             className="-highlight"
             getTdProps={(state, rowInfo, column, instance) => {
                 return {
+                    style: {
+                        borderRight: borders
+                    },
                     onClick: (e, handleOriginal) => {
                         console.log('id:', rowInfo.original.id)
 
@@ -56,7 +58,7 @@ const Table = (props) => {
                         // If you want to fire the original onClick handler, call the
                         // 'handleOriginal' function.
                         if (handleOriginal) {
-                            handleOriginal()
+                           // handleOriginal()
                         }
                     }
                 }
@@ -70,14 +72,8 @@ const Table = (props) => {
             getTrProps={(state, rowInfo, column) => {
                 return {
                     style: {
-                        borderBottom: borders
-                    }
-                }
-            }}
-            getTdProps={(state, rowInfo, column) => {
-                return {
-                    style: {
-                        borderRight: borders
+                        borderBottom: borders,
+                        cursor:'pointer'
                     }
                 }
             }}

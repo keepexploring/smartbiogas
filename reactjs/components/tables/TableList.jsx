@@ -11,13 +11,12 @@ const TableList = (props) => {
     const rowList = Object.keys(props.headers).map(function (key, index) {
         let title = props.headers[key]
         let value = props.data[key];
-        console.log(title)
         return (
             <ListRow key={index} header={title} value={value} />
         )
     }, this);
     return (
-        <div className=''>
+        <div className='table-list'>
             <div className='col-md-3' style={imgStyle}>
                 Test image
             </div>

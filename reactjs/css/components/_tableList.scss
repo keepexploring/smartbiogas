@@ -1,34 +1,17 @@
-.btn-icon{
-    display: inline-block;
-    width: 60px;
-    height:60px;
-    margin: 20px;
-    border-radius: 50%;
-    border: 6px $yellow solid;
-    background-color: white;
-    &:hover{
-        background-color: $yellowlight;
-        i{
-            color:white;
-        }
-    }
-    i{
-        color:$yellow;
-        font-size: 30px;
-        line-height: 1.6;
-    }   
+.table-list{
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }
-.selected{
-    background-color: $yellowlight;
-    i{
-        color:white;
-    }
+/* List Row */
+td{
+    font-size: 12px;
+    border-bottom: 1px solid;
 }
-.round-yellow{
-    background: white;
-    border: 4px $yellow solid;
-    border-radius: 50%;
+.list-value{
+    text-align: right;
 }
+
 
 /* MEDIA Queries 
 ================================================================= */

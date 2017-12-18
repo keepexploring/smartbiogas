@@ -1,34 +1,32 @@
-.btn-icon{
-    display: inline-block;
-    width: 60px;
-    height:60px;
-    margin: 20px;
-    border-radius: 50%;
-    border: 6px $yellow solid;
-    background-color: white;
-    &:hover{
-        background-color: $yellowlight;
-        i{
-            color:white;
+@import '../base/placeholders';
+
+.ui-status{
+    @extend .infoPill;
+    width: 120px;
+    vertical-align: middle;
+    text-align: center;
+}
+.ui-extras{
+    @extend .infoPill;
+    max-width: 220px;
+    color: white;
+    border-color: white;
+    .pill-icon{
+        position: relative;
+        left: -7px;
+        top: -7px;
+        float: left;
+    }
+    .pill-text{
+        display: inline;
+        line-height: 1.2em;
+        h3{
+            margin-bottom: 0;
+            margin-top: 5px;
         }
     }
-    i{
-        color:$yellow;
-        font-size: 30px;
-        line-height: 1.6;
-    }   
 }
-.selected{
-    background-color: $yellowlight;
-    i{
-        color:white;
-    }
-}
-.round-yellow{
-    background: white;
-    border: 4px $yellow solid;
-    border-radius: 50%;
-}
+
 
 /* MEDIA Queries 
 ================================================================= */

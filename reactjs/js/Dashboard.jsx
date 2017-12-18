@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom';
 import Websocket from 'react-websocket';
 import base from '../css/base.scss';
 
-import DashBox from '../components/DashBox.jsx';
-import DashGraph from '../components/DashGraph.jsx';
+import DashBox from '../components/dashboard/DashBox.jsx';
+import DashGraph from '../components/dashboard/DashGraph.jsx';
 import IconButton from '../components/IconButton.jsx';
 
 

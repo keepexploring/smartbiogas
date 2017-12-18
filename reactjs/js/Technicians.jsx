@@ -3,10 +3,10 @@ import ReactDOM from 'react-dom';
 import base from '../css/base.scss';
 
 import BlockHeader from '../components/BlockHeader.jsx';
-import Table from '../components/Table.jsx';
+import Table from '../components/tables/Table.jsx';
 import { RightTables } from '../components/RightTables.jsx';
 
-import { makeData, newProfile } from "../components/TableUtilities.jsx"; //Test data constructor
+import { makeData, newProfile } from "../components/tables/TableUtilities.jsx"; //Test data constructor
 
 //var dashboard_sock = 'ws://' + window.location.host + "/technicians/"
 const techData = makeData(20, 'newTechnician');
@@ -67,7 +67,7 @@ export class Technicians extends React.Component {
     **/
     render() {
         return (
-            <div className="technicians col-md-12 center-block" >
+            <div className="technicians row center-block" >
                 <div className="col-md-6  center-block">
                     <BlockHeader title='Technicians List' />
                     <Table headers={this.state.tableHeaders} pageSize={10} data={this.state.techData} />

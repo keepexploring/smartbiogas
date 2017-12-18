@@ -64,13 +64,12 @@ a :visited{
     width:80%;      
     }
 .nav li{
-    display: block;
     min-height: 100px;
     width:25%;
     padding:12px;
     text-align:center;
     background-color:#315025;
-
+    text-transform: uppercase;
     box-shadow:1px -15px 20px rgba(0,0,0,.5);
 	-webkit-box-shadow:1px -15px 20px rgba(0,0,0,.5);
     -moz-box-shadow:1px -15px 20px rgba(0,0,0,.5);

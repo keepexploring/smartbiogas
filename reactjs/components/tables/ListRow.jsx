@@ -3,8 +3,8 @@ import React from 'react';
 const ListRow = (props) => {
     return (
         <tr className='list-row'>
-            <td>{props.header}</td>
-            <td>{props.value}</td>
+            <td className='col-md-6' >{props.header}</td>
+            <td className='list-value col-md-6' >{props.value}</td>
         </tr>
 
     )

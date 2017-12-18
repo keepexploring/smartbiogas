@@ -49,8 +49,11 @@ export function makeData(len,newEntry) {
     return {people}
     
   }
+
+  const testInfo="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."  
   export function newProfile(){
     const statusChance = Math.random();
+    const activeYears = Math.random()*10;
     const dateNum = Math.floor(Math.random() * 10**10)
     return {
       id: Math.floor(Math.random() * 10),
@@ -60,7 +63,13 @@ export function makeData(len,newEntry) {
       techLocation: randomTextConstrucor(1),
       techSkills: randomTextConstrucor(3),
       techLanguages: randomTextConstrucor(1),
-      techStartDate:randomDateConstructor(dateNum)
+      techStartDate:randomDateConstructor(dateNum),
+      techAdditionalInfo: testInfo,
+      techJobsCompleted: Math.floor(Math.random() * 10),
+      techYearsActive: activeYears.toFixed(1),
+      techStatus: statusChance > 0.66
+      ? "active"
+      : statusChance > 0.33 ? "inactive" : "review"
     }
   };
 

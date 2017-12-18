@@ -1,7 +1,9 @@
 import React from 'react';
 
-import Table from '../components/Table.jsx';
-import TableList from '../components/TableList.jsx';
+import Table from '../components/tables/Table.jsx';
+import TableList from '../components/tables/TableList.jsx';
+import Notes from './info/Notes.jsx';
+import StatusInfo from './info/StatusInfo.jsx';
 
 //import { makeData, newProfile } from "../components/TableUtilities.jsx"; //Test data constructor
 
@@ -20,7 +22,7 @@ export class RightTables extends React.Component {
                 faultDescription: 'Fault Description',
                 status: 'Fault Status'
             },
-            tableData: this.props.jobs,
+            tableData: this.props.jobs.people,
             profileTable:{
                 id: 'ID',
                 techName:'Name',
@@ -31,7 +33,8 @@ export class RightTables extends React.Component {
                 techLanguages: 'Languages Spoken',
                 techStartDate: 'Joining Date'
             },
-            profileData:this.props.profile
+            profileData:this.props.profile,
+            infobtn:['edit']
         };
     }
     render() {
@@ -39,9 +42,13 @@ export class RightTables extends React.Component {
             <div className="techprofile center-block" >
                 <div className="profile row center-block">
                     <TableList headers={this.state.profileTable} data ={this.state.profileData} />
+                    <Notes title='Additional information' info={this.props.profile.techAdditionalInfo} buttons={this.state.infobtn} icon='sbn-icon-edit' />
+                    <StatusInfo title='' info={this.props.profile}  />
+
                 </div>
                 <div className="row center-block">
-                    {/* <Table headers={this.state.tableHeaders} pageSize={5} data={this.state.tableData} /> */}
+                <h4>Job History</h4>
+                    <Table headers={this.state.tableHeaders} pageSize={5} data={this.state.tableData} />
                 </div>
 
             </div>
