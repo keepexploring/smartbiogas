@@ -14,7 +14,6 @@ const UIstatus = (props) => {
         color: status_color,
         borderColor:status_color
     }
-    console.log(status_color)
     return (
         <div className='col-md-4 ui-status' style={status_style} >
          {props.title}

@@ -1,16 +1,18 @@
 import React from 'react';
-
+import SvgIcon from '../SvgIcon.jsx';
 
 import ReactTable from "react-table";
 import "react-table/react-table.css";
 
 
+const next=<SvgIcon name='sbn-arrow-right' size='20' color="icon-yellow" type='button'/>
+const previous=<SvgIcon name='sbn-arrow-left' size='20' color="icon-yellow" type='button'/>
 
 
 function columnsConstructor(headers, rows) {
     const testColumn = Object.keys(headers).map(function (key, index) {
         return {
-            Header: headers[key],
+            Header: <span >{headers[key]}</span>,
             accessor: key,
             Cell: row => (cellConstructor(row.value, key))
         }
@@ -64,9 +66,9 @@ const Table = (props) => {
                 }
             }}
             getPaginationProps={(components) => {
-                //console.log(components);
                 return {
-                    nextText: '\U02C2',
+                    nextText: next,
+                    previousText: previous
                 }
             }}
             getTrProps={(state, rowInfo, column) => {

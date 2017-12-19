@@ -15,8 +15,9 @@ const TableList = (props) => {
             <ListRow key={index} header={title} value={value} />
         )
     }, this);
+    
     return (
-        <div className='table-list'>
+        <div className='row table-list'>
             <div className='col-md-3' style={imgStyle}>
                 Test image
             </div>

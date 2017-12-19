@@ -1,16 +1,19 @@
 import React from 'react';
-import SvgIcon from '../SvgIcon.jsx';
-//import BtnEdit from '../images/btn/SBNbuttonEdit.png';
+import RoundBtn from '../RoundBtn.jsx';
+
+function editEntry() {
+    /**
+     * Popup window to edit data
+     */
+    alert('Edit tech');
+}
 
 const Notes = (props) => {
     return (
-        <div className='extra-info'>
+        <div className='row extra-info'>
             <h4>{props.title}</h4>
-            <div className='note-text'>
-            <p>{props.info}</p> 
-            <button className='round-yellow' ><SvgIcon name={props.icon} size="20px" color="icon-yellow" type='button' /></button>
-             {/* <button><img src= {BtnEdit}/></button> */}
-            </div>
+            <div className='col-md-10 col-sm-10 note-text'><p>{props.info}</p></div>
+          <RoundBtn icon={props.icon} size='20' action={editEntry} bootstrap='col-md-2 col-sm-2' />
         </div>
     )
 }

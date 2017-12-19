@@ -4,7 +4,8 @@ import base from '../css/base.scss';
 
 import BlockHeader from '../components/BlockHeader.jsx';
 import Table from '../components/tables/Table.jsx';
-import { RightTables } from '../components/RightTables.jsx';
+import { RightSide } from '../components/containers/RightSide.jsx';
+import { LeftSide } from '../components/containers/LeftSide.jsx';
 
 import { makeData, newProfile } from "../components/tables/TableUtilities.jsx"; //Test data constructor
 
@@ -13,20 +14,46 @@ const techData = makeData(20, 'newTechnician');
 const techJobsData = makeData(20, 'newJob');
 const profileData = newProfile();
 
+const mainHeaders={
+    techName: 'Name',
+    techPhoneNumber: 'Phone Number',
+    techLocation: 'Location',
+    techJobs: 'Jobs',
+    status: 'Status'
+}
+const secondHeaders={
+    dateFlagged: 'Date Flagged',
+    id: 'Job ID #',
+    plantID: 'Plant ID #',
+    faultDescription: 'Fault Description',
+    status: 'Fault Status'
+}
+const listHeaders={
+    id: 'ID',
+    techName:'Name',
+    techPhoneNumber: 'Phone Number',
+    techAddress :'Address',
+    techLocation:'Operating Location',
+    techSkills: 'Accreditted Skills',
+    techLanguages: 'Languages Spoken',
+    techStartDate: 'Joining Date'
+}
+
 export class Technicians extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            tableHeaders: {
-                techName: 'Name',
-                techPhoneNumber: 'Phone Number',
-                techLocation: 'Location',
-                techJobs: 'Jobs',
-                status: 'Status'
+            mainTableData:{
+                tableHeaders: mainHeaders,
+                tableValues: techData.people
             },
-            techJobsData:techJobsData,
-            profileData:profileData,
-            techData: techData.people,
+            profileData:{
+                profileHeaders:listHeaders,
+                profilevalues:profileData,
+                secondTableHeaders:secondHeaders,
+                secondTableData:techJobsData.people
+            },
+            
             /*techData: {
                 techName: '',
                 techPhoneNumber: '',
@@ -70,14 +97,12 @@ export class Technicians extends React.Component {
             <div className="technicians row center-block" >
                 <div className="col-md-6  center-block">
                     <BlockHeader title='Technicians List' />
-                    <Table headers={this.state.tableHeaders} pageSize={10} data={this.state.techData} />
-
+                    <LeftSide data = {this.state.mainTableData} />
                 </div>
                 <div className="col-md-6  center-block">
                     <BlockHeader title='Technician Profile' />
-                    <RightTables profile={this.state.profileData} jobs={this.state.techJobsData} />
+                    <RightSide profile={this.state.profileData}/>
                 </div>
-
             </div>
         )
     }

@@ -1,35 +1,6 @@
 @import '../base/variables';
 
-.ReactTable{
-    .rt-table{
-        border: 2px solid #6e6e6e;
-        text-align: center;
-    }
-    .rt-tr{
-        color: white;
-    }
-    .-sort-asc,{
-        box-shadow: inset 0 3px 0 0 $yellow!important;
-    }
-    .-sort-desc{
-        box-shadow: inset 0 -3px 0 0 $yellow!important;
-    }
-    .-pageInfo{
-        color:white;
-        .-pageJump{
-            color:$yellow;
-            input{
-                background: rgba(0,0,0,0.1);
-            }
-        }
-    }
-    .-pageSizeOptions{
-        select{
-            color:$yellow;
-            background: rgba(0,0,0,0.1)!important;
-        }
-    }
-}
+
 
 /* MEDIA Queries 
 ================================================================= */

@@ -9,7 +9,7 @@ const StatusInfo = (props) => {
             <h4>{props.title}</h4>
             <UIextras title='Jobs Completed' info={props.info.techJobsCompleted} icon='sbn-icon-case' />
             <UIextras title='Years Active' info={props.info.techYearsActive} icon='sbn-icon-dial' />
-           <UIstatus title={props.info.techStatus} />
+           <UIstatus title={props.info.status} />
         </div>
     )
 }

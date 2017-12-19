@@ -64,10 +64,10 @@ export function makeData(len,newEntry) {
       techSkills: randomTextConstrucor(3),
       techLanguages: randomTextConstrucor(1),
       techStartDate:randomDateConstructor(dateNum),
-      techAdditionalInfo: testInfo,
+      additionalInfo: testInfo,
       techJobsCompleted: Math.floor(Math.random() * 10),
       techYearsActive: activeYears.toFixed(1),
-      techStatus: statusChance > 0.66
+      status: statusChance > 0.66
       ? "active"
       : statusChance > 0.33 ? "inactive" : "review"
     }
