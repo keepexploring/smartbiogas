@@ -20,14 +20,14 @@ export class RightSide extends React.Component {
     render() {
         return (
             <div className="techprofile center-block" >
-                <div className="profile row center-block">
+                <div className="profile col-md-12 center-block">
                     <TableList headers={this.state.profileHeaders} data={this.state.profileData} />
                 </div>
-                <div className="row profile center-block border-top">
+                <div className="col-md-12 profile center-block border-top">
                     <Notes title='Additional information' info={this.state.profileData.additionalInfo} buttons={this.state.infobtn} icon='sbn-icon-edit' />
                     <StatusInfo title='' info={this.state.profileData} />
                 </div>
-                <div className="row profile-table border-top">
+                <div className="col-md-12 profile-table border-top">
                     <h4>Job History</h4>
                     <TopBar btnExtra={false} />
                     <Table headers={this.state.tableHeaders} pageSize={5} data={this.state.tableData} />

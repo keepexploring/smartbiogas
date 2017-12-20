@@ -6,8 +6,8 @@ function btnConstructor(isTrue) {
     if (isTrue) {
         return (
             <div className='col-md-6 col-sm-6 ' >
-                <IconBtn icon='sbn-icon-edit' shape='square-grey' size='20' action={addEntry} bootstrap='col-md-2 col-sm-2 pull-right' />
-                <IconBtn icon='sbn-icon-edit' shape='square-grey' size='20' action={addEntry} bootstrap='col-md-2 col-sm-2 pull-right' />
+                <IconBtn icon='sbn-icon-subtrack' shape='square-grey' size='18' action={addEntry} bootstrap='col-md-2 col-sm-2 pull-right' />
+                <IconBtn icon='sbn-icon-add' shape='square-grey' size='18' action={addEntry} bootstrap='col-md-2 col-sm-2 pull-right' />
             </div>
         )
     }
@@ -23,7 +23,7 @@ const TopBar = (props) => {
     const buttons = btnConstructor(props.btnExtra)
 
     return (
-        <div className="row top-bar">
+        <div className="col-md-12 top-bar">
             <SearchInput />
             {buttons}
         </div>
