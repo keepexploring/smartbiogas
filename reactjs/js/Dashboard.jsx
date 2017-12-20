@@ -5,7 +5,7 @@ import base from '../css/base.scss';
 
 import DashBox from '../components/dashboard/DashBox.jsx';
 import DashGraph from '../components/dashboard/DashGraph.jsx';
-import IconButton from '../components/IconButton.jsx';
+import DashButton from '../components/dashboard/DashButton.jsx';
 
 
 var dashboard_sock = 'ws://' + window.location.host + "/dashboard/"
@@ -102,8 +102,8 @@ sendSocketMessage(message){
         <Websocket ref="socket" url={this.props.socket} onMessage={this.handleData.bind(this)} reconnect={true}/>
           <h1 className="text-center text-green">Data Widget </h1>
           <div className="col-md-1 dash-btn text-center">
-            <IconButton icon="fa fa-info" action={this.btnWidg} item="1" active={this.state.btnView} />
-            <IconButton icon="fa fa-signal" action={this.btnGraph} item="2" />
+            <DashButton icon="fa fa-info" action={this.btnWidg} item="1" active={this.state.btnView} />
+            <DashButton icon="fa fa-signal" action={this.btnGraph} item="2" />
           </div>
           <div id="widgets" className="col-md-11 center-block" >
          {view? boxList : graphView} 

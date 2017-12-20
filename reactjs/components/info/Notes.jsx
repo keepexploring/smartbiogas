@@ -1,5 +1,5 @@
 import React from 'react';
-import RoundBtn from '../RoundBtn.jsx';
+import IconBtn from '../IconBtn.jsx';
 
 function editEntry() {
     /**
@@ -13,7 +13,7 @@ const Notes = (props) => {
         <div className='row extra-info'>
             <h4>{props.title}</h4>
             <div className='col-md-10 col-sm-10 note-text'><p>{props.info}</p></div>
-          <RoundBtn icon={props.icon} size='20' action={editEntry} bootstrap='col-md-2 col-sm-2' />
+            <IconBtn icon={props.icon} shape='round-yellow' size='20' action={editEntry} bootstrap='col-md-2 col-sm-2' />
         </div>
     )
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 
 
-const IconButton = (props) => {
+const DashButton = (props) => {
     let activeClass="btn-icon";
     if(props.active){
         activeClass=props.item==1?"btn-icon selected": 'btn-icon'    
@@ -15,4 +15,4 @@ const IconButton = (props) => {
     )
 }
 
-export default IconButton;
+export default DashButton;

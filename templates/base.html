@@ -16,47 +16,34 @@
   <!-- BEGIN CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/font-awesome.min.css' %}">
-  <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/base.css' %}">  
+  <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/base.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'basetemplates/css/BootSideMenu.css' %}">
   <!-- BEGIN CSS -->
 </head>
 
 <body>
 
-  <div  id="header">
-      {% include "navigation/header.html" %}
+  <div id="header">
+    {% include "navigation/header.html" %}
   </div>
-  
+
   <!-- Dashboard Section -->
-  {% block content %} {% endblock %}
-  
-  {% block footer %} 
-   <!-- Footer Section -->
-   <footer class="footer navbar-fixed-bottom">
+  {% block content %} {% endblock %} {% block footer %}
+  <!-- Footer Section -->
+  <footer class="footer navbar-fixed-bottom">
     <p class="text-center text-white">© smart biogas connect 2017. All Rights Reserved.</p>
- </footer>
- {% endblock %}
-<!--/Footer Section -->
+  </footer>
+  {% endblock %}
+  <!--/Footer Section -->
 
   <!-- BEGIN JS-->
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" type="text/javascript"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <script src="{% static 'basetemplates/js/tabs.js' %}" type="text/javascript"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+    crossorigin="anonymous"></script>
+  <script src="{% static 'basetemplates/js/base.js' %}" type="text/javascript"></script>
 
-  <script src="{% static 'basetemplates/js/BootSideMenu.js' %}" type="text/javascript"></script>
- <script type="text/javascript">
- $(".nav li a").on("click", function(){
-      $(".nav").find(".active").removeClass("active");
-      $(this).parent().addClass("active");
-    });
-    $(document).ready(function () {
-      $('#sidebar').BootSideMenu({
-        side: "left",
-        pushBody: false,
-        duration: 1000
-      });
-    });
-  </script>
+  <!-- <script src="{% static 'basetemplates/js/BootSideMenu.js' %}" type="text/javascript"></script> -->
+
 
   <!-- BEGIN JS-->
   {% include "svg_icons_sprite.html" %}

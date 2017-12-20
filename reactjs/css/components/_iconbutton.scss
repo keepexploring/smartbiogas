@@ -28,9 +28,12 @@
     background: white;
     border: 4px $yellow solid;
     border-radius: 50%;
-    // height: 40px;
-    // width: 40px;
     padding: 5px;
+}
+.square-grey{
+    background:$geyblack;
+    border: none;
+    padding: 10px;
 }
 .icon-yellow{
     fill:$yellow;

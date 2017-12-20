@@ -1,16 +1,22 @@
 import React from 'react';
 import SearchInput from '../SearchInput.jsx';
-import SquareBtn from '../SquareBtn.jsx';
+import IconBtn from '../IconBtn.jsx';
 
 function btnConstructor(isTrue) {
     if (isTrue) {
         return (
-            <div >
-                <SquareBtn icon='sbn-icon-edit' size='20' action='test' bootstrap='col-md-2 col-sm-2' />
-                <SquareBtn icon='sbn-icon-edit' size='20' action='test' bootstrap='col-md-2 col-sm-2' />
+            <div className='col-md-6 col-sm-6 ' >
+                <IconBtn icon='sbn-icon-edit' shape='square-grey' size='20' action={addEntry} bootstrap='col-md-2 col-sm-2 pull-right' />
+                <IconBtn icon='sbn-icon-edit' shape='square-grey' size='20' action={addEntry} bootstrap='col-md-2 col-sm-2 pull-right' />
             </div>
         )
     }
+}
+function addEntry() {
+    /**
+     * Popup window to edit data
+     */
+    alert('Addtech');
 }
 
 const TopBar = (props) => {

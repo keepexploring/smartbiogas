@@ -59,6 +59,10 @@ a :visited{
  }
 
  /*navigation*/
+ .navbar-header{
+     width:100%
+ }
+
  .nav{
     border-bottom: none;
     width:80%;      
@@ -292,12 +296,12 @@ a :visited{
       
       @media all and (max-width: 480px){ /* When screen size is 480px */
         
-          .navbar-fixed-bottom .navbar-collapse, .navbar-fixed-top .navbar-collapse{
+          /* .navbar-fixed-bottom .navbar-collapse, .navbar-fixed-top .navbar-collapse{
             padding-right: 0;
             padding-left: 0;
             height: 100vh;
             max-height:120%;
-          }
+          } */
           .logo{
             width:70%;
         }
