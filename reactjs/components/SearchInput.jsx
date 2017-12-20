@@ -2,6 +2,7 @@ import React from 'react';
 import SvgIcon from './SvgIcon.jsx';
 import IconBtn from './IconBtn.jsx';
 
+
 const SearchInput = (props) => {
     const setSize=18
     const btnstyle={
@@ -12,9 +13,9 @@ const SearchInput = (props) => {
         height:setSize*2
     }
     return (
-        <div className="col-md-6 col-sm-6 col-xm-6 search" style={barstyle}>
-            <input type="text" className="search-term" placeholder="Search..." />
-            <button type="submit" className="square-grey pull-right" style={btnstyle}  >
+        <div className="col-xs-6 search" style={barstyle}>
+            <input type="text" id='searchInput' className="col-xs-9 search-term" placeholder="Search..." />
+            <button  className="square-grey pull-right" style={btnstyle}  >
                 <SvgIcon name='sbn-icon-search' size={setSize} color="icon-yellow" type='button' />
             </button>
         </div>

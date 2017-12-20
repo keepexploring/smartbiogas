@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Table from '../tables/Table.jsx';
+import {Table} from '../tables/Table.jsx';
 import TopBar from './TopBar.jsx';
 
 
@@ -14,7 +14,7 @@ export class LeftSide extends React.Component {
     }
     render() {
         return (
-            <div className="main-table col-md-12 center-block" >
+            <div className="main-table row center-block" >
                 <TopBar btnExtra={true} />
                 <Table headers={this.state.tableHeaders} pageSize={10} data={this.state.tableValues} />
             </div>

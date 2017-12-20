@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Table from '../tables/Table.jsx';
+import {Table} from '../tables/Table.jsx';
 import TableList from '../tables/TableList.jsx';
 import Notes from '../info/Notes.jsx';
 import StatusInfo from '../info/StatusInfo.jsx';
