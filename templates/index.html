@@ -1,13 +1,9 @@
+
 {% extends "base.html" %}
 {% load render_bundle from webpack_loader %}
 
 {% block content %}
-<h1>Example</h1>
-<div id="react-app"></div>
-{% render_bundle 'App' %}
+<div class="main top-margin container" id="dashboard" data-data='{{data|safe}}'></div>
 
-<form action="/logout">
-    <input type="submit" value="Logout" />
-</form>
-
+{% render_bundle 'Dashboard' %}
 {% endblock %}

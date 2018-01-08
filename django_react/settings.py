@@ -12,20 +12,25 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import ConfigParser
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+Config = ConfigParser.ConfigParser() # we store security setting in another file
+Config.read(BASE_DIR+'/config/configs.ini')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'frobam8*+@h(p%#8ft+)x=e73d_t(jch3hn%-nf+6f=y5zq=kb'
+SECRET_KEY = Config.get("django","secret_key")
+#'frobam8*+@h(p%#8ft+)x=e73d_t(jch3hn%-nf+6f=y5zq=kb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1']
+ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1','localhost']
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
@@ -40,8 +45,15 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
+    'django_postgres_extensions',
     'webpack_loader',
     'django_dashboard',
+    'django_react',
+    'django_elasticsearch_dsl',
+    'channels',
+    'django_realtime',
+    'huey.contrib.djhuey',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -85,9 +97,35 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    },
+    # 'data': {
+    #     'ENGINE': 'sql_server.pyodbc',
+    #     'NAME': Config.get("azure", "database"),
+    #     'USER': Config.get("azure", "username"),
+    #     'PASSWORD': Config.get("azure", "password"),
+    #     'HOST': Config.get("azure", "server"),
+    #     'PORT': '',
+
+    #     'OPTIONS': {
+    #         'driver': 'ODBC Driver 13 for SQL Server',
+    #     },
+    
+    # },
+        'data': {
+            #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'NAME': Config.get("postgres_azure", "database_name"),
+            'USER': Config.get("postgres_azure", "username"),
+            'PASSWORD': Config.get("postgres_azure", "password"),
+            'HOST': Config.get("postgres_azure", "host"),
+            'PORT': Config.get("postgres_azure", "port"),
+
+        }
 }
 
+DATABASE_CONNECTION_POOLING = True
+
+DATABASE_ROUTERS = ['django_dashboard.routers.Dashboard_Router',]
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -115,4 +153,65 @@ WEBPACK_LOADER = {
         'BUNDLE_DIR_NAME': 'bundles/',
         'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
     }
+}
+
+
+ELASTICSEARCH_DSL={
+    'default': {
+        'hosts': 'localhost:9200'
+    },
+}
+
+
+# In production we should use a redis backend
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'asgi_redis.RedisChannelLayer',
+#         'CONFIG': {
+#             'hosts': [('localhost', 6379)],
+#         },
+#         'ROUTING': 'example_channels.routing.channel_routing',
+#     }
+# }
+
+CHANNEL_LAYERS = {
+ "default": {
+ "BACKEND": "asgiref.inmemory.ChannelLayer",
+ "ROUTING": "django_realtime.routing.channel_routing",
+ },
+}
+
+
+HUEY = {
+    'name': 'django_huey',  # Use db name for huey.
+    'result_store': True,  # Store return values of tasks.
+    'events': True,  # Consumer emits events allowing real-time monitoring.
+    'store_none': False,  # If a task returns None, do not save to results.
+    'always_eager': False,  # If DEBUG=True, run synchronously.
+    'store_errors': True,  # Store error info if task throws exception.
+    'blocking': False,  # Poll the queue rather than do blocking pop.
+    'connection': {
+        'host': 'localhost',
+        'port': 6379,
+        'db': 0,
+        'connection_pool': None,  # Definitely you should use pooling!
+        # ... tons of other options, see redis-py for details.
+
+        # huey-specific connection parameters.
+        'read_timeout': 1,  # If not polling (blocking pop), use timeout.
+        'max_errors': 1000,  # Only store the 1000 most recent errors.
+        'url': None,  # Allow Redis config via a DSN.
+    },
+    'consumer': {
+        'workers': 4,
+        'worker_type': 'thread',
+        'initial_delay': 0.1,  # Smallest polling interval, same as -d.
+        'backoff': 1.15,  # Exponential backoff using this rate, -b.
+        'max_delay': 10.0,  # Max possible polling interval, -m.
+        'utc': True,  # Treat ETAs and schedules as UTC datetimes.
+        'scheduler_interval': 1,  # Check schedule every second, -s.
+        'periodic': True,  # Enable crontab feature.
+        'check_worker_health': True,  # Enable worker health checks.
+        'health_check_interval': 1,  # Check worker health every second.
+    },
 }

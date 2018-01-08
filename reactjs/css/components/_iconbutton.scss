@@ -1,0 +1,114 @@
+.btn-icon{
+    display: inline-block;
+    width: 60px;
+    height:60px;
+    margin: 20px;
+    border-radius: 50%;
+    border: 6px $yellow solid;
+    background-color: white;
+    &:hover{
+        background-color: $yellowlight;
+        i{
+            color:white;
+        }
+    }
+    i{
+        color:$yellow;
+        font-size: 30px;
+        line-height: 1.6;
+    }   
+}
+.selected{
+    background-color: $yellowlight;
+    i{
+        color:white;
+    }
+}
+.round-yellow{
+    background: white;
+    border: 4px $yellow solid;
+    border-radius: 50%;
+    padding: 5px;
+}
+.square-grey{
+    background:$geyblack;
+    border: none;
+    padding: 10px;
+}
+.icon-yellow{
+    fill:$yellow;
+}
+
+/* MEDIA Queries 
+================================================================= */
+
+/* Custom, iPhone Retina */
+@media only screen and (min-width : 320px) {
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (min-width : 480px) {
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (min-width : 768px) {
+        
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (min-width : 992px) {
+    
+    }
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (min-width : 1200px) {
+    
+    }
+    /* iPad */
+    @media all and (min-width:768px) and (max-width:1023px) {
+       
+    }
+    
+    /*==========  Non-Mobile First Method  ==========*/
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (max-width : 1200px) {
+    
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (max-width : 992px) {
+       
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (max-width : 768px) {
+        
+    }
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (max-width : 480px) {
+    
+    }
+    
+    /* Custom, iPhone Retina */
+    @media only screen and (max-width : 320px) {
+    
+    }
+    
+    @media all and (min-width:1024px) {
+    
+    }
+    
+    
+    @media all and (max-width:767px) {
+   
+    
+    }
+    
+    @media all and (max-width: 480px){ /* When screen size is 480px */
+    
+     
+    }
+} 

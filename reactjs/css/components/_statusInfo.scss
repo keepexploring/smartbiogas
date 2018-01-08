@@ -1,0 +1,103 @@
+@import '../base/placeholders';
+
+.ui-status{
+    @extend .infoPill;
+    width: 120px;
+    vertical-align: middle;
+    text-align: center;
+}
+.ui-extras{
+    @extend .infoPill;
+    max-width: 220px;
+    color: white;
+    border-color: white;
+    .pill-icon{
+        position: relative;
+        left: -7px;
+        top: -7px;
+        float: left;
+    }
+    .pill-text{
+        display: inline;
+        line-height: 1.2em;
+        h3{
+            margin-bottom: 0;
+            margin-top: 5px;
+        }
+    }
+}
+
+
+/* MEDIA Queries 
+================================================================= */
+
+/* Custom, iPhone Retina */
+@media only screen and (min-width : 320px) {
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (min-width : 480px) {
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (min-width : 768px) {
+        
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (min-width : 992px) {
+    
+    }
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (min-width : 1200px) {
+    
+    }
+    /* iPad */
+    @media all and (min-width:768px) and (max-width:1023px) {
+       
+    }
+    
+    /*==========  Non-Mobile First Method  ==========*/
+    
+    /* Large Devices, Wide Screens */
+    @media only screen and (max-width : 1200px) {
+    
+    }
+    
+    /* Medium Devices, Desktops */
+    @media only screen and (max-width : 992px) {
+       
+    
+    }
+    
+    /* Small Devices, Tablets */
+    @media only screen and (max-width : 768px) {
+        
+    }
+    
+    /* Extra Small Devices, Phones */
+    @media only screen and (max-width : 480px) {
+    
+    }
+    
+    /* Custom, iPhone Retina */
+    @media only screen and (max-width : 320px) {
+    
+    }
+    
+    @media all and (min-width:1024px) {
+    
+    }
+    
+    
+    @media all and (max-width:767px) {
+   
+    
+    }
+    
+    @media all and (max-width: 480px){ /* When screen size is 480px */
+    
+     
+    }
+} 

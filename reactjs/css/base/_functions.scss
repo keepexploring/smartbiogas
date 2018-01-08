@@ -1,0 +1,11 @@
+@import 'variables';
+
+/* BASE FUNCTIONS .
+================================================================= */
+@function calculate-height ($percentage) {
+    @return 160px * $percentage;
+}
+
+@function calculate-size-from-screen ($sceen,$percentage) {
+    @return $screen * $percentage;
+}

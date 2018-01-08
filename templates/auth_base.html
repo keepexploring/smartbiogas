@@ -1,0 +1,18 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Core Scripts - Include with every page -->
+    <script src = "{% static 'bootstrap/js/jquery.min.js' %}"></script>
+    <script src = "{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <title>Smart Biogas</title>
+</head>
+
+<body>
+    {% block login %}
+    {% endblock %}
+</body>
+</html>
