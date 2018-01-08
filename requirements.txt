@@ -111,3 +111,8 @@ virtualenv==15.1.0
 vishap==0.1.5
 wcwidth==0.1.7
 Werkzeug==0.12.2
+django_elasticsearch_dsl
+channels
+huey
+redis
+gevent
