@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from .models import Technicians, Technition_realtime, Users, BiogasPlants, JobHistory
+from .models import Technicians, TechnitionRealtime, Users, BiogasPlants, JobHistory
 
 # Register your models here.
 class Technition_realtimeInline(admin.StackedInline):
-    model = Technition_realtime
+    model = TechnitionRealtime
     #list_display = ('number_jobs_active','number_of_jobs_completed','location')
     #list_filter = ('number_jobs_active','number_of_jobs_completed','location')
 

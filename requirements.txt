@@ -116,3 +116,9 @@ channels
 huey
 redis
 gevent
+django-tastypie
+python-mimeparse
+pyyaml
+django-oauth-toolkit
+service_identity
+django-cors-middleware
