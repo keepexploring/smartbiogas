@@ -11,4 +11,6 @@ urlpatterns = [
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
     url(r'^', include('django_dashboard.urls')),
     url(r'^dashboard/', include('django_dashboard.urls')),
+    url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    
 ]

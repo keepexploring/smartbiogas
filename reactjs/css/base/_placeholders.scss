@@ -1,6 +1,18 @@
+@import './mixins';
+
 %flexible{
     -webkit-box-flex:1;
 	-webkit-flex:1;
 	-ms-flex:1;
 	flex:1;
+}
+
+.infoPill{
+	display: inline-block;
+	height: 50px;
+	margin:0 10px 0 10px;
+	padding: 5px;
+    border: 2px solid;
+	@include border-radius(500px);
+    text-transform: uppercase;
 }

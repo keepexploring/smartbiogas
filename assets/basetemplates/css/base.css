@@ -59,18 +59,21 @@ a :visited{
  }
 
  /*navigation*/
+ .navbar-header{
+     width:100%
+ }
+
  .nav{
     border-bottom: none;
     width:80%;      
     }
 .nav li{
-    display: block;
     min-height: 100px;
     width:25%;
     padding:12px;
     text-align:center;
     background-color:#315025;
-
+    text-transform: uppercase;
     box-shadow:1px -15px 20px rgba(0,0,0,.5);
 	-webkit-box-shadow:1px -15px 20px rgba(0,0,0,.5);
     -moz-box-shadow:1px -15px 20px rgba(0,0,0,.5);
@@ -293,12 +296,12 @@ a :visited{
       
       @media all and (max-width: 480px){ /* When screen size is 480px */
         
-          .navbar-fixed-bottom .navbar-collapse, .navbar-fixed-top .navbar-collapse{
+          /* .navbar-fixed-bottom .navbar-collapse, .navbar-fixed-top .navbar-collapse{
             padding-right: 0;
             padding-left: 0;
             height: 100vh;
             max-height:120%;
-          }
+          } */
           .logo{
             width:70%;
         }
