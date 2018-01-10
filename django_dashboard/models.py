@@ -12,15 +12,28 @@ from django.utils import timezone
 import uuid
 from random import randint # for testing data streams
 
+class Company(models.Model):
+    company_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
+    company_name = models.CharField(max_length=200)
+    company_address1 = models.CharField(max_length=200)
+    company_address2 = models.CharField(max_length=200)
+    phone_number = models.CharField(max_length=15, db_index=True,null=True)
+    emails = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
+    other_info = models.TextField(blank=True,null=True)
+
+    class Meta:
+        verbose_name = "Company"
+        verbose_name_plural = "Company's"
+
 class Technicians(models.Model):
     #uid = models.CharField(db_index=True)
-
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     # maybe add choices here:
     ACCREDITED_TO_INSTALL = (
     ('TUBULAR', "tubular"),
     ('FIXED_DOME', "fixed_dome"),
     )
-    uid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
+    technician_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
     phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
@@ -229,6 +242,23 @@ class JobHistory(models.Model):
 #     average_repair_time_minor_faults
 #     average_repair_time_major_faults
 #     datetime
+
+class Dashboard(models.Model):
+    dash_id = models.OneToOneField(Company,on_delete=models.CASCADE, primary_key=True)
+    #data_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True,editable=False, db_index=True)
+    
+    plants = models.IntegerField(blank=True,null=True)
+    active = models.IntegerField(blank=True,null=True)
+    faults = models.IntegerField(blank=True,null=True)
+    avtime = models.IntegerField(blank=True,null=True)
+    jobs = models.IntegerField(blank=True,null=True)
+    fixed = models.IntegerField(blank=True,null=True)
+
+    class Meta:
+        verbose_name = "Dashboard"
+        verbose_name_plural = "Dashboard Data"
+        
 
 class AggregatedStatistics(models.Model):
     pass

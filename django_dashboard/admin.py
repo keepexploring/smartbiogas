@@ -3,7 +3,16 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from .models import Technicians, TechnitionRealtime, Users, BiogasPlants, JobHistory
+from .models import Technicians, TechnitionRealtime, Users, BiogasPlants, JobHistory, Company, Dashboard
+
+class CompanyAdmin(admin.ModelAdmin):
+    model = Company
+    list_display = ('company_name', 'company_address1','company_address2','phone_number', 'emails', 'other_info')
+    list_filter = ('company_name', 'company_address1','emails')
+    search_fields = ('company_name', 'company_address1','company_address2','emails','phone_number')
+
+class DashboardAdmin(admin.ModelAdmin):
+    model = Dashboard
 
 # Register your models here.
 class Technition_realtimeInline(admin.StackedInline):
@@ -13,9 +22,9 @@ class Technition_realtimeInline(admin.StackedInline):
 
 class TechniciansAdmin(admin.ModelAdmin):
     inlines = (Technition_realtimeInline,)
-    list_display = ('first_name','last_name','phone_number','nearest_town','specialist_skills','datetime_created')
-    list_filter = ('first_name','last_name','phone_number','nearest_town')
-    search_fields = ('first_name','last_name','phone_number','nearest_town')
+    list_display = ('technician_id', 'first_name','last_name','phone_number','nearest_town','specialist_skills','datetime_created')
+    list_filter = ('technician_id', 'first_name','last_name','phone_number','nearest_town')
+    search_fields = ('technician_id', 'first_name','last_name','phone_number','nearest_town')
 
 class JobHistoryInline(admin.TabularInline):
    model = JobHistory
@@ -32,6 +41,9 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ('first_name','surname','mobile','email','biogas_owner')
 
 
+admin.site.register(Company, CompanyAdmin)
+admin.site.register(Dashboard, DashboardAdmin)
 admin.site.register(Technicians, TechniciansAdmin)
 admin.site.register(BiogasPlants, BiogasPlantsAdmin)
 admin.site.register(Users, UserAdmin)
+
