@@ -1,11 +1,5 @@
 import React from 'react';
-
 import ListRow from './ListRow.jsx'
-
-const imgStyle = {
-    height: '200px',
-    background: 'grey'
-}
 
 const TableList = (props) => {
     const rowList = Object.keys(props.headers).map(function (key, index) {
@@ -16,10 +10,12 @@ const TableList = (props) => {
         )
     }, this);
     
+    console.log(props);
+
     return (
         <div className='row table-list'>
-            <div className='col-md-3' style={imgStyle}>
-                Test image
+            <div className='col-md-3'>
+                <img src={props.data.image_url} className='img-responsive' />
             </div>
             <div className='col-md-9'>
                 <table className="table">
