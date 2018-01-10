@@ -25,7 +25,7 @@ class Technicians(models.Model):
     last_name = models.CharField(max_length=200)
     phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
     nearest_town = models.CharField(db_index=True,null=True,blank=True,max_length=200) # this also needs to be validated, perhaps do on the frontend
-    acredit_to_install = ArrayField(models.CharField(max_length=200), default=list,blank=True, db_index=True,null=True,choices=ACCREDITED_TO_INSTALL) # e.g. different digesters they can construct
+    acredit_to_install = ArrayField(models.CharField(max_length=200), default=list,blank=True, db_index=True,null=True) # choices=ACCREDITED_TO_INSTALL e.g. different digesters they can construct
     acredited_to_fix = ArrayField(models.CharField(max_length=200), default=list, blank=True, db_index=True,null=True)
     specialist_skills = ArrayField(models.CharField(max_length=200), default=list, blank=True, db_index=True,null=True)
     datetime_created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
@@ -47,10 +47,10 @@ class Technicians(models.Model):
 
         )
 
-class Technition_realtime(models.Model):
-
+class TechnitionRealtime(models.Model):
     BOOL_CHOICES = ((True, 'Active'), (False, 'Inactive'))
 
+    #tech = models.ForeignKey(Technicians, on_delete=models.CASCADE)
     technicians = models.OneToOneField(
         Technicians,
         on_delete=models.CASCADE,
@@ -59,11 +59,11 @@ class Technition_realtime(models.Model):
     number_jobs_active = models.IntegerField(blank=True,null=True)
     number_of_jobs_completed = models.IntegerField(blank=True,null=True)
     #seconds_active = models.IntegerField(blank=True,null=True)
-    status = models.NullBooleanField(db_index=True,blank=True,choices=BOOL_CHOICES)
-    location = models.PointField(geography=True, srid=4326,blank=True,db_index=True)
+    status = models.NullBooleanField(db_index=True,blank=True,null=True,choices=BOOL_CHOICES)
+    location = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
     
     def __str__(self):
-        return '%s %s' % (self.uid,self.status)
+        return '%s %s' % (self.technicians,self.status)
 
     def update_location(self,lat_,long_):
         self.location = Point(long_, lat_)
@@ -141,7 +141,7 @@ class BiogasPlants(models.Model):
             _location_ = geolocator.geocode(self.town)
             self.location = Point(_location_.longitude, _location_.latitude)
 
-        super(BiogasPlant, self).save(*args, **kwargs)
+        super(BiogasPlants, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Biogas Plant"

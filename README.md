@@ -106,3 +106,11 @@ sudo systemctl restart nginx
 If you are simply making configuration changes, Nginx can often reload without dropping connections. To do this, this command can be used:
 
 sudo systemctl reload nginx
+
+# setting up OAuth2
+https://django-oauth-toolkit.readthedocs.io/en/latest/install.html
+
+Issue with migrations -
+manage.py migrate --fake
+https://simpleisbetterthancomplex.com/tutorial/2016/07/26/how-to-reset-migrations.html
+

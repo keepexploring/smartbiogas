@@ -54,6 +54,10 @@ INSTALLED_APPS = (
     'channels',
     'django_realtime',
     'huey.contrib.djhuey',
+    'tastypie',
+    'oauth2_provider',
+    'corsheaders',
+    'tastypie_oauth2',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -65,7 +69,17 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 )
+
+CORS_ORIGIN_ALLOW_ALL = True # this should be restricted in the future for security
+
+#TASTYPIE_SWAGGER_API_MODULE = 'django_dashboard.urls.api'
+
+OAUTH2_PROVIDER = {
+    # this is the list of available scopes
+    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'}
+}
 
 ROOT_URLCONF = 'django_react.urls'
 
@@ -161,6 +175,10 @@ ELASTICSEARCH_DSL={
         'hosts': 'localhost:9200'
     },
 }
+
+#OAUTH2_PROVIDER = { # add these setting for OAuth
+#
+#}
 
 
 # In production we should use a redis backend
