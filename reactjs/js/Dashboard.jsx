@@ -7,79 +7,66 @@ import DashBox from '../components/dashboard/DashBox.jsx';
 import DashGraph from '../components/dashboard/DashGraph.jsx';
 import DashButton from '../components/dashboard/DashButton.jsx';
 
+import http from '../HttpClient';
 
 var dashboard_sock = 'ws://' + window.location.host + "/dashboard/"
-
 
 export class Dashboard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       titles: {
-        plants:"No. Plants",
-        active:"No. Active Plants",
-        faults:"Total Faults",
-        avtime:"Average Repair Time (Days)",
-        jobs:"Ongoing Jobs",
-        fixed:"Faults fixed"
+        totalPlants: "No. Plants",
+        activePlants: "No. Active Plants",
+        totalFaults: "Total Faults",
+        averageRepairTime: "Average Repair Time (Days)",
+        ongoingJobs: "Ongoing Jobs",
+        faultsFixed: "Faults fixed"
       },
       icons:{
-        plants:"sbn-icon-leaf",
-        active:"sbn-icon-tick",
-        faults:"sbn-icon-alert",
-        avtime:"sbn-icon-dial",
-        jobs:"sbn-icon-case",
-        fixed:"sbn-icon-technician"
+        totalPlants: "sbn-icon-leaf",
+        activePlants: "sbn-icon-tick",
+        totalFaults: "sbn-icon-alert",
+        averageRepairTime: "sbn-icon-dial",
+        ongoingJobs: "sbn-icon-case",
+        faultsFixed: "sbn-icon-technician"
       },
       btnView: true,
       data:{
-        plants: 'No data',
-        active: 'No data',
-        faults: 'No data',
-        avtime: 'No data',
-        jobs: 'No data',
-        fixed: 'No data'
-      }
+        totalPlants: 'No data',
+        activePlants: 'No data',
+        totalFaults: 'No data',
+        averageRepairTime: 'No data',
+        ongoingJobs: 'No data',
+        faultsFixed: 'No data'
+      },
+      loaded: false
     };
     this.btnWidg=this.btnWidg.bind(this);
     this.btnGraph=this.btnGraph.bind(this);
-    this.sendSocketMessage = this.sendSocketMessage.bind(this);
   }
 
   componentWillMount() {
-    //receives messages
-    let parsed_data = JSON.parse(this.props.data);
-    this.setState({
-      data:{
-        plants:parsed_data.plants, 
-        active:parsed_data.active,
-        faults:parsed_data.faults,
-        avtime:parsed_data.avtime,
-        jobs:parsed_data.jobs,
-        fixed:parsed_data.fixed
-      }
-        })
-}
-handleData(data) {
-  //receives messages from the connected websocket
-  let parsed_data = JSON.parse(data);
-  this.setState({
-      data:{
-        plants:parsed_data.plants, 
-        active:parsed_data.active,
-        faults:parsed_data.faults,
-        avtime:parsed_data.avtime,
-        jobs:parsed_data.jobs,
-        fixed:parsed_data.fixed
-      }
-   });
-}
-
-sendSocketMessage(message){
-  // sends message to channels back-end
- const socket = this.refs.socket
- socket.state.ws.send(JSON.stringify(message))
-}
+    var th = this;
+    http.get('dashboards/1')
+    .then(function (response) {
+      console.log(response);
+      th.setState({
+        data: {
+          totalPlants: response.data.total_plants,
+          activePlants: response.data.active_plants,
+          totalFaults: response.data.total_faults,
+          averageRepairTime: response.data.average_repair_time,
+          ongoingJobs: response.data.ongoing_jobs,
+          faultsFixed: response.data.faults_fixed
+        },
+        loaded: true
+      })
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  }
 
   render() {
     /* --Dashbox loop--*/
@@ -92,37 +79,44 @@ sendSocketMessage(message){
         <DashBox key={key} title={ti} value={String(va)} icon={ic} />   
       )
     },this);
+
     /*view*/
     const view=this.state.btnView;
     const graphView = <DashGraph />;
     
-    return (
-      
-        <div className="dashboard col-md-12 center-block" id="dashboard">
-        <Websocket ref="socket" url={this.props.socket} onMessage={this.handleData.bind(this)} reconnect={true}/>
-          <h1 className="text-center text-green">Data Widget </h1>
-          <div className="col-md-1 dash-btn text-center">
-            <DashButton icon="fa fa-info" action={this.btnWidg} item="1" active={this.state.btnView} />
-            <DashButton icon="fa fa-signal" action={this.btnGraph} item="2" />
+    if(this.state && this.state.loaded) {
+      return (
+          <div className="dashboard col-md-12 center-block" id="dashboard">
+            <h1 className="text-center text-green">Data Widget</h1>
+            
+            <div className="col-md-1 dash-btn text-center">
+              <DashButton icon="fa fa-info" action={this.btnWidg} item="1" active={this.state.btnView} />
+              <DashButton icon="fa fa-signal" action={this.btnGraph} item="2" />
+            </div>
+
+            <div id="widgets" className="col-md-11 center-block">
+              { view ? boxList : graphView }
+            </div> 
           </div>
-          <div id="widgets" className="col-md-11 center-block" >
-         {view? boxList : graphView} 
-          </div> 
-        </div>
-    )
+      )
+    }
+    return ("loading");
   }
+
   btnWidg(){
     this.setState({
       btnView:true
     })
     document.getElementById
   }
+
   btnGraph(){
     this.setState({
       btnView:false
     })
   }
+
 }
 
 const rootElement = document.getElementById('dashboard');
-ReactDOM.render(<Dashboard data={rootElement.getAttribute('data-data') } socket = {dashboard_sock}/>, rootElement);
+ReactDOM.render(<Dashboard data={rootElement.getAttribute('data-data') } socket = {dashboard_sock} />, rootElement);

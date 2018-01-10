@@ -7,8 +7,8 @@ const StatusInfo = (props) => {
     return (
         <div className='row status-info'>
             <h4>{props.title}</h4>
-            <UIextras title='Jobs Completed' info={props.info.techJobsCompleted} icon='sbn-icon-case' />
-            <UIextras title='Years Active' info={props.info.techYearsActive} icon='sbn-icon-dial' />
+            <UIextras title='Jobs Completed' info={props.info.jobs_completed} icon='sbn-icon-case' />
+            <UIextras title='Years Active' info={props.info.years_active} icon='sbn-icon-dial' />
            <UIstatus title={props.info.status} />
         </div>
     )

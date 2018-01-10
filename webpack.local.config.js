@@ -5,7 +5,6 @@ var BundleTracker = require('webpack-bundle-tracker')
 var ip = '127.0.0.1'
 var config = require('./webpack.config.js')
 
-
 config.entry = {
   Dashboard: [
     'webpack-dev-server/client?http://' + ip + ':3000',
@@ -26,6 +25,5 @@ config.plugins = config.plugins.concat([
   new webpack.NoEmitOnErrorsPlugin(),
   new BundleTracker({ filename: './webpack-stats.json' }),
 ])
-
 
 module.exports = config
