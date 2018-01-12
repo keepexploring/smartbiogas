@@ -58,6 +58,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'corsheaders',
     'tastypie_oauth2',
+    'django_seed',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -108,10 +109,10 @@ WSGI_APPLICATION = 'django_react.wsgi.application'
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    },
+    #'default': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+   # },
     # 'data': {
     #     'ENGINE': 'sql_server.pyodbc',
     #     'NAME': Config.get("azure", "database"),
@@ -125,7 +126,7 @@ DATABASES = {
     #     },
     
     # },
-        'data': {
+        'default': {
             #'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'ENGINE': 'django.contrib.gis.db.backends.postgis',
             'NAME': Config.get("postgres_azure", "database_name"),
@@ -139,7 +140,7 @@ DATABASES = {
 
 DATABASE_CONNECTION_POOLING = True
 
-DATABASE_ROUTERS = ['django_dashboard.routers.Dashboard_Router',]
+#DATABASE_ROUTERS = ['django_dashboard.routers.Dashboard_Router',]
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/

@@ -3,7 +3,23 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from .models import Technicians, TechnitionRealtime, Users, BiogasPlants, JobHistory, Company, Dashboard
+from .models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, TechnicianDetail, BiogasPlant, JobHistory, Dashboard
+
+
+class TechnicianDetailAdmin(admin.StackedInline):
+    model = TechnicianDetail
+    #list_display = ('number_jobs_active','number_of_jobs_completed','location')
+    #list_filter = ('number_jobs_active','number_of_jobs_completed','location')
+
+
+class UserDetailAdmin(admin.ModelAdmin): # admin.StackedInline
+    #inlines = (TechnicianDetailAdmin,)
+    model = UserDetail
+    inlines = [TechnicianDetailAdmin,]
+    list_display = ('first_name','last_name','phone_number','nearest_town','datetime_created')
+    list_filter = ('first_name','last_name','phone_number','nearest_town')
+
+
 
 class CompanyAdmin(admin.ModelAdmin):
     model = Company
@@ -11,20 +27,12 @@ class CompanyAdmin(admin.ModelAdmin):
     list_filter = ('company_name', 'company_address1','emails')
     search_fields = ('company_name', 'company_address1','company_address2','emails','phone_number')
 
+
 class DashboardAdmin(admin.ModelAdmin):
     model = Dashboard
-
-# Register your models here.
-class Technition_realtimeInline(admin.StackedInline):
-    model = TechnitionRealtime
-    #list_display = ('number_jobs_active','number_of_jobs_completed','location')
-    #list_filter = ('number_jobs_active','number_of_jobs_completed','location')
-
-class TechniciansAdmin(admin.ModelAdmin):
-    inlines = (Technition_realtimeInline,)
-    list_display = ('technician_id', 'first_name','last_name','phone_number','nearest_town','specialist_skills','datetime_created')
-    list_filter = ('technician_id', 'first_name','last_name','phone_number','nearest_town')
-    search_fields = ('technician_id', 'first_name','last_name','phone_number','nearest_town')
+    list_display = ('company', 'created_at', 'plants', 'active', 'faults', 'avtime', 'jobs', 'fixed')
+    list_filter = ('company', 'created_at', 'plants', 'active', 'faults', 'avtime', 'jobs', 'fixed')
+    search_fields = ('company', 'created_at', 'plants', 'active', 'faults', 'avtime', 'jobs', 'fixed')
 
 class JobHistoryInline(admin.TabularInline):
    model = JobHistory
@@ -35,6 +43,9 @@ class BiogasPlantsAdmin(admin.ModelAdmin):
     list_filter = ('type_biogas','size_biogas','town')
     search_fields = ('type_biogas','size_biogas','town')
 
+class BiogasPlantContactAdmin(admin.ModelAdmin):
+    model = BiogasPlantContact
+
 class UserAdmin(admin.ModelAdmin):
     list_display = ('first_name','surname','mobile','email','biogas_owner')
     list_filter = ('first_name','surname','mobile','email','biogas_owner')
@@ -43,7 +54,9 @@ class UserAdmin(admin.ModelAdmin):
 
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(Dashboard, DashboardAdmin)
-admin.site.register(Technicians, TechniciansAdmin)
-admin.site.register(BiogasPlants, BiogasPlantsAdmin)
-admin.site.register(Users, UserAdmin)
+admin.site.register(UserDetail, UserDetailAdmin)
+#admin.site.register(TechnicianDetail, TechnicianDetailAdmin)
+admin.site.register(BiogasPlant, BiogasPlantsAdmin)
+admin.site.register(BiogasPlantContact, BiogasPlantContactAdmin)
+#admin.site.register(Users, UserAdmin)
 

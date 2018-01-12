@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
@@ -11,69 +12,112 @@ from geopy.geocoders import Nominatim
 from django.utils import timezone
 import uuid
 from random import randint # for testing data streams
+from enumfields import EnumField
+from django_dashboard.enums import ContactType, UserRole, JobStatus, PlantStatus, TypeBiogas
+from django_dashboard.utilities import find_coordinates
+from multiselectfield import MultiSelectField
+from django.contrib.sessions.models import Session
+from django.contrib.auth.models import User
+
+import pdb
+
+
+
 
 class Company(models.Model):
+    #user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    #session = models.ForeignKey(Session)
+    
+
     company_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
     company_name = models.CharField(max_length=200)
     company_address1 = models.CharField(max_length=200)
-    company_address2 = models.CharField(max_length=200)
+    company_address2 = models.CharField(max_length=200,blank=True,null=True)
     phone_number = models.CharField(max_length=15, db_index=True,null=True)
     emails = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
     other_info = models.TextField(blank=True,null=True)
+
+    def __str__(self):
+        return '%s' % (self.company_name)
 
     class Meta:
         verbose_name = "Company"
         verbose_name_plural = "Company's"
 
-class Technicians(models.Model):
+    
+
+
+class UserDetail(models.Model):
     #uid = models.CharField(db_index=True)
+    user = models.OneToOneField(User,on_delete=models.CASCADE) # a user
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     # maybe add choices here:
-    ACCREDITED_TO_INSTALL = (
-    ('TUBULAR', "tubular"),
-    ('FIXED_DOME', "fixed_dome"),
-    )
-    technician_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
+    
+    role = EnumField(UserRole, max_length=1,null=True)
+    #pdb.set_trace()
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
+    #last_name = models.CharField(max_length=200)
+    model_pic = models.ImageField(upload_to = 'Images',null=True,blank=True)
     phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
     nearest_town = models.CharField(db_index=True,null=True,blank=True,max_length=200) # this also needs to be validated, perhaps do on the frontend
-    acredit_to_install = ArrayField(models.CharField(max_length=200), default=list,blank=True, db_index=True,null=True) # choices=ACCREDITED_TO_INSTALL e.g. different digesters they can construct
-    acredited_to_fix = ArrayField(models.CharField(max_length=200), default=list, blank=True, db_index=True,null=True)
-    specialist_skills = ArrayField(models.CharField(max_length=200), default=list, blank=True, db_index=True,null=True)
     datetime_created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
     datetime_modified = models.DateTimeField(null=True,blank=True,editable=False)
-    average_rating = models.FloatField(editable=False,blank=True,null=True,default=0)
 
     def save(self, *args, **kwargs):
         if not self.datetime_created:
             self.datetime_created = timezone.now()
         self.datetime_modified = timezone.now()
-        return super(Technicians,self).save(*args,**kwargs)
+        #pdb.set_trace()
+        return super(UserDetail,self).save(*args,**kwargs)
 
     class Meta:
-        verbose_name = "Technician"
-        verbose_name_plural = "Technicians"
-        permissions = ( ("remove_technician", "Remove a technician from the platform"),
-                        ("create_technician", "Add a technician to the platform" ),
-                        ("edit_technician", "Edit a technican's profile"),
+        verbose_name = "UserDetail"
+        verbose_name_plural = "UserDetails"
+        permissions = ( ("remove_user", "Remove a user from the platform"),
+                        ("create_user", "Add a user to the platform" ),
+                        ("edit_user", "Edit a user's profile"),
 
         )
 
-class TechnitionRealtime(models.Model):
+class TechnicianDetail(models.Model):
     BOOL_CHOICES = ((True, 'Active'), (False, 'Inactive'))
+
+    ACCREDITED_TO_INSTALL = (
+    ('TUBULAR', "tubular"),
+    ('FIXED_DOME', "fixed_dome"),
+    )
+
+    SPECIALIST_SKILLS = (
+        ('PLUMBER', 'plumber'),
+        ('MASON', 'mason'),
+        ('MANAGER', 'manager'),
+        ('DESIGN', 'design'),
+        ('CALCULATIONS', 'calculations')
+    )
 
     #tech = models.ForeignKey(Technicians, on_delete=models.CASCADE)
     technicians = models.OneToOneField(
-        Technicians,
+        UserDetail,
         on_delete=models.CASCADE,
         primary_key=True,
     )
+    #company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    technician_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
+    #acredit_to_install = ArrayField(models.CharField(max_length=200, choices = ACCREDITED_TO_INSTALL), default=list,blank=True, db_index=True,null=True) # choices=ACCREDITED_TO_INSTALL e.g. different digesters they can construct
+    #acredit_to_install = models.SelectMultiple(max_length=200, choices = ACCREDITED_TO_INSTALL)
+    acredit_to_install = MultiSelectField(choices = ACCREDITED_TO_INSTALL,blank=True, db_index=True,null=True)
+    acredited_to_fix= MultiSelectField(choices = ACCREDITED_TO_INSTALL,blank=True, db_index=True,null=True)
+    #acredited_to_fix = ArrayField(models.CharField(max_length=200), default=list, blank=True, db_index=True,null=True)
+    specialist_skills = MultiSelectField(choices = SPECIALIST_SKILLS,blank=True, db_index=True,null=True)
+    #specialist_skills = ArrayField(models.CharField(max_length=200), default=list, blank=True, db_index=True,null=True)
     number_jobs_active = models.IntegerField(blank=True,null=True)
     number_of_jobs_completed = models.IntegerField(blank=True,null=True)
     #seconds_active = models.IntegerField(blank=True,null=True)
     status = models.NullBooleanField(db_index=True,blank=True,null=True,choices=BOOL_CHOICES)
     location = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
+    average_rating = models.FloatField(editable=False,blank=True,null=True,default=0)
+    what3words = models.CharField(max_length=200,null=True)
     
     def __str__(self):
         return '%s %s' % (self.technicians,self.status)
@@ -84,7 +128,13 @@ class TechnitionRealtime(models.Model):
     
     def update_status(self,status):
         self.status = status
-        self.save() 
+        self.save()
+
+    def save(self, *args, **kwargs):
+        if  (self.what3words != None): # want to change this so it is only saved when the coordinate has changed, not every time
+            _location_ = find_coordinates(self.what3words)
+            self.location = Point( _location_['lng'], _location_['lat'] )
+        return super(TechnicianDetail,self).save(*args,**kwargs)
 
     class Meta:
         verbose_name = "Status and Location"
@@ -96,21 +146,24 @@ class TechnitionRealtime(models.Model):
 
         )
 
-class Users(models.Model):
-    uid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class BiogasPlantContact(models.Model):
+    uid = models.UUIDField(default=uuid.uuid4, editable=False)
+    #associated_company = models.ManyToManyField(Company)
+    associated_company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    contact_type = EnumField(ContactType, max_length=1)
     first_name = models.CharField(null=True,blank=True,max_length=200)
     surname = models.CharField(null=True,blank=True,max_length=200)
     mobile = models.CharField(db_index=True,null=True,blank=True,max_length=15)
     email = models.CharField(validators=[EmailValidator],db_index=True,null=True,blank=True,max_length=200)
-    biogas_owner = models.NullBooleanField(db_index=True,blank=True)
+    # biogas_owner = models.NullBooleanField(db_index=True,blank=True)
 
     
     def __str__(self):
         return '%s %s; %s' % (self.first_name, self.surname, self.mobile)
 
     class Meta:
-        verbose_name = "Owner"
-        verbose_name_plural = "Owners"
+        verbose_name = "Biogas Plant Owner"
+        verbose_name_plural = "Biogas Plant Owners"
 
         permissions = ( ("remove_user", "Remove a user from the platform"),
                         ("create_user", "Add a user to the platform" ),
@@ -119,7 +172,7 @@ class Users(models.Model):
 
         )
     
-class BiogasPlants(models.Model):
+class BiogasPlant(models.Model):
     TYPE_BIOGAS_CHOICES = (
     ('TUBULAR', "tubular"),
     ('FIXED_DOME', "fixed_dome"),
@@ -137,16 +190,18 @@ class BiogasPlants(models.Model):
         ('DECOMMISSIONED', "decommissioned"),
     )
     plant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
-    user = models.ManyToManyField(Users) # a biogas plant can have one or many users and a user can have one or many biogas plants
+    user = models.ManyToManyField(BiogasPlantContact) # a biogas plant can have one or many users and a user can have one or many biogas plants
+    constructing_technician = models.ManyToManyField(TechnicianDetail, blank = True)
     town = models.CharField(null=True,max_length=200)
     funding_souce = models.CharField(null=True,max_length=225,blank=True)
     description_location = models.CharField(null=True,max_length=400,blank=True)
     postcode = models.CharField(null=True,max_length=20,blank=True)
-    type_biogas = models.CharField(choices=TYPE_BIOGAS_CHOICES,null=True,max_length=20,blank=True)
+    #type_biogas = models.CharField(choices=TYPE_BIOGAS_CHOICES,null=True,max_length=20,blank=True)
+    type_biogas = EnumField(TypeBiogas, max_length=1,null=True)
     size_biogas = models.FloatField(null=True,blank=True) # maybe specify this in m3
     location = models.PointField(geography=True, srid=4326,blank=True,db_index=True,null=True)
-    status = models.CharField(null=True,max_length=225,blank=True,choices=STATUS_CHOICES)
-    
+    #status = models.CharField(null=True,max_length=225,blank=True,choices=STATUS_CHOICES)
+    plant_status = EnumField(PlantStatus, max_length=1,null=True)
 
     def save(self, *args, **kwargs):
         if not self.location:
@@ -154,7 +209,7 @@ class BiogasPlants(models.Model):
             _location_ = geolocator.geocode(self.town)
             self.location = Point(_location_.longitude, _location_.latitude)
 
-        super(BiogasPlants, self).save(*args, **kwargs)
+        super(BiogasPlant, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Biogas Plant"
@@ -169,7 +224,8 @@ class BiogasPlants(models.Model):
 
 # have an array of fault types
 class JobHistory(models.Model):
-    plant = models.ForeignKey(BiogasPlants, on_delete=models.CASCADE) # a biogas plan can have many job records
+    plant = models.ForeignKey(BiogasPlant, on_delete=models.CASCADE) # a biogas plan can have many job records
+    jobs = models.ManyToManyField(UserDetail,blank=True) # associating it with someone who can fix it, blank means it is optional  - importan because it will not initially be associated
 
     STATUS_CHOICES = (
     ('UNASSIGNED', "unassigned"),
@@ -190,9 +246,9 @@ class JobHistory(models.Model):
     #job_duration = models.IntegerField() # how long the job has been outstanding in seconds
     date_completed = models.DateTimeField(null=True)
     completed = models.NullBooleanField(db_index=True,blank=True,default=False)
-    job_status = models.CharField(choices=STATUS_CHOICES,default='UNASSIGNED',max_length=16,null=True)# states (unassigned, resolving- being worked on, assitance, overdue- accepted, but not been completed, after x number of days, resolved, feedback- if received low star, then flag up and push to an admin)
+    #job_status = models.CharField(choices=STATUS_CHOICES,default='UNASSIGNED',max_length=16,null=True)# states (unassigned, resolving- being worked on, assitance, overdue- accepted, but not been completed, after x number of days, resolved, feedback- if received low star, then flag up and push to an admin)
                 # decommissioned
-    
+    job_status= EnumField(JobStatus, max_length=1,null=True)
     fault_description = models.TextField(null=True) # a descrete number of fault descriptions
     other = models.TextField(null=True) # another unspecified fault description
     client_feedback_star = models.IntegerField(
@@ -244,7 +300,7 @@ class JobHistory(models.Model):
 #     datetime
 
 class Dashboard(models.Model):
-    dash_id = models.OneToOneField(Company,on_delete=models.CASCADE, primary_key=True)
+    company = models.OneToOneField(Company,on_delete=models.CASCADE, primary_key=True)
     #data_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
     created_at = models.DateTimeField(auto_now_add=True,editable=False, db_index=True)
     

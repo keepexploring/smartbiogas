@@ -1,15 +1,16 @@
 from django.conf.urls import include, url
 from . import views
 from tastypie.api import Api
-from api import TechnicanResource, Technition_realtimeResource, UserResource, BiogasPlants, JobHistory
+from api import CompanyResource, UserDetailResource, TechnicianDetailResource, BiogasPlantContactResource, BiogasPlantResource, JobHistoryResource, DashboardResource
 
 v1_api = Api(api_name='v1')
-v1_api.register(TechnicanResource())
-v1_api.register(Technition_realtimeResource())
-v1_api.register(UserResource())
-v1_api.register(BiogasPlants())
-v1_api.register(JobHistory())
-
+v1_api.register(CompanyResource())
+v1_api.register(UserDetailResource())
+v1_api.register(TechnicianDetailResource())
+v1_api.register(BiogasPlantContactResource())
+v1_api.register(BiogasPlantResource())
+v1_api.register(JobHistoryResource())
+v1_api.register(DashboardResource())
 
 urlpatterns = [
               # url(r'home/$', views.index_main.as_view(), name='home'),
