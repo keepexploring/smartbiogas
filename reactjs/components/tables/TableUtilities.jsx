@@ -40,6 +40,23 @@ export function newJob(){
   };
 };
 
+export function detailsJob(){
+  const statusChance = Math.random();
+  return {
+    id: Math.floor(Math.random() * 10),
+    plantID: Math.floor(Math.random() * 50),
+    techID: Math.floor(Math.random() * 40),
+    dateFlagged:randomDateConstructor(Math.floor(Math.random() * 10**10)) ,
+    overdueDate:randomDateConstructor(Math.floor(Math.random() * 10**10)) ,    
+    faultDescription: randomTextConstrucor(25),
+    additionalInfo: testInfo,
+    status:
+      statusChance > 0.66
+        ? "active"
+        : statusChance > 0.33 ? "inactive" : "review"
+  };
+};
+
 export function makeData(len,newEntry) {
     const people =[]
     range(len).map(d => {

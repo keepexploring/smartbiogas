@@ -25,6 +25,12 @@ Follow next article or Download this repository
 * sudo pip install -r requirements.txt
 
 #### ====================Note: if an error =====================
+##### Install Elasticsearch
+* Ubuntu: https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-elasticsearch-on-ubuntu-16-04
+* Mac:
+brew update
+brew install elasticsearch
+
 ##### with gdal library run
 * apt-get -f install
 * sudo apt-get install binutils libproj-dev gdal-bin
@@ -53,11 +59,7 @@ python manage.py collectstatic
 * npm install
 * webpack --config webpack.config.js
 
-* Install Elasticsearch
-* Ubuntu: https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-elasticsearch-on-ubuntu-16-04
-* Mac:
-brew update
-brew install elasticsearch
+
 
 ### Run the App
 * Run the virtual environment source [path to ve]/bin/activate

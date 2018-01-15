@@ -17,6 +17,16 @@ config.entry = {
     'webpack/hot/only-dev-server',
     './reactjs/js/Technicians.jsx',
   ],
+  Jobs: [
+    'webpack-dev-server/client?http://' + ip + ':3000',
+    'webpack/hot/only-dev-server',
+    './reactjs/js/Jobs.jsx',
+  ],
+  Plants: [
+    'webpack-dev-server/client?http://' + ip + ':3000',
+    'webpack/hot/only-dev-server',
+    './reactjs/js/Plants.jsx',
+  ],
 }
 
 config.output.publicPath = 'http://' + ip + ':3000' + '/assets/bundles/'
