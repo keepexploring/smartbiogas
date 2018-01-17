@@ -9,33 +9,6 @@ const next = <SvgIcon name='sbn-arrow-right' size='20' color="icon-yellow" type=
 const previous = <SvgIcon name='sbn-arrow-left' size='20' color="icon-yellow" type='button' />
 
 
-function columnsConstructor(headers, rows) {
-    const testColumn = Object.keys(headers).map(function (key, index) {
-        return {
-            Header: <span >{headers[key]}</span>,
-            accessor: key,
-            Cell: row => (cellConstructor(row.value, key))
-        }
-    })
-    return testColumn
-}
-
-function cellConstructor(value, column) {
-    //const classValue = 'column-'+ column
-    let colorstyle = ''
-    let textUpper = ''
-    if (column == 'status') {
-        colorstyle = value === 'active' ? '#63994e'
-            : value === 'inactive' ? '#8fc7d0'
-                : '#a8292f'
-        textUpper = 'uppercase'
-    } else {
-        colorstyle = 'white'
-        textUpper = 'none'
-    }
-    return <span className={column} style={{ color: colorstyle, textTransform: textUpper }} >{value}</span>
-}
-
 const requestData = (pageSize, page, filtered, data) => {
     return new Promise((resolve, reject) => {
         // You can retrieve your data however you want, in this case, we will just use some local data.
@@ -72,15 +45,42 @@ export class Table extends React.Component {
             loading: true
         };
         this.fetchData = this.fetchData.bind(this);
+        this.cellConstructor=this.cellConstructor.bind(this);
+        this.columnsConstructor=this.columnsConstructor.bind(this);
     }
     /*  -------Real data parse-------*/
     componentWillMount() {
+        let table=this.props.data;
         this.setState({
-            data: this.props.data,
-            columns: columnsConstructor(this.props.headers, this.props.data),
-            pageSize: this.props.pageSize
+            data: table.values,
+            columns: this.columnsConstructor(table.headers, table.values),
+            pageSize: table.pageSize
         })
     }
+    columnsConstructor(headers, rows) {
+        const testColumn = Object.keys(headers).map(function (key, index) {
+            return {
+                Header: <span >{headers[key]}</span>,
+                accessor: key,
+                Cell: row => (this.cellConstructor(row.value, key))
+            }
+        })
+        return testColumn
+    }
+    cellConstructor(value, column) {
+        console.log(this.props.data.statusOptions);
+        let colorstyle = ''
+        let textUpper = ''
+        if (column == 'status' || column=='fault_status') {
+            //colorstyle = this.props.data.statusOptions[value]
+            textUpper = 'uppercase'
+        } else {
+            colorstyle = 'white'
+            textUpper = 'none'
+        }
+        return <span className={column} style={{ color: colorstyle, textTransform: textUpper }} >{value}</span>
+    }
+
     fetchData(state, instance) {
         // Whenever the table model changes, or the user sorts or changes pages, this method gets called and passed the current table model.
         // You can set the `loading` prop of the table to true to use the built-in one or show you're own loading bar if you want.
@@ -101,21 +101,6 @@ export class Table extends React.Component {
         });
       }
 
-
-    /*handleData(data) {
-        //receives messages from the connected websocket
-        let parsed_data = JSON.parse(data);
-        this.setState({
-            techData: {
-                techName: parsed_data.techName,
-                techPhoneNumber: parsed_data.techPhoneNumber,
-                techLocation: parsed_data.techLocation,
-                techJobs: parsed_data.techLocation,
-                status: parsed_data.techStatus
-            }
-        });
-    }
-    **/
     render() {
         const borders = "1px solid #6e6e6e";
         return (

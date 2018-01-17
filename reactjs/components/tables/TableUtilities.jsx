@@ -15,10 +15,10 @@ export function newTechnician(){
   const statusChance = Math.random();
   return {
     id: Math.floor(Math.random() * 10),
-    techName:randomTextConstrucor(2) ,
-    techPhoneNumber: Math.floor(Math.random() * 10**8),
-    techLocation: randomTextConstrucor(1),
-    techJobs: Math.floor(Math.random() * 10),
+    full_name:randomTextConstrucor(2) ,
+    phone: Math.floor(Math.random() * 10**8),
+    location: randomTextConstrucor(1),
+    jobs_completed: Math.floor(Math.random() * 10),
     status:
       statusChance > 0.66
         ? "active"
@@ -29,14 +29,14 @@ export function newTechnician(){
 export function newJob(){
   const statusChance = Math.random();
   return {
-    dateFlagged:randomDateConstructor(Math.floor(Math.random() * 10**10)) ,
+    created_at:randomDateConstructor(Math.floor(Math.random() * 10**10)) ,
     id: Math.floor(Math.random() * 10),
-    plantID: Math.floor(Math.random() * 50),
-    faultDescription: randomTextConstrucor(6),
-    status:
+    plant_id: Math.floor(Math.random() * 50),
+    fault_description: randomTextConstrucor(6),
+    fault_status:
       statusChance > 0.66
-        ? "active"
-        : statusChance > 0.33 ? "inactive" : "review"
+      ? "complete"
+      : statusChance > 0.33 ? "overdue" : "resolving"
   };
 };
 
@@ -44,16 +44,16 @@ export function detailsJob(){
   const statusChance = Math.random();
   return {
     id: Math.floor(Math.random() * 10),
-    plantID: Math.floor(Math.random() * 50),
-    techID: Math.floor(Math.random() * 40),
-    dateFlagged:randomDateConstructor(Math.floor(Math.random() * 10**10)) ,
-    overdueDate:randomDateConstructor(Math.floor(Math.random() * 10**10)) ,    
-    faultDescription: randomTextConstrucor(25),
-    additionalInfo: testInfo,
+    plant_id: Math.floor(Math.random() * 50),
+    tech_id: Math.floor(Math.random() * 40),
+    created_at:randomDateConstructor(Math.floor(Math.random() * 10**10)) ,
+    overdue:randomDateConstructor(Math.floor(Math.random() * 10**10)) ,    
+    fault_description: randomTextConstrucor(25),
+    additional_info: testInfo,
     status:
       statusChance > 0.66
-        ? "active"
-        : statusChance > 0.33 ? "inactive" : "review"
+        ? "complete"
+        : statusChance > 0.33 ? "overdue" : "resolving"
   };
 };
 
@@ -68,22 +68,23 @@ export function makeData(len,newEntry) {
   }
 
   const testInfo="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."  
+  
   export function newProfile(){
     const statusChance = Math.random();
     const activeYears = Math.random()*10;
     const dateNum = Math.floor(Math.random() * 10**10)
     return {
       id: Math.floor(Math.random() * 10),
-      techName:randomTextConstrucor(2) ,
-      techPhoneNumber: Math.floor(Math.random() * 10**8),
-      techAddress: Math.floor(Math.random() * 10) + ' ' + randomTextConstrucor(2),
-      techLocation: randomTextConstrucor(1),
-      techSkills: randomTextConstrucor(3),
-      techLanguages: randomTextConstrucor(1),
-      techStartDate:randomDateConstructor(dateNum),
-      additionalInfo: testInfo,
-      techJobsCompleted: Math.floor(Math.random() * 10),
-      techYearsActive: activeYears.toFixed(1),
+      full_name:randomTextConstrucor(2) ,
+      phone: Math.floor(Math.random() * 10**8),
+      address: Math.floor(Math.random() * 10) + ' ' + randomTextConstrucor(2),
+      location: randomTextConstrucor(1),
+      skills: randomTextConstrucor(3),
+      languages: randomTextConstrucor(1),
+      created_at:randomDateConstructor(dateNum),
+      additional_info: testInfo,
+      jobs_completed: Math.floor(Math.random() * 10),
+      years_active: activeYears.toFixed(1),
       status: statusChance > 0.66
       ? "active"
       : statusChance > 0.33 ? "inactive" : "review"

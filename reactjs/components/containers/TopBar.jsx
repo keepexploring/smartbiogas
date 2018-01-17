@@ -19,6 +19,7 @@ function addEntry() {
     alert('Addtech');
 }
 
+
 const TopBar = (props) => {
     const buttons = btnConstructor(props.btnExtra)
 
