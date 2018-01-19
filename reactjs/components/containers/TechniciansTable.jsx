@@ -14,9 +14,9 @@ const headers={
 }
 const statusOptions={
 	active:'#63994e',
-	inactive:'#63994e',
-	review: '#63994e',
-	withdrawn: '#63994e'
+	inactive:'#a7d9e5',
+	review: '#bf1622',
+	withdrawn: '#fff'
 }
 
 export class TechniciansTable extends React.Component {

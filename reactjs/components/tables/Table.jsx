@@ -8,6 +8,24 @@ import "react-table/react-table.css";
 const next = <SvgIcon name='sbn-arrow-right' size='20' color="icon-yellow" type='button' />
 const previous = <SvgIcon name='sbn-arrow-left' size='20' color="icon-yellow" type='button' />
 
+function cellConstructor(value, column, options) {
+    let colorstyle = '',
+        textUpper = '',
+        colorValue = '';
+    if (options) {
+        colorValue = options[value];
+        //console.log(options[value])
+    }
+
+    if (column == 'status' || column == 'fault_status') {
+        colorstyle = colorValue;
+        textUpper = 'uppercase';
+    } else {
+        colorstyle = 'white'
+        textUpper = 'none'
+    }
+    return <span className={column} style={{ color: colorstyle, textTransform: textUpper }} >{value}</span>
+}
 
 const requestData = (pageSize, page, filtered, data) => {
     return new Promise((resolve, reject) => {
@@ -42,15 +60,16 @@ export class Table extends React.Component {
             columns: [],
             pageSize: 10,
             pages: null,
-            loading: true
+            loading: true,
+            statusOptions: this.props.data.statusOptions
         };
         this.fetchData = this.fetchData.bind(this);
-        this.cellConstructor=this.cellConstructor.bind(this);
-        this.columnsConstructor=this.columnsConstructor.bind(this);
+        this.columnsConstructor = this.columnsConstructor.bind(this);
+        //this.cellConstructor=this.cellConstructor.bind(this);        
     }
     /*  -------Real data parse-------*/
     componentWillMount() {
-        let table=this.props.data;
+        let table = this.props.data;
         this.setState({
             data: table.values,
             columns: this.columnsConstructor(table.headers, table.values),
@@ -58,27 +77,15 @@ export class Table extends React.Component {
         })
     }
     columnsConstructor(headers, rows) {
+        const options = this.state.statusOptions;
         const testColumn = Object.keys(headers).map(function (key, index) {
             return {
                 Header: <span >{headers[key]}</span>,
                 accessor: key,
-                Cell: row => (this.cellConstructor(row.value, key))
+                Cell: row => (cellConstructor(row.value, key, options))
             }
         })
         return testColumn
-    }
-    cellConstructor(value, column) {
-        console.log(this.props.data.statusOptions);
-        let colorstyle = ''
-        let textUpper = ''
-        if (column == 'status' || column=='fault_status') {
-            //colorstyle = this.props.data.statusOptions[value]
-            textUpper = 'uppercase'
-        } else {
-            colorstyle = 'white'
-            textUpper = 'none'
-        }
-        return <span className={column} style={{ color: colorstyle, textTransform: textUpper }} >{value}</span>
     }
 
     fetchData(state, instance) {
@@ -87,19 +94,19 @@ export class Table extends React.Component {
         this.setState({ loading: true });
         // Request the data however you want.  Here, we'll use our mocked service we created earlier
         requestData(
-          state.pageSize,
-          state.page,
-          state.filtered,
-          state.data
+            state.pageSize,
+            state.page,
+            state.filtered,
+            state.data
         ).then(res => {
-          // Now just get the rows of data to your React Table (and update anything else like total pages or loading)
-          this.setState({
-            data: res.rows,
-            pages: res.pages,
-            loading: false
-          });
+            // Now just get the rows of data to your React Table (and update anything else like total pages or loading)
+            this.setState({
+                data: res.rows,
+                pages: res.pages,
+                loading: false
+            });
         });
-      }
+    }
 
     render() {
         const borders = "1px solid #6e6e6e";

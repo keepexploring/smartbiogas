@@ -6,25 +6,21 @@ const imgStyle = {
     background: 'grey'
 }
 
-const TableList = (props) => {
+const AddForm = (props) => {
     const rowList = Object.keys(props.headers).map(function (key, index) {
         let title = props.headers[key]
         let value = props.data[key];
-        return <ListRow key={index} header={title} value={value} />
+        return (
+            <tr className='list-row' key={key}>
+                <td className='col-md-6' >{title}</td>
+                <td className='list-value col-md-6' ><input className='input-holder' type='text' name={key} value={value} onChange={props.onChange} /></td>
+            </tr>
+        )
     }, this);
 
-    let image = null;
-    let tableClass;
-    if (props.page == 'technicians') {
-        image = <div className='col-md-3' style={imgStyle}>Test image</div>
-        tableClass = 'col-md-9'
-    } else {
-        tableClass = 'col-md-12'
-    }
     return (
-        <div className='row table-list'>
-            {image}
-            <div className={tableClass}>
+        <div className='table-list'>
+            <div className=''>
                 <table className="table">
                     <tbody>
                         {rowList}
@@ -34,4 +30,4 @@ const TableList = (props) => {
         </div>
     )
 }
-export default TableList;
+export default AddForm;

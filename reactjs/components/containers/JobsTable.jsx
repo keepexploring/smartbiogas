@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import base from '../../css/base.scss';
 import TopBar from './TopBar.jsx';
 import { Table } from '../tables/Table.jsx';
@@ -17,7 +16,14 @@ export class JobsTable extends React.Component {
 				fault_status: 'Fault Status'
 			},
 			pageSize:this.props.size,
-			statusOptions:this.props.statusOptions
+			statusOptions:{
+				complete:'#63994e',
+				resolving:'#a7d9e5',
+				unassigned: '#a7d9e5',
+				overdue: '#bf1622',
+				assistance: '#bf1622',
+				feedback: '#bf1622'
+			}
 		};
 	}
 

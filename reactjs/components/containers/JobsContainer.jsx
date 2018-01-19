@@ -11,12 +11,6 @@ export class JobsContainer extends React.Component {
 		this.state = {
 			values: this.props.values,
 			currentJob: null,
-			jobStatus:{
-                complete:'#63994e',
-                resolving:'#63994e',
-                unassigned: '#63994e',
-                overdue: '#8fc7d0',
-            },
 		};
 		// this.selectJob = this.selectJob.bind(this);
 	}
@@ -42,7 +36,7 @@ export class JobsContainer extends React.Component {
 					<BlockHeader title='Jobs List' />
 					<div className="main-table row center-block" >
 						{/* <TopBar btnExtra={true} /> */}
-                        <JobsTable jobs={this.state.values} size={10} extra={true} statusOptions={this.state.jobStatus}/>
+                        <JobsTable jobs={this.state.values} size={10} extra={true} />
 					</div>
 				</div>
 				{jobInfo}

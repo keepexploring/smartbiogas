@@ -8,7 +8,7 @@ const IconBtn = (props) => {
     }
     return (
         <div className={props.bootstrap} >
-            <button className={props.shape} style={btnstyle} onClick={props.action} ><SvgIcon name={props.icon} size={props.size} color="icon-yellow" /></button>
+            <button className={props.shape} style={btnstyle} onClick={props.action.click_action} data-toggle="modal" data-target={props.action.target}><SvgIcon name={props.icon} size={props.size} color="icon-yellow" /></button>
         </div >
     )
 }
