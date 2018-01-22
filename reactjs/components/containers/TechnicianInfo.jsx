@@ -3,8 +3,8 @@ import TableList from '../tables/TableList.jsx';
 import Notes from '../info/Notes.jsx';
 import StatusInfo from '../info/StatusInfo.jsx';
 import BlockHeader from '../BlockHeader.jsx';
-import {JobsTable} from './JobsTable.jsx';
-import {ModalPost} from './ModalPost.jsx';
+import { JobsTable } from './JobsTable.jsx';
+import { ModalPost } from './ModalPost.jsx';
 //import http from '../../HttpClient';
 import { makeData, newProfile } from "../tables/TableUtilities.jsx"; //Test data constructor
 const profileData = newProfile();
@@ -26,45 +26,50 @@ export class TechnicianInfo extends React.Component {
 				languages: 'Languages Spoken',
 				created_at: 'Joining Date'
 			},
-			techStatus:props.statusOptions,
-            //technician: this.props.profile,
-            technician:profileData,
+			techStatus: props.statusOptions,
+			//technician: this.props.profile,
+			technician: profileData,
 			jobs: [],
 			isOpen: false,
-			modalInfo:{
-				header:'Edit Technician',
-				body:[]
+			modalInfo: {
+				header: 'Edit Technician',
+				body: [],
+				update: null
 			}
 		}
-		this.toggleModal=this.toggleModal.bind(this);
+		this.toggleModal = this.toggleModal.bind(this);
+		this.handleUpdate = this.handleUpdate.bind(this);
+
 	}
 
-	componentDidMount(){
+	componentDidMount() {
 		this.getJobsForCurrentUser(this.state.technician);
-		this.getModalInfo(this.state.technicianHeaders,this.state.technician);
+		this.getModalInfo(this.state.technicianHeaders, this.state.technician);
 	}
 
-	componentWillReceiveProps(props){
-        //this.getJobsForCurrentUser(props.profile);
+	componentWillReceiveProps(props) {
+		//this.getJobsForCurrentUser(props.profile);
 		this.getJobsForCurrentUser(this.state.technician);
 		this.getModalInfo(this.state.technician);
 	}
-	getModalInfo(headers,profile){
-		this.setState({ 
-			modalInfo:{
-				body:{
-					headers:headers,
-					values:profile
-				}
-			  } 
-			
-    	});
+	getModalInfo(headers, profile) {
+		console.log(profile.keys());
+		this.setState({
+			modalInfo: {
+				body: {
+					headers: headers,
+					values: profile
+				},
+				update: this.handleUpdate
+			}
+
+		});
 	}
-	getJobsForCurrentUser(profile){
-        this.setState({ 
+	getJobsForCurrentUser(profile) {
+		this.setState({
 			jobs: techJobsData.people,
-			
-    	});
+
+		});
 		// http.get('jobs/by-user/' + profile.id)
 		// .then((response) => {
 		// 	this.setState({ 
@@ -77,33 +82,37 @@ export class TechnicianInfo extends React.Component {
 		// });
 	}
 
-	toggleModal(){
-		console.log('pass')
+	toggleModal() {
 		this.setState({
-		  isOpen: !this.state.isOpen,
+			isOpen: !this.state.isOpen,
 		});
-	  }
-
+	}
+	handleUpdate(newData) {
+		this.setState({
+			technician: newData,
+			isOpen: !this.state.isOpen,
+		})
+	}
 	render() {
-		const edit={
-			click_action:this.toggleModal,
-			target:'#modalpost',
+		const edit = {
+			click_action: this.toggleModal,
+			target: '#modalpost',
 		}
-		if(this.state && this.state.technician){
-			const infoPills={
-				years_pill:{
-					title:'Years Active',
-					value:this.state.technician.years_active,
-					icon:'sbn-icon-dial'
+		if (this.state && this.state.technician) {
+			const infoPills = {
+				years_pill: {
+					title: 'Years Active',
+					value: this.state.technician.years_active,
+					icon: 'sbn-icon-dial'
 				},
-				jobs_pill:{
-					title:'Jobs Completed',
-					value:this.state.technician.jobs_completed,
-					icon:'sbn-icon-case'
+				jobs_pill: {
+					title: 'Jobs Completed',
+					value: this.state.technician.jobs_completed,
+					icon: 'sbn-icon-case'
 				},
-				status_pill:{
-					value:this.state.technician.status,
-					color:this.state.techStatus[this.state.technician.status]
+				status_pill: {
+					value: this.state.technician.status,
+					color: this.state.techStatus[this.state.technician.status]
 				}
 			}
 
@@ -111,11 +120,11 @@ export class TechnicianInfo extends React.Component {
 				<div className="col-md-6  center-block">
 					<BlockHeader title='Technician Profile' />
 					<div className="techprofile center-block" >
-						
+
 						<div className="profile col-md-12 center-block">
-							<TableList headers={this.state.technicianHeaders} data={this.state.technician} editable={false}/>
+							<TableList headers={this.state.technicianHeaders} data={this.state.technician} editable={false} />
 						</div>
-						
+
 						<div className="col-md-12 profile center-block border-top">
 							<Notes title='Additional information' info={this.state.technician.additional_info} buttons={edit} icon='sbn-icon-edit' />
 							<StatusInfo title='' info={infoPills} />
@@ -125,13 +134,12 @@ export class TechnicianInfo extends React.Component {
 							<h4>Job History</h4>
 							<JobsTable jobs={this.state.jobs} size={5} extra={false} />
 						</div>
-				
 						<ModalPost show={this.state.isOpen} onClose={this.toggleModal} modalInfo={this.state.modalInfo} />
 					</div>
 				</div>
 			)
 		}
-		return('Loading');
-		
+		return ('Loading');
+
 	}
 }

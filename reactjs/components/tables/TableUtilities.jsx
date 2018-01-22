@@ -33,6 +33,7 @@ export function newJob(){
     id: Math.floor(Math.random() * 10),
     plant_id: Math.floor(Math.random() * 50),
     fault_description: randomTextConstrucor(6),
+    additional_info: testInfo,
     fault_status:
       statusChance > 0.66
       ? "complete"

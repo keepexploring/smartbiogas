@@ -8,34 +8,38 @@ export class ModalPost extends React.Component {
     super(props);
     this.state = {
       header: this.props.modalInfo.header,
-      body: this.props.modalInfo.body,
-      postData: [],
+      body: '',
+      postData: null,
       closeModal: {
         click_action: this.props.onClose,
         target: '#modalpost'
       },
-      submitModal:{
-        click_action:this.handleChange,
-        target:'#modalpost'
-      }
+      submitModal:{}
     };
     this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
   componentWillMount() {
-    this.componentWillReceiveProps()
+    this.componentWillReceiveProps();
+
   }
   componentWillReceiveProps(props) {
     this.setState({
-      body: this.props.modalInfo.body
+      body: this.props.modalInfo.body,
+      postData:this.props.modalInfo.body.values,
+      submitModal:{
+        click_action:this.handleSubmit,
+        target:'#modalpost'
+      }
     });
   }
 
   handleChange(event) {
     const field = event.target.name;
-    const postData = this.state.body.values;
-    postData[field] = event.target.value;
+    const tempData = this.state.body.values;
+    tempData[field] = event.target.value;
     this.setState({
-      postData: postData,
+      postData: tempData,
       //errors:dateErrors   
     });
   }
@@ -45,13 +49,12 @@ export class ModalPost extends React.Component {
   * POST data to database
   * Currently to state
   */
-  console.log('pass')
     event.preventDefault();
     console.log(this.state.postData);
     console.log('EXAMPLE SERVER UPDATE REQUEST');
-    //this.props.update(this.state.postData);
-
+    this.props.modalInfo.update(this.state.postData);
   }
+ 
   render() {
     // Render nothing if the "show" prop is false
     if (!this.props.show) {
@@ -70,8 +73,7 @@ export class ModalPost extends React.Component {
               </div>
               <div className="modal-footer">
                 <CloseBtn icon='sbn-icon-cross' shape='round-yellow' size='18' action={this.state.closeModal} bootstrap='col-md-2 col-sm-2 pull-right' />
-                <CloseBtn icon='sbn-icon-tick' shape='round-yellow' size='18' action={this.state.submitModal} bootstrap='col-md-2 col-sm-2 pull-right' />
-
+                <CloseBtn icon='sbn-icon-tick' shape='round-yellow' size='18' action={this.state.submitModal} bootstrap='col-md-2 col-sm-2 pull-left' />
               </div>
             </div>
           </div>
