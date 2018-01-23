@@ -1,5 +1,5 @@
 import React from "react";
-
+import moment from 'moment';
 
 
 const range = len => {
@@ -49,7 +49,7 @@ export function detailsJob(){
     tech_id: Math.floor(Math.random() * 40),
     created_at:randomDateConstructor(Math.floor(Math.random() * 10**10)) ,
     overdue:randomDateConstructor(Math.floor(Math.random() * 10**10)) ,    
-    fault_description: randomTextConstrucor(25),
+    fault_description: randomTextConstrucor(3),
     additional_info: testInfo,
     status:
       statusChance > 0.66
@@ -104,6 +104,6 @@ export function makeData(len,newEntry) {
   }
 
   function randomDateConstructor(num){
-    const randomDate=new Date(num)
-    return Date(randomDate)
+    const randomDate=new Date(num);
+    return moment(randomDate*200).format('DD-MM-YYYY');
   }

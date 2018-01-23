@@ -76,8 +76,7 @@ export class JobInfo extends React.Component {
 						created_at: 'Date Flagged',
 						id: 'Job ID #',
 						plant_id:'Plant ID #',
-						fault_description: 'Fault Description',
-						additional_info: 'Additional Information'
+						fault_description: 'Fault Description'
 					},
 					values: profile
 				},

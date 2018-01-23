@@ -24,7 +24,8 @@ export class TechnicianInfo extends React.Component {
 				location: 'Operating Location',
 				skills: 'Accreditted Skills',
 				languages: 'Languages Spoken',
-				created_at: 'Joining Date'
+				created_at: 'Joining Date',
+				//additional_info: 'Additional Information'
 			},
 			techStatus: props.statusOptions,
 			//technician: this.props.profile,
@@ -53,7 +54,7 @@ export class TechnicianInfo extends React.Component {
 		this.getModalInfo(this.state.technician);
 	}
 	getModalInfo(headers, profile) {
-		console.log(profile.keys());
+		//console.log(Object.keys(profile));
 		this.setState({
 			modalInfo: {
 				body: {
@@ -93,6 +94,7 @@ export class TechnicianInfo extends React.Component {
 			isOpen: !this.state.isOpen,
 		})
 	}
+	
 	render() {
 		const edit = {
 			click_action: this.toggleModal,

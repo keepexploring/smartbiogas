@@ -1,9 +1,30 @@
 .modal{
    h4, p,td{
-        color: black;
-       
+        color: black;  
     }
-    
+    .table{
+        margin-bottom: 0px;
+    }
+    .table-form{
+        border:1px solid black;
+    } 
+    .table-info{
+        padding: 8px;
+    } 
+    textarea{
+        width: 100%;
+        min-height:100px;
+        font-size: 12px;
+    }
+    input{
+        width:100%
+    }
+    input[type=text],input[type=date],textarea {
+        border: none;
+        background: #ededed;
+        padding: 2px;
+    }
+
 }
 
 
