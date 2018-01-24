@@ -92,15 +92,21 @@ export class JobInfo extends React.Component {
 	}
 	handleUpdate(newData){
 		this.setState({
-			technician: newData,
+			job: newData,
 			isOpen: !this.state.isOpen,
 		  })
 	}
 
 	render() {
-		const edit = {
-			click_action: this.toggleModal,
-			target: '#modalpost',
+		const buttons = { 
+			edit:{
+				click_action: this.toggleModal,
+				target: '#modalpost',
+				icon:'sbn-icon-edit',
+				shape:'round-yellow',
+				size:'20',
+				bootstrap:'col-md-2 col-sm-2'
+			}
 		}
 
 		const infoPills={
@@ -119,7 +125,7 @@ export class JobInfo extends React.Component {
 						</div>
 						
 						<div className="col-md-12 profile center-block border-top">
-							<Notes title='Additional information' info={this.state.job.additional_info} buttons={edit} icon='sbn-icon-edit' />
+							<Notes title='Additional information' info={this.state.job.additional_info} buttons={buttons} icon='sbn-icon-edit' />
 							<StatusInfo title='Job status' info={infoPills} />
 						</div>
 

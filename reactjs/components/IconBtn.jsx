@@ -3,12 +3,12 @@ import SvgIcon from './SvgIcon.jsx';
 
 const IconBtn = (props) => {
     const btnstyle={
-        width:props.size*2,
-        height:props.size*2
+        width:props.button.size*2,
+        height:props.button.size*2
     }
     return (
-        <div className={props.bootstrap} >
-            <button className={props.shape} style={btnstyle} onClick={props.action.click_action} data-toggle="modal" data-target={props.action.target}><SvgIcon name={props.icon} size={props.size} color="icon-yellow" /></button>
+        <div className={props.button.bootstrap} >
+            <button className={props.button.shape} style={btnstyle} onClick={props.button.click_action} data-toggle="modal" data-target={props.button.target}><SvgIcon name={props.button.icon} size={props.button.size} color="icon-yellow" /></button>
         </div >
     )
 }

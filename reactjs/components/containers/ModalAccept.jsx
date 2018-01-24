@@ -3,7 +3,7 @@ import CloseBtn from '../CloseBtn.jsx';
 import AddForm from '../tables/AddForm.jsx';
 
 
-export class ModalPost extends React.Component {
+export class ModalAccept extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -69,12 +69,30 @@ export class ModalPost extends React.Component {
   }
 
   render() {
+    const buttons = {
+      close: {
+        click_action: this.state.closeModal,
+        target: '#modalaccept',
+        icon: 'sbn-icon-cross',
+        shape: 'round-form',
+        size: '25',
+        bootstrap: 'col-md-2 col-sm-2 pull-right'
+      },
+      submit: {
+        click_action: this.handleSubmit,
+        target: '#modalaccept',
+        icon: 'sbn-icon-tick',
+        shape: 'round-form',
+        size: '25',
+        bootstrap: 'col-md-2 col-sm-2 pull-left'
+      }
+    }
     // Render nothing if the "show" prop is false
     if (!this.props.show) {
       return null;
     } else {
       return (
-        <div className="modal fade" role="dialog" id='modalpost' >
+        <div className="modal fade" role="dialog" id='modalaccept' >
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
@@ -82,7 +100,7 @@ export class ModalPost extends React.Component {
                 <h4 className="modal-title">{this.state.header}</h4>
               </div>
               <div className="modal-body">
-                <AddForm headers={this.state.body.headers} data={this.state.body.values} onChange={this.handleChange} />
+                Delete entry
               </div>
               <div className="modal-footer">
                 <CloseBtn button={this.state.buttons.close} />

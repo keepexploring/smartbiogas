@@ -51,10 +51,11 @@ export class TechnicianInfo extends React.Component {
 	componentWillReceiveProps(props) {
 		//this.getJobsForCurrentUser(props.profile);
 		this.getJobsForCurrentUser(this.state.technician);
-		this.getModalInfo(this.state.technician);
+		this.getModalInfo(this.state.technicianHeaders, this.state.technician);
+		
 	}
+
 	getModalInfo(headers, profile) {
-		//console.log(Object.keys(profile));
 		this.setState({
 			modalInfo: {
 				body: {
@@ -96,9 +97,15 @@ export class TechnicianInfo extends React.Component {
 	}
 	
 	render() {
-		const edit = {
-			click_action: this.toggleModal,
-			target: '#modalpost',
+		const buttons = { 
+			edit:{
+				click_action: this.toggleModal,
+				target: '#modalpost',
+				icon:'sbn-icon-edit',
+				shape:'round-yellow',
+				size:'20',
+				bootstrap:'col-md-2 col-sm-2'
+			}
 		}
 		if (this.state && this.state.technician) {
 			const infoPills = {
@@ -128,15 +135,15 @@ export class TechnicianInfo extends React.Component {
 						</div>
 
 						<div className="col-md-12 profile center-block border-top">
-							<Notes title='Additional information' info={this.state.technician.additional_info} buttons={edit} icon='sbn-icon-edit' />
+							<Notes title='Additional information' info={this.state.technician.additional_info} buttons={buttons}  />
 							<StatusInfo title='' info={infoPills} />
 						</div>
 
 						<div className="col-md-12 profile-table border-top">
 							<h4>Job History</h4>
-							<JobsTable jobs={this.state.jobs} size={5} extra={false} />
+							<JobsTable jobs={this.state.jobs} size={5} buttons='' />
 						</div>
-						<ModalPost show={this.state.isOpen} onClose={this.toggleModal} modalInfo={this.state.modalInfo} />
+						<ModalPost header='Edit Technician' show={this.state.isOpen} onClose={this.toggleModal} modalInfo={this.state.modalInfo} />
 					</div>
 				</div>
 			)

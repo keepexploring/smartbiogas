@@ -4,6 +4,7 @@ import TopBar from './TopBar.jsx';
 import { Table } from '../tables/Table.jsx';
 import { ModalPost } from './ModalPost.jsx';
 
+
 export class JobsTable extends React.Component {
 	constructor(props) {
 		super(props);
@@ -27,7 +28,7 @@ export class JobsTable extends React.Component {
 			},
 			isOpen: false,
 			modalInfo:{
-				header: 'Add Job',
+				//header: 'Add Job',
 				body: [],
 				update: null
 			}
@@ -42,24 +43,25 @@ export class JobsTable extends React.Component {
 		this.setState((prevState, props) => ({
 			values: props.jobs
 		}));
-		//this.getModalInfo(this.state.headers, this.state.values[0]);
 	}
 
 	getModalInfo(headers, profile) {
-		let emptyobj={}	
-		let empty=Object.keys(profile).map(function (key, index) {
-			emptyobj[key]='-'
-		});
-		console.log(emptyobj);
+		/**
+		 * Add job default 
+		 * Should be added:
+		 * 1.Autogenarated Job ID
+		 * 2. Dropdown list for plant ID?
+		 */
+		const emptyjob={}	
+		emptyjob.created_at='-';
 		this.setState({
 			modalInfo: {
 				body: {
 					headers: headers,
-					values: emptyobj
+					values: emptyjob
 				},
 				update: this.handleUpdate
 			}
-
 		});
 	}
 	toggleModal() {
@@ -70,7 +72,8 @@ export class JobsTable extends React.Component {
 	handleUpdate(newData) {
 		this.setState({
 			isOpen: !this.state.isOpen,
-		})
+		});
+		this.getModalInfo(this.state.headers, this.state.values[0]);
 	}
 
 	render() {
@@ -78,10 +81,10 @@ export class JobsTable extends React.Component {
 			add:{
 				click_action: this.toggleModal,
 				target: '#modalpost',
-			},
-			remove:{
-				click_action: this.toggleModal,
-				target: '#modalpost',
+				icon:'sbn-icon-add',
+				shape:'square-grey',
+				size:'18',
+				bootstrap:'col-md-2 col-sm-2 pull-right'
 			}
 		}
 		
@@ -91,7 +94,7 @@ export class JobsTable extends React.Component {
 				<div>
 					<TopBar btnExtra={this.props.extra} buttons={buttons}/>
 					<Table data={this.state} />
-					<ModalPost show={this.state.isOpen} onClose={this.toggleModal} modalInfo={this.state.modalInfo} />
+					<ModalPost header='Add Job' show={this.state.isOpen} onClose={this.toggleModal} modalInfo={this.state.modalInfo} />
 				</div>
 			);
 		}

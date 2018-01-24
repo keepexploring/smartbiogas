@@ -36,7 +36,7 @@ export class JobsContainer extends React.Component {
 					<BlockHeader title='Jobs List' />
 					<div className="main-table row center-block" >
 						{/* <TopBar btnExtra={true} /> */}
-                        <JobsTable jobs={this.state.values} size={10} extra={true} />
+                        <JobsTable jobs={this.state.values} size={10}  />
 					</div>
 				</div>
 				{jobInfo}
