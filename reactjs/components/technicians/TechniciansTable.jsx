@@ -1,8 +1,8 @@
 import React from 'react';
 import { Table } from '../tables/Table.jsx';
-import TopBar from './TopBar.jsx';
-import { TechnicianInfo } from '../containers/TechnicianInfo.jsx';
+import TopBar from '../containers/TopBar.jsx';
 import BlockHeader from '../BlockHeader.jsx';
+import { TechnicianInfo } from './TechnicianInfo.jsx';
 import axios from 'axios';
 
 export class TechniciansTable extends React.Component {

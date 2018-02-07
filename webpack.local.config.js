@@ -9,12 +9,12 @@ config.entry = {
   Dashboard: [
     'webpack-dev-server/client?http://' + ip + ':3000',
     'webpack/hot/only-dev-server',
-    './reactjs/js/Dashboard.jsx',
+    './reactjs/components/dashboard/Dashboard.jsx',
   ],
   Technicians: [
     'webpack-dev-server/client?http://' + ip + ':3000',
     'webpack/hot/only-dev-server',
-    './reactjs/js/Technicians.jsx',
+    './reactjs/components/technicians/Technicians.jsx',
   ],
 }
 

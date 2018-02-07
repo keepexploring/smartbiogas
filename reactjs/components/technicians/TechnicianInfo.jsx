@@ -3,8 +3,9 @@ import TableList from '../tables/TableList.jsx';
 import Notes from '../info/Notes.jsx';
 import StatusInfo from '../info/StatusInfo.jsx';
 import BlockHeader from '../BlockHeader.jsx';
-import {JobsTable} from './JobsTable.jsx';
-import http from '../../HttpClient';
+import { JobsTable } from '../jobs/JobsTable.jsx';
+import * as TechniciansService from '../../services/TechniciansService';
+import * as Helpers from '../../utils/Helpers';
 
 export class TechnicianInfo extends React.Component {
 	constructor(props) {
@@ -34,16 +35,19 @@ export class TechnicianInfo extends React.Component {
 		this.getJobsForCurrentUser(props.profile);
 	}
 
+	setTechnician(jobs, technician){
+		this.setState({ 
+			jobs: jobs,
+			technician: technician
+		});
+	}
+
 	getJobsForCurrentUser(profile){
-		http.get('jobs/by-user/' + profile.id)
-		.then((response) => {
-			this.setState({ 
-				jobs: response.data,
-				technician: profile
-			});
+		TechniciansService.getJobs(profile.id).then((response) => {
+			this.setTechnician(response.data, profile);
 		})
 		.catch(function (error) {
-			console.log(error);
+			Helpers.handleHttpError(error);
 		});
 	}
 
@@ -73,6 +77,7 @@ export class TechnicianInfo extends React.Component {
 			)
 		}
 		return('Loading');
-		
 	}
+
+
 }

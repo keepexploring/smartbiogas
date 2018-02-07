@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Websocket from 'react-websocket';
-import base from '../css/base.scss';
+import base from '../../css/base.scss';
 
-import DashBox from '../components/dashboard/DashBox.jsx';
-import DashGraph from '../components/dashboard/DashGraph.jsx';
-import DashButton from '../components/dashboard/DashButton.jsx';
-
-import http from '../HttpClient';
+import DashBox from './DashBox.jsx';
+import DashGraph from './DashGraph.jsx';
+import DashButton from './DashButton.jsx';
+import * as DataService from '../../services/DataService';
+import * as Helpers from '../../utils/Helpers';
 
 var dashboard_sock = 'ws://' + window.location.host + "/dashboard/"
 
@@ -47,10 +47,8 @@ export class Dashboard extends React.Component {
   }
 
   componentWillMount() {
-    var th = this;
-    http.get('dashboards/1')
-    .then(function (response) {
-      console.log(response);
+    var th = this;    
+    DataService.getDashboardData().then((response) => {
       th.setState({
         data: {
           totalPlants: response.data.total_plants,
@@ -64,7 +62,7 @@ export class Dashboard extends React.Component {
       })
     })
     .catch(function (error) {
-      console.log(error);
+      Helpers.handleHttpError(error);
     });
   }
 

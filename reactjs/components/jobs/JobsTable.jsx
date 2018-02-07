@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import base from '../../css/base.scss';
-import TopBar from './TopBar.jsx';
+import TopBar from '../containers/TopBar.jsx';
 import { Table } from '../tables/Table.jsx';
 
 export class JobsTable extends React.Component {

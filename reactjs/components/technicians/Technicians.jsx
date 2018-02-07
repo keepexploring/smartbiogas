@@ -1,8 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import base from '../css/base.scss';
-import { TechniciansTable } from '../components/containers/TechniciansTable.jsx';
-import http from '../HttpClient';
+import base from '../../css/base.scss';
+
+import { TechniciansTable } from './TechniciansTable.jsx';
+import * as TechniciansService from '../../services/TechniciansService';
+import * as Helpers from '../../utils/Helpers';
 
 export class Technicians extends React.Component {
 	constructor(props) {
@@ -13,16 +15,13 @@ export class Technicians extends React.Component {
 	}
 
 	componentWillMount() {
-		http.get('technicians')
-			.then((response) => {
-				this.setState({
-					technicians: response.data
-				});
-				this.render();
-			})
-			.catch(function (error) {
-				console.log(error);
-			});
+		TechniciansService.getTechnicians().then((response) => {
+			this.setState({ technicians: response.data });
+			this.render();
+		})
+		.catch(function (error) {
+			Helpers.handleError();
+		});
 	}
 
 	render() {
@@ -31,7 +30,7 @@ export class Technicians extends React.Component {
 				<TechniciansTable values={this.state.technicians} />
 			);
 		}
-		return ("loading");
+		return ("loading...");
 	}
 }
 
