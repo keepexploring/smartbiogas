@@ -13,58 +13,57 @@ import requests
 import pdb
 
 fake = Faker()
-
-#seeder = Seed.seeder()
-reg = AddressData.objects.all().values_list('region').distinct()
-regions = [i[0] for i in reg]
-
-dist = AddressData.objects.all().values_list('district').distinct()
-districts = [i[0] for i in dist]
-
-wrd = AddressData.objects.all().values_list('ward').distinct()
-wards = [i[0] for i in wrd]
-
-vill = AddressData.objects.all().values_list('village').distinct()
-villages = [i[0] for i in wrd]
-
-continent = 'Africa'
-country = 'Tanzania'
-
-
 pdb.set_trace()
-pass
+#seeder = Seed.seeder()
+data = AddressData.objects.all().values()
+N=20
+#address_data = [i for i in data]
 
- fixture1 = AutoFixture(Company, field_values={'company_name': names.get_full_name()+"'s biogas company",
-                 'country': country,
-                 'region': random.choice(regions),
-                'district': random.choice(districts),
-                'ward': random.choice(wards),
-                'village': random.choice(villages),
-                'other_address_details':"",
-                'emails': fake.email(),
-                'neighbourhood':"",
-                'other_address_details':"",
-                'postcode':"",
-                "phone_number":fake.phone_number(),
-                "other_info":""
-    } )
+#dist = AddressData.objects.all().values_list('district').distinct()
+#districts = [i[0] for i in dist]
 
-entries=fixture1.create(30)
+#wrd = AddressData.objects.all().values_list('ward').distinct()
+#wards = [i[0] for i in wrd]
 
+#3vill = AddressData.objects.all().values_list('village').distinct()
+#villages = [i[0] for i in wrd]
+
+#continent = 'Africa'
+#country = 'Tanzania'
+
+for i in range(0,N):
+    data_sample = random.choice(data)
+    fixture1 = AutoFixture(Company, field_values={'company_name': names.get_full_name()+"'s biogas company",
+                    'country': country,
+                    'region': data_sample['region'],
+                    'district':data_sample['district'],
+                    'ward':data_sample['ward'] ,
+                    'village':data_sample['village'] ,
+                    'emails':fake.email() ,
+                    'neighbourhood':"",
+                    'other_address_details':"",
+                    'postcode':"",
+                    "phone_number":fake.phone_number(),
+                    "other_info":""
+        } )
+
+    entries=fixture1.create(1)
+
+data_sample = random.choice(data)
 fixture2 = AutoFixture(UserDetail, 
     field_values={
         'first_name':fake.first_name(),
         'last_name': fake.last_name(),
-        'user_photo':
-        'phone_number'
-        'country'
-        'region'
-        'district'
-        'ward'
-        'village'
-        'postcode'
-        'neighbourhood'
-        'other_address_details'
+        'user_photo': "",
+        'phone_number':fake.phone_number(),
+        'country': country,
+        'region': data_sample['region'],
+        'district':data_sample['district'],
+        'ward':data_sample['ward'],
+        'village':data_sample['village'],
+        'postcode':"",
+        'neighbourhood':"",
+        'other_address_details':""
         
     })
 
