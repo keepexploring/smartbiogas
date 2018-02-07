@@ -22,8 +22,8 @@ export class TechniciansTable extends React.Component {
 		this.selectTechnician = this.selectTechnician.bind(this);
 	}
 
-	selectTechnician(dataFromList) {
-		this.setState({currentTechnician: dataFromList.original}, this.render);
+	selectTechnician(rowInfo) {
+		this.setState({currentTechnician: rowInfo.original}, this.render);
 	}
 
 	componentDidUpdate(){
@@ -35,6 +35,7 @@ export class TechniciansTable extends React.Component {
 		if(this.state.currentTechnician != null) {
 			technicianInfo = <TechnicianInfo profile={this.state.currentTechnician} />
 		}
+
 		return (
 			<div className="technicians row center-block" >
 				<div className="col-md-6  center-block">

@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import ConfigParser
-
+import configparser
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -38,6 +38,8 @@ LOGIN_REDIRECT_URL = 'home'
 # Application definition
 
 INSTALLED_APPS = (
+    'dal',
+    'dal_select2',
     'suit',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -59,6 +61,12 @@ INSTALLED_APPS = (
     'corsheaders',
     'tastypie_oauth2',
     'django_seed',
+    'dynamic_raw_id',
+    'searchableselect',
+    'datetimepicker',
+    'phonenumber_field',
+    'autofixture',
+    #'django_seed',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -156,8 +164,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
-
+#STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
+#STATIC_ROOT 
 
 STATICFILES_DIRS = (
      os.path.join(BASE_DIR, 'assets'),

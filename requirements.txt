@@ -92,7 +92,7 @@ python-nvd3==0.14.2
 python-slugify==1.1.4
 pytz==2017.3
 radar==0.3
-requests==2.7.0
+requests==2.18.4
 rsa==3.4.2
 scandir==1.6
 selenium==2.53.6

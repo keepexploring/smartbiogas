@@ -6,20 +6,24 @@ from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField, HStoreField, JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator, EmailValidator
 from geopy.geocoders import Nominatim
 from django.utils import timezone
 import uuid
 from random import randint # for testing data streams
 from enumfields import EnumField
-from django_dashboard.enums import ContactType, UserRole, JobStatus, PlantStatus, TypeBiogas
+from django_dashboard.enums import ContactType, UserRole, JobStatus, QPStatus, CurrentStatus, TypeBiogas, SupplierBiogas, SensorStatus,FundingSourceEnum
 from django_dashboard.utilities import find_coordinates
 from multiselectfield import MultiSelectField
 from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User
+from phonenumber_field.modelfields import PhoneNumberField
 
 import pdb
+
+#class UserE(models.Model):
+#    user = models.OneToOneField(User, related_name='user')
 
 
 
@@ -31,9 +35,17 @@ class Company(models.Model):
 
     company_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
     company_name = models.CharField(max_length=200)
-    company_address1 = models.CharField(max_length=200)
-    company_address2 = models.CharField(max_length=200,blank=True,null=True)
-    phone_number = models.CharField(max_length=15, db_index=True,null=True)
+
+    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    postcode = models.CharField(null=True,max_length=20,blank=True)
+    neighbourhood = models.CharField(null=True,max_length=20,blank=True)
+    other_address_details = models.TextField(null=True,blank=True)
+    #phone_number = models.CharField(max_length=15, db_index=True,null=True)
+    phone_number = PhoneNumberField(db_index=True, null=True, blank=True)
     emails = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
     other_info = models.TextField(blank=True,null=True)
 
@@ -43,6 +55,7 @@ class Company(models.Model):
     class Meta:
         verbose_name = "Company"
         verbose_name_plural = "Company's"
+        #ordering =['company_id','company_name','']
 
     
 
@@ -50,26 +63,50 @@ class Company(models.Model):
 class UserDetail(models.Model):
     #uid = models.CharField(db_index=True)
     user = models.OneToOneField(User,on_delete=models.CASCADE) # a user
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ManyToManyField(Company)
+    #models.ManyTo.ManyField(Company)
     # maybe add choices here:
     
     role = EnumField(UserRole, max_length=1,null=True)
     #pdb.set_trace()
-    first_name = models.CharField(max_length=200)
-    last_name = models.CharField(max_length=200)
+    first_name = models.CharField(max_length=200,default=None,editable=False)
+    last_name = models.CharField(max_length=200,default=None,editable=False)
     #last_name = models.CharField(max_length=200)
-    model_pic = models.ImageField(upload_to = 'Images',null=True,blank=True)
-    phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
-    nearest_town = models.CharField(db_index=True,null=True,blank=True,max_length=200) # this also needs to be validated, perhaps do on the frontend
+    user_photo = models.ImageField(upload_to = 'Images',null=True,blank=True)
+    #phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
+    phone_number = PhoneNumberField(db_index=True, null=True, blank=True)
+    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    #region = models.ManyToManyField('django_dashboard.region')
+    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    postcode = models.CharField(null=True,max_length=20,blank=True)
+    neighbourhood = models.CharField(null=True,max_length=20,blank=True)
+    other_address_details = models.TextField(null=True,blank=True)
     datetime_created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
     datetime_modified = models.DateTimeField(null=True,blank=True,editable=False)
+
+    def __str__(self):
+        return '%s, %s %s' % (self.last_name,self.first_name,self.phone_number)
 
     def save(self, *args, **kwargs):
         if not self.datetime_created:
             self.datetime_created = timezone.now()
         self.datetime_modified = timezone.now()
+        self.first_name = self.user.first_name
+        self.last_name = self.user.last_name
+        #pdb.set_trace()
         #pdb.set_trace()
         return super(UserDetail,self).save(*args,**kwargs)
+
+    def company_title(self):
+        #pdb.set_trace()
+        self.company_query_object = self.company.all()
+        return "\n".join([p.company_name for p in self.company_query_object])
+
+    company_title.short_description = 'Company Name'
+    company_title.allow_tags = True
 
     class Meta:
         verbose_name = "UserDetail"
@@ -101,6 +138,7 @@ class TechnicianDetail(models.Model):
         UserDetail,
         on_delete=models.CASCADE,
         primary_key=True,
+        related_name="technician_details",
     )
     #company = models.ForeignKey(Company, on_delete=models.CASCADE)
     technician_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
@@ -115,9 +153,13 @@ class TechnicianDetail(models.Model):
     number_of_jobs_completed = models.IntegerField(blank=True,null=True)
     #seconds_active = models.IntegerField(blank=True,null=True)
     status = models.NullBooleanField(db_index=True,blank=True,null=True,choices=BOOL_CHOICES)
-    location = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
-    average_rating = models.FloatField(editable=False,blank=True,null=True,default=0)
     what3words = models.CharField(max_length=200,null=True)
+    location = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
+    willing_to_travel = models.IntegerField(blank=True,null=True) # distance that a technician is willing to travel
+    rating = ArrayField(JSONField(blank=True, null=True),blank=True, null=True )
+    average_rating = models.FloatField(editable=False,blank=True,null=True,default=0)
+    max_num_jobs_allowed = models.IntegerField(blank=True,null=True,default=1)
+    
     
     def __str__(self):
         return '%s %s' % (self.technicians,self.status)
@@ -149,15 +191,15 @@ class TechnicianDetail(models.Model):
 class BiogasPlantContact(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, editable=False)
     #associated_company = models.ManyToManyField(Company)
-    associated_company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    associated_company = models.ForeignKey(Company, on_delete=models.CASCADE )
     contact_type = EnumField(ContactType, max_length=1)
-    first_name = models.CharField(null=True,blank=True,max_length=200)
-    surname = models.CharField(null=True,blank=True,max_length=200)
+    first_name = models.CharField(null=True,max_length=200)
+    surname = models.CharField(null=True,max_length=200)
     mobile = models.CharField(db_index=True,null=True,blank=True,max_length=15)
     email = models.CharField(validators=[EmailValidator],db_index=True,null=True,blank=True,max_length=200)
     # biogas_owner = models.NullBooleanField(db_index=True,blank=True)
 
-    
+
     def __str__(self):
         return '%s %s; %s' % (self.first_name, self.surname, self.mobile)
 
@@ -176,6 +218,7 @@ class BiogasPlant(models.Model):
     TYPE_BIOGAS_CHOICES = (
     ('TUBULAR', "tubular"),
     ('FIXED_DOME', "fixed_dome"),
+    ('GESISHAMBA','GesiShamba'),
     )
 
     STATUS_CHOICES = (
@@ -189,27 +232,68 @@ class BiogasPlant(models.Model):
         ('FAULT','fault'),
         ('DECOMMISSIONED', "decommissioned"),
     )
-    plant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
-    user = models.ManyToManyField(BiogasPlantContact) # a biogas plant can have one or many users and a user can have one or many biogas plants
-    constructing_technician = models.ManyToManyField(TechnicianDetail, blank = True)
-    town = models.CharField(null=True,max_length=200)
-    funding_souce = models.CharField(null=True,max_length=225,blank=True)
-    description_location = models.CharField(null=True,max_length=400,blank=True)
+    plant_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
+    
+    
+    contact = models.ManyToManyField(BiogasPlantContact, related_name='biogas_plant_detail') # a biogas plant can have one or many users and a user can have one or many biogas plants
+    constructing_technicians = models.ManyToManyField(UserDetail,blank=True, related_name = 'constructing_technicians')
+
+    funding_souce = EnumField(FundingSourceEnum, max_length=1,null=True, blank = True)
+    funding_source_notes = models.TextField(null=True, blank=True)
+    
+    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     postcode = models.CharField(null=True,max_length=20,blank=True)
+    neighbourhood = models.CharField(null=True,max_length=20,blank=True)
+    other_address_details = models.TextField(null=True,blank=True)
     #type_biogas = models.CharField(choices=TYPE_BIOGAS_CHOICES,null=True,max_length=20,blank=True)
     type_biogas = EnumField(TypeBiogas, max_length=1,null=True)
-    size_biogas = models.FloatField(null=True,blank=True) # maybe specify this in m3
+    supplier = EnumField(SupplierBiogas, max_length=1,null=True,blank=True)
+    #size_biogas = models.FloatField(null=True,blank=True) # maybe specify this in m3
+    volume_biogas = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    what3words = models.CharField(max_length=200,null=True,blank=True)
     location = models.PointField(geography=True, srid=4326,blank=True,db_index=True,null=True)
     #status = models.CharField(null=True,max_length=225,blank=True,choices=STATUS_CHOICES)
-    plant_status = EnumField(PlantStatus, max_length=1,null=True)
+    QP_status = EnumField(QPStatus, max_length=1,null=True)
+    sensor_status = EnumField(SensorStatus, max_length=1,null=True, blank = True)
+    current_status = EnumField(CurrentStatus, max_length=1,null=True)
+    verfied = models.NullBooleanField(db_index=True,blank=True,default=False)
+
+    def get_contact(self):
+        #pdb.set_trace()
+        self.contact_query_object = self.contact.all()
+        return "\n".join([p.surname+", "+p.first_name for p in self.contact_query_object])
+    get_contact.short_description = 'Contact'
+    get_contact.allow_tags = True
+
+    def mobile_num(self):
+        #pdb.set_trace()
+        return "\n".join([p.mobile for p in self.contact_query_object])
+
+    mobile_num.short_description = 'Mobile'
+    mobile_num.allow_tags = True
+
+    def contact_type(self):
+        #pdb.set_trace()
+        return "\n".join([p.contact_type.name for p in self.contact_query_object])
+
+    contact_type.short_description = 'Type'
+    contact_type.allow_tags = True
 
     def save(self, *args, **kwargs):
-        if not self.location:
-            geolocator = Nominatim()
-            _location_ = geolocator.geocode(self.town)
-            self.location = Point(_location_.longitude, _location_.latitude)
+        #if not self.location:
+        #    geolocator = Nominatim()
+        #   _location_ = geolocator.geocode(self.town)
+        #    self.location = Point(_location_.longitude, _location_.latitude)
+        if  (self.what3words != None): # want to change this so it is only saved when the coordinate has changed, not every time
+            _location_ = find_coordinates(self.what3words)
+            self.location = Point( _location_['lng'], _location_['lat'] )
+        return super(BiogasPlant, self).save(*args, **kwargs)
 
-        super(BiogasPlant, self).save(*args, **kwargs)
+        
 
     class Meta:
         verbose_name = "Biogas Plant"
@@ -225,7 +309,7 @@ class BiogasPlant(models.Model):
 # have an array of fault types
 class JobHistory(models.Model):
     plant = models.ForeignKey(BiogasPlant, on_delete=models.CASCADE) # a biogas plan can have many job records
-    jobs = models.ManyToManyField(UserDetail,blank=True) # associating it with someone who can fix it, blank means it is optional  - importan because it will not initially be associated
+    fixers = models.ManyToManyField(UserDetail,blank=True) # associating it with someone who can fix it, blank means it is optional  - importan because it will not initially be associated
 
     STATUS_CHOICES = (
     ('UNASSIGNED', "unassigned"),
@@ -240,17 +324,18 @@ class JobHistory(models.Model):
     )
     # one to one to relationship
     job_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
-    technicians_ids = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True) # a list of the technicians workng on this biogas
+    #technicians_ids = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True) # a list of the technicians workng on this biogas
     date_flagged = models.DateTimeField(null=True)
-    due_date = models.DateTimeField(null=True)# when the job should be completed by, this could be based on the problem e.g. water in the pipe would be less than rebuilding the plant
+    due_date = models.DateField(null=True,blank=True)# when the job should be completed by, this could be based on the problem e.g. water in the pipe would be less than rebuilding the plant
     #job_duration = models.IntegerField() # how long the job has been outstanding in seconds
-    date_completed = models.DateTimeField(null=True)
+    date_completed = models.DateField(null=True,blank=True)
     completed = models.NullBooleanField(db_index=True,blank=True,default=False)
     #job_status = models.CharField(choices=STATUS_CHOICES,default='UNASSIGNED',max_length=16,null=True)# states (unassigned, resolving- being worked on, assitance, overdue- accepted, but not been completed, after x number of days, resolved, feedback- if received low star, then flag up and push to an admin)
                 # decommissioned
     job_status= EnumField(JobStatus, max_length=1,null=True)
-    fault_description = models.TextField(null=True) # a descrete number of fault descriptions
-    other = models.TextField(null=True) # another unspecified fault description
+    verification_of_engagement = models.NullBooleanField(db_index=True,blank=True,default=False)
+    fault_description = models.TextField(null=True,blank=True) # a descrete number of fault descriptions
+    other = models.TextField(null=True,blank=True) # another unspecified fault description
     client_feedback_star = models.IntegerField(
         default=None,
         validators=[
@@ -258,13 +343,21 @@ class JobHistory(models.Model):
             MinValueValidator(0)
         ],
         null=True,
+        blank=True,
      )#
-    client_feedback_additional = models.TextField(null=True)# if the customer wants to give additional feedback
+    client_feedback_additional = models.TextField(null=True,blank=True)# if the customer wants to give additional feedback
   
-    overdue_for_acceptance = models.NullBooleanField(default=False)# true or false - if after a certain period the job has not been accepted, mark as overdue and then flag priority
-    priority = models.NullBooleanField(default=False) # this can be triggered manually - increases search radius + confirm if techcians ara able to do or not
+    overdue_for_acceptance = models.NullBooleanField(default=False,blank=True)# true or false - if after a certain period the job has not been accepted, mark as overdue and then flag priority
+    priority = models.NullBooleanField(default=False,blank=True) # this can be triggered manually - increases search radius + confirm if techcians ara able to do or not
     fault_class = models.CharField(null=True,max_length=225,blank=True,choices=FAULT_CLASSES)
-    #
+    
+
+    def save(self, *args, **kwargs):
+        #pdb.set_trace()
+        #pass
+        return super(JobHistory,self).save(*args,**kwargs)
+
+
     class Meta: # we can overide these in the search in the views
        # if (self.priority is False):
           # get_latest_by = ["due_date"] # newest first
@@ -300,7 +393,9 @@ class JobHistory(models.Model):
 #     datetime
 
 class Dashboard(models.Model):
-    company = models.OneToOneField(Company,on_delete=models.CASCADE, primary_key=True)
+    #company = models.OneToOneField(Company,on_delete=models.CASCADE, primary_key=True)
+    #id = models.BigIntegerField(primary_key = True,default=1)
+    company = models.ForeignKey(Company, null=True,on_delete=models.CASCADE) # we want to be able to have many records - and we will display the latest one
     #data_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
     created_at = models.DateTimeField(auto_now_add=True,editable=False, db_index=True)
     
@@ -328,3 +423,33 @@ class AggregatedStatistics(models.Model):
             'fixed':randint(0,100),
          }
         return data
+
+class AddressData(models.Model):
+    uid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
+    id = models.IntegerField(blank=True,null=True)
+    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    continent = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    lat_long = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
+    population = models.IntegerField(blank=True,null=True)
+
+    #def __str__(self):
+       # unicode(self.region)
+   #     '%s, %s' % (self.ward, self.village)
+
+
+class Messages(models.Model):
+    uid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
+    related_job = models.ForeignKey(JobHistory, on_delete=models.CASCADE)
+    user_from = models.ForeignKey(User, blank =True, null=True, on_delete=models.CASCADE,related_name="user_from") # so a given user can be associated with a message - we can add this automatically when when a message is sent
+    user_to = models.ForeignKey(User, blank =True, null=True, on_delete=models.CASCADE,related_name="user_to") # having these references enables looking up data to be easy for a given user
+    message = models.TextField(null=True,blank=True)
+    message_type = models.CharField(db_index=True,null=True,blank=True,max_length=30)
+    message_id = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    message_from_num = PhoneNumberField(db_index=True,null=True,blank=True)
+    message_to_num = PhoneNumberField(db_index=True,null=True,blank=True)
+    message_from_email = models.EmailField(null=True,blank=True)
+    message_to_email = models.EmailField(null=True,blank=True)

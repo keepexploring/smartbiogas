@@ -141,6 +141,7 @@ export class Table extends React.Component {
 							borderRight: borders
 						},
 						onClick: (e, handleOriginal) => {
+							
 							if (this.props && this.props.selectRow) {
 								this.props.selectRow(rowInfo);
 							}
