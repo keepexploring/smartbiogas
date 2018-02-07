@@ -1,6 +1,6 @@
 import React from 'react';
-import SearchInput from '../SearchInput.jsx';
-import IconBtn from '../IconBtn.jsx';
+import SearchInput from '../shared/SearchInput.jsx';
+import IconBtn from '../shared/IconBtn.jsx';
 
 function btnConstructor(isTrue) {
 	if (isTrue) {

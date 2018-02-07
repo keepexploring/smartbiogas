@@ -2,7 +2,7 @@ import React from 'react';
 import TableList from '../tables/TableList.jsx';
 import Notes from '../info/Notes.jsx';
 import StatusInfo from '../info/StatusInfo.jsx';
-import BlockHeader from '../BlockHeader.jsx';
+import BlockHeader from '../shared/BlockHeader.jsx';
 import { JobsTable } from '../jobs/JobsTable.jsx';
 import * as TechniciansService from '../../services/TechniciansService';
 import * as Helpers from '../../utils/Helpers';

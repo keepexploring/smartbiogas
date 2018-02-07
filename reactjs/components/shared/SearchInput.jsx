@@ -1,13 +1,12 @@
 import React from 'react';
 import SvgIcon from './SvgIcon.jsx';
-import IconBtn from './IconBtn.jsx';
 
 
 const SearchInput = (props) => {
-    const setSize=18
-    const btnstyle={
-        width:setSize*2,
-        height:setSize*2
+    const setSize = 18
+    const btnstyle = {
+        width: setSize * 2,
+        height: setSize * 2
     }
     const barstyle={
         height:setSize*2
@@ -21,4 +20,5 @@ const SearchInput = (props) => {
         </div>
     )
 }
+
 export default SearchInput;

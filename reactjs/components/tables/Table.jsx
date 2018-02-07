@@ -1,5 +1,5 @@
 import React from 'react';
-import SvgIcon from '../SvgIcon.jsx';
+import SvgIcon from '../shared/SvgIcon.jsx';
 
 import ReactTable from "react-table";
 import "react-table/react-table.css";

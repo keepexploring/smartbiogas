@@ -12,4 +12,5 @@ const SquareBtn = (props) => {
         </div >
     )
 }
+
 export default SquareBtn;

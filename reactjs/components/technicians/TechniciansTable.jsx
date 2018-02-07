@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table } from '../tables/Table.jsx';
 import TopBar from '../containers/TopBar.jsx';
-import BlockHeader from '../BlockHeader.jsx';
+import BlockHeader from '../shared/BlockHeader.jsx';
 import { TechnicianInfo } from './TechnicianInfo.jsx';
 import axios from 'axios';
 

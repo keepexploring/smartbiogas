@@ -3,8 +3,8 @@ import SvgIcon from './SvgIcon.jsx';
 
 const IconBtn = (props) => {
     const btnstyle={
-        width:props.size*2,
-        height:props.size*2
+        width: props.size * 2,
+        height: props.size * 2
     }
     return (
         <div className={props.bootstrap} >
@@ -12,4 +12,5 @@ const IconBtn = (props) => {
         </div >
     )
 }
+
 export default IconBtn;

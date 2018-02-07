@@ -1,5 +1,5 @@
 import React from 'react';
-import IconBtn from '../IconBtn.jsx';
+import IconBtn from '../shared/IconBtn.jsx';
 
 function editEntry() {
     /**

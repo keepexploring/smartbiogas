@@ -1,5 +1,5 @@
 import React from 'react';
-import SvgIcon from '../SvgIcon.jsx';
+import SvgIcon from '../shared/SvgIcon.jsx';
 
 const UIextras = (props) => {
     return (
@@ -10,4 +10,5 @@ const UIextras = (props) => {
         </div>
     )
 }
+
 export default UIextras;

@@ -2,7 +2,9 @@
 <div class="list-group collapse profile_box" id="profile_data">
         <nav id="mysidebarmenu" class="amazonmenu">
             <ul>
-                <li><img src={userimg} alt="." /><b>Sunil Ku. Sahu</b></li>
+                {% if userimg %}
+                <li><img src="{userimg}" alt="." /><b>Sunil Ku. Sahu</b></li>
+                {% endif %}
             </ul>
             <ul>
                 <li><a href="#">Messages</a></li>
