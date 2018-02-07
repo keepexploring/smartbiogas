@@ -179,9 +179,10 @@ class JobHistoryResource(ModelResource):
 
         fields_to_return_plant_info = ['country','region','district','ward','village','postcode','neighbourhood','other_address_details','type_biogas','size_biogas','what3words','plant_status']
         fields_to_return_contact_info = ['contact_type','first_name','surname','mobile','associated_company']
-        fields_to_return_fixers = ['role','first_name','last_name','phone_number','company_name']
-        fields_to_return_constructing_tech = ['role','first_name','last_name','phone_number','company_name']
+        fields_to_return_fixers = ['role','first_name','last_name','phone_number','company_name','user_id']
+        fields_to_return_constructing_tech = ['role','first_name','last_name','phone_number','company_name','user_id']
 
+        #pdb.set_trace()
         bundle.data['system_info'] = plant_info
         bundle.data['contact_info'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_contact_info} for i in contact_info]
         bundle.data['constructing_tech'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_constructing_tech} for i in constructing_tech]
