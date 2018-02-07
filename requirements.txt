@@ -122,3 +122,7 @@ pyyaml
 django-oauth-toolkit
 service_identity
 django-cors-middleware
+what3words
+django-select-multiple-field
+django-easy-select2
+'Twisted[tls,http2]'

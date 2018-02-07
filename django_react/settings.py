@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import ConfigParser
-
+import configparser
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -38,6 +38,8 @@ LOGIN_REDIRECT_URL = 'home'
 # Application definition
 
 INSTALLED_APPS = (
+    'dal',
+    'dal_select2',
     'suit',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -58,6 +60,13 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'corsheaders',
     'tastypie_oauth2',
+    'django_seed',
+    'dynamic_raw_id',
+    'searchableselect',
+    'datetimepicker',
+    'phonenumber_field',
+    'autofixture',
+    #'django_seed',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -108,10 +117,10 @@ WSGI_APPLICATION = 'django_react.wsgi.application'
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    },
+    #'default': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+   # },
     # 'data': {
     #     'ENGINE': 'sql_server.pyodbc',
     #     'NAME': Config.get("azure", "database"),
@@ -125,7 +134,7 @@ DATABASES = {
     #     },
     
     # },
-        'data': {
+        'default': {
             #'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'ENGINE': 'django.contrib.gis.db.backends.postgis',
             'NAME': Config.get("postgres_azure", "database_name"),
@@ -139,7 +148,7 @@ DATABASES = {
 
 DATABASE_CONNECTION_POOLING = True
 
-DATABASE_ROUTERS = ['django_dashboard.routers.Dashboard_Router',]
+#DATABASE_ROUTERS = ['django_dashboard.routers.Dashboard_Router',]
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -155,8 +164,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
-
+#STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
+#STATIC_ROOT 
 
 STATICFILES_DIRS = (
      os.path.join(BASE_DIR, 'assets'),
