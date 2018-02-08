@@ -7,6 +7,7 @@ from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
 from tastypie.constants import ALL
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
+import traceback
 import pdb
 
 
@@ -158,20 +159,30 @@ class JobHistoryResource(ModelResource):
         )
 
     def dehydrate(self, bundle):
-        #pdb.set_trace()
+        
         plant_info = bundle.obj.plant.__dict__ # one biogas plant associated with one job
         contact_info = bundle.obj.plant.contact.values()
         constructing_tech = []
         for ii in bundle.obj.plant.constructing_technicians.all():
             ct = ii.__dict__
-            ct["company_name"] = ii.company.get().company_name  # include company name
+            #pdb.set_trace()
+            ct["company_name"] = [k['company_name'] for k in ii.company.values()] 
+            #ct["company_names"] = ii.company.get().company_name  # include company name
             constructing_tech.append(ct)
 
         fixers = []
-        for ii in bundle.obj.fixers.all():
-            fx = ii.__dict__
-            fx["company_name"] = ii.company.get().company_name  # include company name
-            fixers.append(ct)
+        #pdb.set_trace()
+        try:
+            for ii in bundle.obj.fixers.all():
+                fx = ii.__dict__
+                fx["company_name"] = [k['company_name'] for k in ii.company.values()] 
+                #fx["company_name"] = ii.company.get().company_name  # include company name
+                fixers.append(ct)
+        except Exception, err:
+            print(err)
+            traceback.print_exc()
+            pdb.set_trace()
+            pass
 
         #cconstructing_tech = [i.values() for i in bundle.obj.plant.constructing_technicians ]
         
@@ -187,6 +198,8 @@ class JobHistoryResource(ModelResource):
         bundle.data['contact_info'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_contact_info} for i in contact_info]
         bundle.data['constructing_tech'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_constructing_tech} for i in constructing_tech]
         bundle.data['fixers'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_fixers} for i in fixers]
+
+        
         return bundle
 
     
@@ -194,20 +207,24 @@ class JobHistoryResource(ModelResource):
     def authorized_read_list(self, object_list, bundle):
         #return object_list.filter(user=bundle.request.user)
         #pdb.set_trace()
-        uob = bundle.request.user
-        user_object = UserDetail.objects.filter(user=uob)
-        if uob.is_superuser:
-            return object_list
+        try:
+            uob = bundle.request.user
+            user_object = UserDetail.objects.filter(user=uob)
+            if uob.is_superuser:
+                return object_list
 
-        if user_object[0].role.label == 'Company Admin': # return all the people associated with this company
-            #pdb.set_trace()
-            company_object = user_object[0].company.all()
-            company_names = [co.company_name for co in company_object]
-            return object_list.filter(plant__contact__associated_company__company_name__in=company_names)
+            if user_object[0].role.label == 'Company Admin': # return all the people associated with this company
+                #pdb.set_trace()
+                company_object = user_object[0].company.all()
+                company_names = [co.company_name for co in company_object]
+                return object_list.filter(plant__contact__associated_company__company_name__in=company_names)
 
-        if user_object[0].role.label == 'Technician': # only return the user info of the logged in technican
-            #pdb.set_trace()
-            return object_list.filter(fixers__user__username=uob.username)
+            if user_object[0].role.label == 'Technician': # only return the user info of the logged in technican
+                #pdb.set_trace()
+                return object_list.filter(fixers__user__username=uob.username)
+        except:
+            pdb.set_trace()
+            pass
 
 class DashboardResource(ModelResource):
     class Meta:

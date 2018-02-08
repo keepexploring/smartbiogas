@@ -72,7 +72,7 @@ class UserDetail(models.Model):
     first_name = models.CharField(max_length=200,default=None,editable=False)
     last_name = models.CharField(max_length=200,default=None,editable=False)
     #last_name = models.CharField(max_length=200)
-    user_photo = models.ImageField(upload_to = 'Images',null=True,blank=True)
+    user_photo = models.ImageField(upload_to = 'UserPhotos',null=True,blank=True)
     #phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
     phone_number = PhoneNumberField(db_index=True, null=True, blank=True)
     country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
@@ -156,7 +156,7 @@ class TechnicianDetail(models.Model):
     what3words = models.CharField(max_length=200,null=True)
     location = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
     willing_to_travel = models.IntegerField(blank=True,null=True) # distance that a technician is willing to travel
-    rating = ArrayField(JSONField(blank=True, null=True),blank=True, null=True )
+    #rating = ArrayField(JSONField(blank=True, null=True),blank=True, null=True )
     average_rating = models.FloatField(editable=False,blank=True,null=True,default=0)
     max_num_jobs_allowed = models.IntegerField(blank=True,null=True,default=1)
     

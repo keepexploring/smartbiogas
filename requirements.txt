@@ -167,7 +167,7 @@ MarkupSafe==1.0
 matplotlib==1.5.3
 Mezzanine==4.2.2
 mimesis==1.0.5
-minpubsub==0.3
+minpubsub==0.2.1
 mistune==0.7.3
 msgpack-python==0.4.8
 Naked==0.1.31

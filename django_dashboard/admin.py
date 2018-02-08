@@ -40,8 +40,8 @@ class UserDetailAdmin(admin.ModelAdmin): # admin.StackedInline
     form = UserDetailForm
     inlines = [TechnicianDetailAdmin,]
     readonly_fields=('first_name','last_name')
-    list_display = ('company_title','first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
-    list_filter = ('first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details')
+    list_display = ('role','company_title','first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
+    list_filter = ('role','first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details')
     #ordering = ('first_name','last_name','role','phone_number','country','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
     filter_horizontal = ('company',)
     #form = UserForm
