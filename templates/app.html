@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load render_bundle from webpack_loader %}
 {% block content %}
-	<div class="main top-margin" id="app"></div>
-{% render_bundle 'App' %}
+	<div id="app"></div>
+{% render_bundle 'App'  %}
 {% endblock %}
+

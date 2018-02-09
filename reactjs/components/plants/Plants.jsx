@@ -1,16 +1,15 @@
 import React from 'react';
 
-var dashboard_sock = 'ws://' + window.location.host + "/biogasplants/"
+export default class Plants extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+        console.log('loaded plants');
+    }
 
-
-export class Plants extends React.Component {
     render() {
         return (
-            <div className="plants col-md-12 center-block" id="plants"> 
-
-            </div>
+            <h1>Plants</h1>
         )
     }
 }
-const rootElement = document.getElementById('react-app');
-ReactDOM.render(<Plants/>, rootElement);

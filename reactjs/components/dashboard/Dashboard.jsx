@@ -1,7 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Websocket from 'react-websocket';
-import base from '../../css/base.scss';
 
 import DashBox from './DashBox.jsx';
 import DashGraph from './DashGraph.jsx';
@@ -11,7 +9,7 @@ import * as Helpers from '../../utils/Helpers';
 
 var dashboard_sock = 'ws://' + window.location.host + "/dashboard/"
 
-export class Dashboard extends React.Component {
+export default class Dashboard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -44,6 +42,7 @@ export class Dashboard extends React.Component {
     };
     this.btnWidg=this.btnWidg.bind(this);
     this.btnGraph=this.btnGraph.bind(this);
+    console.log('loaded dashboard');
   }
 
   componentWillMount() {
@@ -113,8 +112,4 @@ export class Dashboard extends React.Component {
       btnView:false
     })
   }
-
 }
-
-// const rootElement = document.getElementById('dashboard');
-// ReactDOM.render(<Dashboard data={rootElement.getAttribute('data-data') } socket = {dashboard_sock} />, rootElement);

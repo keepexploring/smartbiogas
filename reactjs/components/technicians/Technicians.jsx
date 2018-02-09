@@ -1,17 +1,15 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import base from '../../css/base.scss';
 
 import { TechniciansTable } from './TechniciansTable.jsx';
 import * as TechniciansService from '../../services/TechniciansService';
 import * as Helpers from '../../utils/Helpers';
 
-export class Technicians extends React.Component {
+export default class Technicians extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			technicians: [],
-		};
+	};
 	}
 
 	componentWillMount() {
@@ -20,7 +18,7 @@ export class Technicians extends React.Component {
 			this.render();
 		})
 		.catch(function (error) {
-			Helpers.handleError();
+			Helpers.handleHttpError();
 		});
 	}
 
@@ -33,6 +31,3 @@ export class Technicians extends React.Component {
 		return ("loading...");
 	}
 }
-
-const rootElement = document.getElementById('technicians');
-ReactDOM.render(<Technicians />, rootElement);

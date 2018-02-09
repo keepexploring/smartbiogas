@@ -5,12 +5,10 @@ var BundleTracker = require('webpack-bundle-tracker');
 module.exports = {
 	context: __dirname,
 	entry: {
-		Dashboard: './reactjs/components/dashboard/Dashboard.jsx',
-		Technicians: './reactjs/components/technicians/Technicians.jsx',
-		Login: './reactjs/components/login/Login.jsx',
-		App: './reactjs/App.jsx'
+		App: './reactjs/Main.jsx'
 	},
 	output: {
+		crossOriginLoading: 'anonymous',
 		path: path.resolve('./assets/bundles/'),
 		filename: "[name]-[hash].js"
 	},
