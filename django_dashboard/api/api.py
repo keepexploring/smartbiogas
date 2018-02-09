@@ -42,11 +42,25 @@ class CompanyResource(ModelResource):
         #def obj_create(self, bundle, **kwargs):
         #    return super(MyModelResource, self).obj_create(bundle, user=bundle.request.user)
     def hydrate(self, bundle):
-        pdb.set_trace()
         pass
+
     
     def obj_create(self, bundle, **kwargs):
         pdb.set_trace()
+        uob = bundle.request.user
+        user_object = UserDetail.objects.filter(user=uob)
+
+        if uob.is_superuser:
+            pass
+        elif user_object[0].role.label == 'Company Admin': # we need to deal with permission on a company by company basis
+            pass
+            
+        elif user_object[0].role.label == 'Technician':
+            bundle.data = {}
+        else:
+            bundle.data = {}
+            return bundle
+
         return super(CompanyResource, self).obj_create(bundle, user=bundle.request.user)
 
     def obj_update(self, bundle, **kwargs):

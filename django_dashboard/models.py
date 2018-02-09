@@ -17,7 +17,7 @@ from django_dashboard.enums import ContactType, UserRole, JobStatus, QPStatus, C
 from django_dashboard.utilities import find_coordinates
 from multiselectfield import MultiSelectField
 from django.contrib.sessions.models import Session
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission
 from phonenumber_field.modelfields import PhoneNumberField
 
 import pdb
@@ -52,6 +52,14 @@ class Company(models.Model):
     def __str__(self):
         return '%s' % (self.company_name)
 
+    # def save(self, *args, **kwargs):
+    #     self.create_groups_add_permissions(company_name,company_id)
+
+    #     return super(Company,self).save(*args,**kwargs)
+
+    # def create_groups_add_permissions(company_name,company_id)
+    #     pass
+
     class Meta:
         verbose_name = "Company"
         verbose_name_plural = "Company's"
@@ -63,6 +71,9 @@ class Company(models.Model):
 class UserDetail(models.Model):
     #uid = models.CharField(db_index=True)
     user = models.OneToOneField(User,on_delete=models.CASCADE) # a user
+    #admin_role_in_companies = models.ManyToManyField(Company, blank=True, related_name="admin_role_in",) # the companies the User has an admin role in
+    #technican_role_in_companies = models.ManyToManyField(Company, blank=True,related_name="tech_role_in") # the companies the User has a technican role in
+    
     company = models.ManyToManyField(Company)
     #models.ManyTo.ManyField(Company)
     # maybe add choices here:
