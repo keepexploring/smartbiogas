@@ -6,7 +6,9 @@ module.exports = {
 	context: __dirname,
 	entry: {
 		Dashboard: './reactjs/components/dashboard/Dashboard.jsx',
-		Technicians: './reactjs/components/technicians/Technicians.jsx'
+		Technicians: './reactjs/components/technicians/Technicians.jsx',
+		Login: './reactjs/components/login/Login.jsx',
+		App: './reactjs/App.jsx'
 	},
 	output: {
 		path: path.resolve('./assets/bundles/'),

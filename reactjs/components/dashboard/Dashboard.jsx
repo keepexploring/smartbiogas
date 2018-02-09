@@ -116,5 +116,5 @@ export class Dashboard extends React.Component {
 
 }
 
-const rootElement = document.getElementById('dashboard');
-ReactDOM.render(<Dashboard data={rootElement.getAttribute('data-data') } socket = {dashboard_sock} />, rootElement);
+// const rootElement = document.getElementById('dashboard');
+// ReactDOM.render(<Dashboard data={rootElement.getAttribute('data-data') } socket = {dashboard_sock} />, rootElement);

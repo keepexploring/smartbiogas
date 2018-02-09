@@ -6,6 +6,11 @@ var ip = '127.0.0.1'
 var config = require('./webpack.config.js')
 
 config.entry = {
+  App: [
+    'webpack-dev-server/client?http://' + ip + ':3000',
+    'webpack/hot/only-dev-server',
+    './reactjs/App.jsx',
+  ],
   Dashboard: [
     'webpack-dev-server/client?http://' + ip + ':3000',
     'webpack/hot/only-dev-server',
@@ -15,6 +20,11 @@ config.entry = {
     'webpack-dev-server/client?http://' + ip + ':3000',
     'webpack/hot/only-dev-server',
     './reactjs/components/technicians/Technicians.jsx',
+  ],
+  Login: [
+    'webpack-dev-server/client?http://' + ip + ':3000',
+    'webpack/hot/only-dev-server',
+    './reactjs/components/login/Login.jsx',
   ],
 }
 
