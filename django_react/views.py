@@ -14,7 +14,7 @@ import json
 import pdb
 
 
-class LoginView(View):
+class AppView(View):
     template_name = 'app.html'
     #@method_decorator(login_required)
     def get(self,request):

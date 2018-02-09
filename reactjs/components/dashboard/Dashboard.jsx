@@ -1,13 +1,10 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 
 import DashBox from './DashBox.jsx';
 import DashGraph from './DashGraph.jsx';
 import DashButton from './DashButton.jsx';
 import * as DataService from '../../services/DataService';
 import * as Helpers from '../../utils/Helpers';
-
-var dashboard_sock = 'ws://' + window.location.host + "/dashboard/"
 
 export default class Dashboard extends React.Component {
   constructor(props) {
@@ -21,7 +18,7 @@ export default class Dashboard extends React.Component {
         ongoingJobs: "Ongoing Jobs",
         faultsFixed: "Faults fixed"
       },
-      icons:{
+      icons: {
         totalPlants: "sbn-icon-leaf",
         activePlants: "sbn-icon-tick",
         totalFaults: "sbn-icon-alert",
@@ -30,7 +27,7 @@ export default class Dashboard extends React.Component {
         faultsFixed: "sbn-icon-technician"
       },
       btnView: true,
-      data:{
+      data: {
         totalPlants: 'No data',
         activePlants: 'No data',
         totalFaults: 'No data',
@@ -40,76 +37,71 @@ export default class Dashboard extends React.Component {
       },
       loaded: false
     };
-    this.btnWidg=this.btnWidg.bind(this);
-    this.btnGraph=this.btnGraph.bind(this);
-    console.log('loaded dashboard');
+    this.btnWidg = this.btnWidg.bind(this);
+    this.btnGraph = this.btnGraph.bind(this);
   }
 
   componentWillMount() {
-    var th = this;    
+    var th = this;
     DataService.getDashboardData().then((response) => {
+      let dashboardData = response.data.objects[0];
+      console.log('dashboard', dashboardData);
       th.setState({
         data: {
-          totalPlants: response.data.total_plants,
-          activePlants: response.data.active_plants,
-          totalFaults: response.data.total_faults,
-          averageRepairTime: response.data.average_repair_time,
-          ongoingJobs: response.data.ongoing_jobs,
-          faultsFixed: response.data.faults_fixed
+          totalPlants: dashboardData.plants,
+          activePlants: dashboardData.active,
+          totalFaults: dashboardData.faults,
+          averageRepairTime: dashboardData.avtime,
+          ongoingJobs: dashboardData.jobs,
+          faultsFixed: dashboardData.fixed
         },
         loaded: true
       })
     })
-    .catch(function (error) {
-      Helpers.handleHttpError(error);
-    });
+      .catch(function (error) {
+        Helpers.handleHttpError(error);
+      });
   }
 
   render() {
-    /* --Dashbox loop--*/
-    const titles = this.state.titles;
-    const boxList = Object.keys(this.state.titles).map(function(key, index){ 
-       let va = this.state.data[key];
-       let ic = this.state.icons[key];
-       let ti = this.state.titles[key];
-       return(   
-        <DashBox key={key} title={ti} value={String(va)} icon={ic} />   
-      )
-    },this);
-
-    /*view*/
-    const view=this.state.btnView;
-    const graphView = <DashGraph />;
-    
-    if(this.state && this.state.loaded) {
+    const boxList = Object.keys(this.state.titles).map(function (key, index) {
       return (
-          <div className="dashboard col-md-12 center-block" id="dashboard">
-            <h1 className="text-center text-green">Data Widget</h1>
-            
-            <div className="col-md-1 dash-btn text-center">
-              <DashButton icon="fa fa-info" action={this.btnWidg} item="1" active={this.state.btnView} />
-              <DashButton icon="fa fa-signal" action={this.btnGraph} item="2" />
-            </div>
+        <DashBox 
+          key={key}
+          title={this.state.titles[key]}
+          value={String(this.state.data[key])}
+          icon={this.state.icons[key]} 
+        />
+      )
+    }, this);
 
-            <div id="widgets" className="col-md-11 center-block">
-              { view ? boxList : graphView }
-            </div> 
+    if (this.state && this.state.loaded) {
+      return (
+        <div className="dashboard col-md-12 center-block" id="dashboard">
+          <h1 className="text-center text-green">Dashboard</h1>
+          <div className="col-md-1 dash-btn text-center">
+            <DashButton icon="fa fa-info" action={this.btnWidg} item="1" active={this.state.btnView} />
+            <DashButton icon="fa fa-signal" action={this.btnGraph} item="2" />
           </div>
+          <div id="widgets" className="col-md-11 center-block">
+            {this.state.btnView ? boxList : <DashGraph />}
+          </div>
+        </div>
       )
     }
-    return ("loading");
+    return ("loading...");
   }
 
-  btnWidg(){
+  btnWidg() {
     this.setState({
-      btnView:true
+      btnView: true
     })
     document.getElementById
   }
 
-  btnGraph(){
+  btnGraph() {
     this.setState({
-      btnView:false
+      btnView: false
     })
   }
 }

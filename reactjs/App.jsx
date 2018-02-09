@@ -8,17 +8,15 @@ import Jobs from './components/jobs/Jobs.jsx';
 import Plants from './components/plants/Plants.jsx';
 import Technicians from './components/technicians/Technicians.jsx';
 
-// import * as DataService from '../../services/DataService';
-// import * as Helpers from '../../utils/Helpers';
-
 export default class App extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {};
+		this.state = {
+			loggedIn: false
+		};
 	}
 
 	render() {
-		console.log('app');
 		return (
 			<Router>
 				<div>

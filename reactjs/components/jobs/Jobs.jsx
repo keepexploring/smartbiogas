@@ -5,7 +5,8 @@ export default class Jobs extends React.Component {
     super(props);
     this.state = {};
 	}
-	render() {
+  render() {
+    console.log(this.props.location);
 		return(
       <h1>Jobs</h1>
     );

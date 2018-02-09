@@ -1,18 +1,15 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 export default class Nav extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {};
-		console.log('loaded nav');
 	}
 
 	render() {
 		return (
 			<nav className="navbar-header" id="main-nav">
-
-
 				<div className="navbar-default">
 					<button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-1">
 						<span className="sr-only">Toggle navigation</span>
@@ -45,29 +42,29 @@ export default class Nav extends React.Component {
 				</div>
 				<div className="collapse navbar-collapse" id="navbar-collapse-1">
 					<ul className="nav navbar-nav ">
-						<li >
-							<Link to="/dashboard">
+						<li>
+							<NavLink to="/dashboard">
 								<span className="c-icon fa fa-dashboard"></span>
 								<span>Dashboard</span>
-							</Link>
+							</NavLink>
 						</li>
 						<li>
-							<Link to="/plants">
+							<NavLink to="/plants">
 								<span className="c-icon fa fa-leaf"></span>
 								<span>Biogas Plants</span>
-							</Link>
+							</NavLink>
 						</li>
 						<li>
-							<Link to="/technicians">
+							<NavLink to="/technicians">
 								<span className="c-icon fa fa-wrench"></span>
 								<span>Technicians</span>
-							</Link>
+							</NavLink>
 						</li>
 						<li>
-							<Link to="/jobs">
+							<NavLink to="/jobs">
 								<span className="c-icon fa fa-suitcase"></span>
 								<span>Jobs</span>
-							</Link>
+							</NavLink>
 						</li>
 					</ul>
 				</div>

@@ -6,7 +6,7 @@
 // company
 
 function buildEndpoint(route){
-	return `/dashboard/api/v1/${route}/?format=json`
+	return `/data/api/v1/${route}/?format=json`
 }
 
 export const technicianEndpoint = buildEndpoint('jobs');

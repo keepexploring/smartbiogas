@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { TechniciansTable } from './TechniciansTable.jsx';
+import TechniciansTable from './TechniciansTable.jsx';
 import * as TechniciansService from '../../services/TechniciansService';
 import * as Helpers from '../../utils/Helpers';
 
@@ -9,13 +9,15 @@ export default class Technicians extends React.Component {
 		super(props);
 		this.state = {
 			technicians: [],
-	};
+		};
 	}
 
 	componentWillMount() {
 		TechniciansService.getTechnicians().then((response) => {
-			this.setState({ technicians: response.data });
-			this.render();
+			let techniciansData = response.data.objects.map(function (tech) {
+				return TechniciansService.buildTechnicianDataModel(tech);
+			});
+			this.setState({ technicians: techniciansData });
 		})
 		.catch(function (error) {
 			Helpers.handleHttpError();

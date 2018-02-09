@@ -1,7 +1,5 @@
 import React from "react";
 
-
-
 const range = len => {
   const arr = [];
   for (let i = 0; i < len; i++) {
@@ -9,7 +7,6 @@ const range = len => {
   }
   return arr;
 };
-
 
 export function newTechnician(){
   const statusChance = Math.random();
