@@ -17,7 +17,7 @@ from django_dashboard.enums import ContactType, UserRole, JobStatus, QPStatus, C
 from django_dashboard.utilities import find_coordinates
 from multiselectfield import MultiSelectField
 from django.contrib.sessions.models import Session
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission
 from phonenumber_field.modelfields import PhoneNumberField
 
 import pdb
@@ -52,6 +52,14 @@ class Company(models.Model):
     def __str__(self):
         return '%s' % (self.company_name)
 
+    # def save(self, *args, **kwargs):
+    #     self.create_groups_add_permissions(company_name,company_id)
+
+    #     return super(Company,self).save(*args,**kwargs)
+
+    # def create_groups_add_permissions(company_name,company_id)
+    #     pass
+
     class Meta:
         verbose_name = "Company"
         verbose_name_plural = "Company's"
@@ -63,6 +71,9 @@ class Company(models.Model):
 class UserDetail(models.Model):
     #uid = models.CharField(db_index=True)
     user = models.OneToOneField(User,on_delete=models.CASCADE) # a user
+    #admin_role_in_companies = models.ManyToManyField(Company, blank=True, related_name="admin_role_in",) # the companies the User has an admin role in
+    #technican_role_in_companies = models.ManyToManyField(Company, blank=True,related_name="tech_role_in") # the companies the User has a technican role in
+    
     company = models.ManyToManyField(Company)
     #models.ManyTo.ManyField(Company)
     # maybe add choices here:
@@ -72,7 +83,7 @@ class UserDetail(models.Model):
     first_name = models.CharField(max_length=200,default=None,editable=False)
     last_name = models.CharField(max_length=200,default=None,editable=False)
     #last_name = models.CharField(max_length=200)
-    user_photo = models.ImageField(upload_to = 'Images',null=True,blank=True)
+    user_photo = models.ImageField(upload_to = 'UserPhotos',null=True,blank=True)
     #phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
     phone_number = PhoneNumberField(db_index=True, null=True, blank=True)
     country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
@@ -156,7 +167,7 @@ class TechnicianDetail(models.Model):
     what3words = models.CharField(max_length=200,null=True)
     location = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
     willing_to_travel = models.IntegerField(blank=True,null=True) # distance that a technician is willing to travel
-    rating = ArrayField(JSONField(blank=True, null=True),blank=True, null=True )
+    #rating = ArrayField(JSONField(blank=True, null=True),blank=True, null=True )
     average_rating = models.FloatField(editable=False,blank=True,null=True,default=0)
     max_num_jobs_allowed = models.IntegerField(blank=True,null=True,default=1)
     
