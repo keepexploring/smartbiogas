@@ -9,6 +9,8 @@ function buildEndpoint(route){
 	return `/data/api/v1/${route}/?format=json`
 }
 
+export const tokenEndpoint = '/o/token/'; //TODO
+
 export const technicianEndpoint = buildEndpoint('jobs');
 export const techniciansEndpoint = buildEndpoint('users');
 export const dashboardEndpoint = buildEndpoint('Dashboard'); //TODO

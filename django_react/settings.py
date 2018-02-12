@@ -32,8 +32,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1','localhost']
 
-LOGIN_URL = ''
-LOGIN_REDIRECT_URL = 'home'
+# LOGIN_URL = 'login'
+# LOGIN_REDIRECT_URL = 'home'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'Images')
 MEDIA_URL ='/media/'
