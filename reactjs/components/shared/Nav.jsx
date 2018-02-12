@@ -43,7 +43,7 @@ export default class Nav extends React.Component {
 				<div className="collapse navbar-collapse" id="navbar-collapse-1">
 					<ul className="nav navbar-nav ">
 						<li>
-							<NavLink to="/dashboard">
+							<NavLink to="/">
 								<span className="c-icon fa fa-dashboard"></span>
 								<span>Dashboard</span>
 							</NavLink>

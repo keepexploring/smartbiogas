@@ -1,20 +1,37 @@
-import http from '../utils/HttpClient';
 import * as constants from '../utils/Constants';
+import Authenticated from '../models/Authenticated';
 
-export const requestToken = (username, password) => {
-	let params = new URLSearchParams();
-	params.append('username', username);
-	params.append('password', password);
-	params.append('grant_type', 'password');
-	params.append('client_id', '123456');
-	params.append('client_secret', '123456');
+export default class AuthService {
+	static isLoggedIn = false;
+	static currentUser;
 
-	let config = { headers: { 
-		'Content-Type': 'application/x-www-form-urlencoded',
-		'Accept': 'application/json',
-	} };
+	static clearCurrentUser() {
+		this.isLoggedIn = false;
+		this.currentUser = null;
+		localStorage.clear();
+	}
 
-	return http.post(constants.tokenEndpoint, params, config);
+	static initialise() {
+		let u = JSON.parse(localStorage.getItem('currentUser'));
+		if (u) {
+			let user = new Authenticated (
+				u.access_token, 
+				u.token_type, 
+				u.expires_in, 
+				u.refresh_token,
+				u.scope
+			);
+			this.currentUser = user;
+			this.isLoggedIn = true;
+			return user;
+		}
+		localStorage.clear();
+	}
+	
+	static setCurrentUser(authenticated) {
+		localStorage.clear();
+		localStorage.setItem('currentUser', JSON.stringify(authenticated));
+		this.isLoggedIn = true;
+		this.currentUser = authenticated;
+	}
 }
-
-export let isLoggedIn = false;

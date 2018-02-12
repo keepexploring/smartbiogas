@@ -1,10 +1,20 @@
-var axios = require('axios');
+import axios from 'axios';
 
-var http = axios.create({
-  baseURL: 'http://127.0.0.1:8000',
-  // headers: {
-  //   'Authorization': 'Bearer M0SFhKOKDstRIXUFWEnTWZtEwFvlXB'
-  // }
-});
 
-module.exports = http;
+export default class HttpClient {
+  static token;
+
+  static currentInstance;
+
+  static httpConfig = {
+    baseURL: 'http://127.0.0.1:8000'
+  }
+
+  static initialise(token) {
+    this.token = token;
+    this.httpConfig.headers = {
+      'Authorization': 'Bearer ' + this.token
+    };
+    this.currentInstance = axios.create(this.httpConfig);
+  }
+}

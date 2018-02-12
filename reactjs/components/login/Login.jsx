@@ -1,8 +1,14 @@
 import React from 'react';
+import axios from 'axios';
+import { BrowserRouter as Router, Route, Link, Redirect, Switch } from 'react-router-dom';
 
+import * as constants from '../../utils/Constants';
 import SvgIcon from '../shared/SvgIcon.jsx';
-import { requestToken } from '../../services/AuthService';
 import Loading from '../shared/Loading.jsx';
+import AuthService from '../../services/AuthService';
+import Authenticated from '../../models/Authenticated';
+import HttpClient from '../../utils/HttpClient';
+import Dashboard from '../dashboard/Dashboard.jsx';
 
 export default class Login extends React.Component {
 	constructor(props) {
@@ -12,6 +18,7 @@ export default class Login extends React.Component {
 			password: '',
 			errorMessage: '',
 			isLoading: false,
+			redirect: AuthService.isLoggedIn
 		};
 
 		this.usernameChange = this.usernameChange.bind(this);
@@ -35,38 +42,86 @@ export default class Login extends React.Component {
 		this.clearErrors();
 	}
 
+	isDisabled(){
+		return this.state.username === '' || this.state.password === '';
+	}
+
+	getErrors() {
+		if(this.state.errorMessage && this.state.errorMessage != '') {
+			return(<div className="text-danger text-center">{ this.state.errorMessage }</div>);
+		}
+	}
+
+	getSubmitButton() {
+		return(this.state.isLoading ? <Loading /> : 
+			<button type="submit" className="btn-submit" disabled={this.isDisabled()} >
+				<SvgIcon name="sbn-icon-tick" color="icon-white" />
+			</button>);
+	}
+
+	processAuthenticationData(data) {
+		// console.log(data);
+		let authenticated;
+		try {
+			authenticated = new Authenticated (
+				data.access_token, 
+				data.token_type, 
+				data.expires_in, 
+				data.refresh_token,
+				data.scope
+			);
+		} catch (err) {
+			console.log(err);
+		}
+		return authenticated;
+	}
+
+	getToken(username, password) {
+		let params = new URLSearchParams();
+		params.append('username', username);
+		params.append('password', password);
+		params.append('grant_type', 'password');
+		params.append('client_id', '123456');
+		params.append('client_secret', '123456');
+		let config = { headers: { 
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'Accept': 'application/json',
+		} };
+		return axios.post(constants.tokenEndpoint, params, config);
+	};
+
 	handleSubmit(event) {
 		event.preventDefault();
 		this.setState({isLoading: true});
-		requestToken(this.state.username, this.state.password).then((response) => {
-			console.log('TODO: Handle response', response);
+
+		this.getToken(this.state.username, this.state.password).then((response) => {
+			let authenticated = this.processAuthenticationData(response.data);
+			AuthService.setCurrentUser(authenticated);
+			HttpClient.initialise(authenticated.access_token);
+			this.setState({redirect: true});
 		})
 		.catch((error) => {
 			if (error.response) {
 				this.setState({ errorMessage: error.response.data.error_description });
 			}
 			this.render();
-		}).finally(() => { this.setState({ isLoading: false }); });
+		})
+		.finally(() => { 
+			this.setState({ isLoading: false }); 
+		});
 	}
 
 	render() {
-
-		let isDisabled = this.state.username === '' || this.state.password === '';
-
-		let errors;
-		if(this.state.errorMessage && this.state.errorMessage != '') {
-			errors = <div className="text-danger text-center">{ this.state.errorMessage }</div>;
+		if(this.state.redirect) {
+			return(
+				<Router>
+					<div>
+						<Redirect to='/' />
+						<Route exact path="/" component={Dashboard} />
+					</div>
+				</Router>
+			);
 		}
-
-		let submitButton;
-		if(this.state.isLoading) {
-			submitButton = <Loading />;
-		} else {
-			submitButton = <button type="submit" className="btn-submit" disabled={isDisabled} >
-				<SvgIcon name="sbn-icon-tick" color="icon-white" />
-			</button>;
-		}
-
 
 		let loginView = <div className="login-template container form-horizontal margin-top">
 			<header>
@@ -89,11 +144,13 @@ export default class Login extends React.Component {
 					</div>
 				</div>
 				<div className="form-group text-center">
-					{ submitButton }
+					{ this.getSubmitButton() }
 				</div>
 			</form>
-			{ errors }
+			{ this.getErrors() }
 		</div>;
+
+
 
 		return (loginView);
 	};
