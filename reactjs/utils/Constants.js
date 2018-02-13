@@ -6,7 +6,7 @@
 // company
 
 function buildEndpoint(route){
-	return `/data/api/v1/${route}/?format=json`
+	return `/api/v1/${route}/?format=json`
 }
 
 export const tokenEndpoint = '/o/token/'; //TODO

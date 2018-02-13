@@ -44,6 +44,7 @@ export default class Dashboard extends React.Component {
   componentWillMount() {
     var th = this;
     DataService.getDashboardData().then((response) => {
+      console.log(response);
       let dashboardData = response.data.objects[0];
       console.log('dashboard', dashboardData);
       th.setState({

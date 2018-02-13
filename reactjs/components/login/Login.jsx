@@ -8,7 +8,6 @@ import Loading from '../shared/Loading.jsx';
 import AuthService from '../../services/AuthService';
 import Authenticated from '../../models/Authenticated';
 import HttpClient from '../../utils/HttpClient';
-import Dashboard from '../dashboard/Dashboard.jsx';
 
 export default class Login extends React.Component {
 	constructor(props) {
@@ -112,14 +111,12 @@ export default class Login extends React.Component {
 	}
 
 	render() {
+
 		if(this.state.redirect) {
 			return(
-				<Router>
-					<div>
-						<Redirect to='/' />
-						<Route exact path="/" component={Dashboard} />
-					</div>
-				</Router>
+				<div>
+					<Redirect to='/' />
+				</div>
 			);
 		}
 
