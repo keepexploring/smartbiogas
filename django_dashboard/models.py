@@ -19,6 +19,7 @@ from multiselectfield import MultiSelectField
 from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User, Group, Permission
 from phonenumber_field.modelfields import PhoneNumberField
+from django.utils.text import slugify
 
 import pdb
 
@@ -52,13 +53,21 @@ class Company(models.Model):
     def __str__(self):
         return '%s' % (self.company_name)
 
-    # def save(self, *args, **kwargs):
-    #     self.create_groups_add_permissions(company_name,company_id)
+    def save(self, *args, **kwargs):
+        self.create_groups(self.company_name,self.company_id)
+        return super(Company,self).save(*args,**kwargs)
 
-    #     return super(Company,self).save(*args,**kwargs)
-
-    # def create_groups_add_permissions(company_name,company_id)
-    #     pass
+    def create_groups(self,company_name,company_id):
+        """Each company has three groups which can have defined permissions"""
+        #pdb.set_trace()
+        tech_group_name = slugify(company_name)+"__tech__"+str(self.company_id) # we need to check it does not exist before this step
+        admin_group_name = slugify(company_name)+"__admin__"+str(self.company_id)
+        superadmin_group_name = slugify(company_name)+"__superadmin__"+str(self.company_id)
+        new_group1, created1 = Group.objects.get_or_create(name=tech_group_name)
+        new_group2, created2 = Group.objects.get_or_create(name=admin_group_name)
+        new_group3, created3 = Group.objects.get_or_create(name=superadmin_group_name)
+        # now when a new user is created, we
+        #ct = ContentType.objects.get_for_model(User)
 
     class Meta:
         verbose_name = "Company"
@@ -102,14 +111,29 @@ class UserDetail(models.Model):
         return '%s, %s %s' % (self.last_name,self.first_name,self.phone_number)
 
     def save(self, *args, **kwargs):
+        self.add_new_users_to_groups()
         if not self.datetime_created:
             self.datetime_created = timezone.now()
         self.datetime_modified = timezone.now()
         self.first_name = self.user.first_name
         self.last_name = self.user.last_name
+
+
         #pdb.set_trace()
         #pdb.set_trace()
         return super(UserDetail,self).save(*args,**kwargs)
+    
+    def add_new_users_to_groups(self): # initially add the users to the technican's group of the company that they are in
+        #pdb.set_trace()
+        companies = self.company.all()
+        for cy in companies:
+            tech_group_name = slugify(cy.company_name)+"__tech__"+str(cy.company_id)
+            _group_, created = Group.objects.get_or_create(name=tech_group_name)
+            _group_.user_set.add(self.user)
+
+
+        #new_group2, created2 = Group.objects.get_or_create(name=admin_group_name)
+        #new_group3, created3 = Group.objects.get_or_create(name=superadmin_group_name)
 
     def company_title(self):
         #pdb.set_trace()
@@ -170,6 +194,7 @@ class TechnicianDetail(models.Model):
     #rating = ArrayField(JSONField(blank=True, null=True),blank=True, null=True )
     average_rating = models.FloatField(editable=False,blank=True,null=True,default=0)
     max_num_jobs_allowed = models.IntegerField(blank=True,null=True,default=1)
+    languages_spoken = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
     
     
     def __str__(self):

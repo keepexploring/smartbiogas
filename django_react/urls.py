@@ -14,7 +14,7 @@ urlpatterns = [
     url(r'^login2/$', LoginView.as_view(), name='login2'), 
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
     url(r'^', include('django_dashboard.urls')),
-    url(r'^dashboard/', include('django_dashboard.urls')),
+    #url(r'^dashboard/', include('django_dashboard.urls')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     url(r'^admin/dynamic_raw_id/', include('dynamic_raw_id.urls')),
     url('^searchableselect/', include('searchableselect.urls')),

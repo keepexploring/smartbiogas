@@ -7,6 +7,10 @@ from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
 from tastypie.constants import ALL
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
+from helpers import get_companies_and_permissions
+from helpers import CustomBadRequest
+from helpers import keep_fields
+import uuid
 import traceback
 import pdb
 
@@ -22,7 +26,7 @@ class CompanyResource(ModelResource):
         queryset = Company.objects.all() # everything in the Techicians database - or use Entry.objects.all().filter(pub_date__year=2006) to restrict what is returned
         resource_name = 'company' # when it is called its name will be called technicians
         excludes = []
-        list_allowed_methods = ['get', 'post']
+        list_allowed_methods = ['get', 'post', 'put']
         filtering = {'company_name':ALL,
                     'username':ALL,
                     'country':ALL,
@@ -36,35 +40,67 @@ class CompanyResource(ModelResource):
         authentication = OAuth2ScopedAuthentication(
             post=("read write",),
             get=("read",),
-            put=("read","write")
+            put=("read", "write"),
+            
         )
 
         #def obj_create(self, bundle, **kwargs):
         #    return super(MyModelResource, self).obj_create(bundle, user=bundle.request.user)
     def hydrate(self, bundle):
-        pass
+        return bundle
 
     
     def obj_create(self, bundle, **kwargs):
-        pdb.set_trace()
+        #pdb.set_trace()
         uob = bundle.request.user
         user_object = UserDetail.objects.filter(user=uob)
-
-        if uob.is_superuser:
-            pass
-        elif user_object[0].role.label == 'Company Admin': # we need to deal with permission on a company by company basis
-            pass
-            
-        elif user_object[0].role.label == 'Technician':
-            bundle.data = {}
+        
+        if uob.is_superuser: # only superusers are able to create companies (basically only admins of the whole system not of individual companies)
+            if bundle.data['company_name'] is None:
+                bundle.data={}
+            else:
+                
+                exists = Company.objects.all().filter(company_name=bundle.data['company_name']).exists()
+                if exists is True:
+                    bundle.data={}
+                    raise CustomBadRequest(
+                    code="403",
+                    message="Company name is not unique")
         else:
-            bundle.data = {}
-            return bundle
+            bundle.data={}
+            raise CustomBadRequest(
+                    code="401",
+                    message="Only superusers are able to create companies")
+
+                            
+        bundle = self.full_hydrate(bundle)
 
         return super(CompanyResource, self).obj_create(bundle, user=bundle.request.user)
 
     def obj_update(self, bundle, **kwargs):
         pdb.set_trace()
+
+        uob = bundle.request.user
+        user_object = UserDetail.objects.filter(user=uob)
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+
+        try:
+            bundle.obj = Company.objects.get(pk=pk)
+        except KeyError:
+            raise NotFound("Object not found")
+
+        if uob.is_superuser: # only superusers are able to create companies (basically only admins of the whole system not of individual companies)
+            pass
+        else:
+            bundle.data={}
+            raise CustomBadRequest(
+                    code="401",
+                    message="Only superusers are able to create companies")
+
+        bundle = self.full_hydrate(bundle)
         return super(CompanyResource, self).obj_update(bundle, user=bundle.request.user)
 
     def obj_delete(self, bundle, **kwargs):
@@ -95,20 +131,78 @@ class CompanyResource(ModelResource):
 
 class TechnicianDetailResource(ModelResource): # child
     #technicians = fields.OneToOneField(TechnicianDetailResource, 'technicians')
+    """This class will return the logged in technician's details - and allow the technician to update it as required"""
     class Meta:
         queryset = TechnicianDetail.objects.all()
         resource_name = 'userdetail'
         excludes = []
-        list_allowed_methods = ['post']
+        list_allowed_methods = ['get','put']
         authorization = DjangoAuthorization()
         authentication = OAuth2ScopedAuthentication(
-            post=("write",),
-            get=(),
-            put=()
             #post=("read write",),
-            #get=("read",),
-            #put=("read","write")
+            get=("read",),
+            put=("read", "write"),
+            
         )
+
+    def obj_update(self, bundle, **kwargs):
+        #pdb.set_trace()
+        uob = bundle.request.user
+        part_of_groups = uob.groups.all()
+        try:
+            companies_and_permissions = get_companies_and_permissions(part_of_groups)
+        except:
+            companies_and_permissions = []
+
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+
+        if uob.is_superuser:
+            try:
+                bundle.obj = TechnicianDetail.objects.get(pk=pk) # a superuser can edit any technican's record
+            except:     
+                raise CustomBadRequest(
+                        code="403",
+                        message="Object not found")
+        # an admin can only edit technican's in their company that they are admin for
+        else:
+            list_of_company_ids = []
+            for pm in companies_and_permissions: # go through each company they are part of and build up the bundle
+                if "admin" in pm["permissions"]:
+                    list_of_company_ids.append( uuid.UUID(pm["company_id"]) )
+
+            if len(list_of_company_ids)>0:
+                try:
+                    bundle.obj = TechnicianDetail.objects.get(pk=pk,technicians__company__company_id__in = list_of_company_ids) # a superuser can edit any technican's record
+                except:     
+                    raise CustomBadRequest(
+                            code="403",
+                            message="Object not found")
+                fields_to_allow_update_on = ['status','what3words','willing_to_travel','acredit_to_install','acredited_to_fix','specialist_skills','max_num_jobs_allowed']
+                bundle = keep_fields(bundle, fields_to_allow_update_on)
+            else:
+                try:
+                    bundle.obj = TechnicianDetail.objects.get(pk=pk, technicians__user = uob) # we make sure the record being requested is that of the logged in user
+                except:
+                    raise CustomBadRequest(
+                            code="403",
+                            message="Users can only modify their own records, that is the record of the logged in user")
+        
+        #fields_to_allow_update_on = ['status','what3words','willing_to_travel']
+        #bundle = keep_fields(bundle, fields_to_allow_update_on)
+        #bundle.data ={}
+
+            
+
+        #bundle = self.full_hydrate(bundle)
+        return super(TechnicianDetailResource, self).obj_update(bundle, user=uob)
+
+    def authorized_read_list(self, object_list, bundle):
+        uob = bundle.request.user
+        
+        return object_list.filter(technicians__user__username=uob.username)
 
 
 class UserDetailResource(ModelResource): # parent
@@ -136,6 +230,15 @@ class UserDetailResource(ModelResource): # parent
             get=("read",),
             put=("read","write")
         )
+
+    def dehydrate(self, bundle):
+        
+        url = bundle.request.build_absolute_uri()
+        root_url = url.split('/api')[0]
+        if bundle.data['user_photo'] is not None:
+            bundle.data['user_photo'] = root_url+ bundle.data['user_photo']
+        
+        return bundle
 
     
     
@@ -243,7 +346,7 @@ class JobHistoryResource(ModelResource):
 class DashboardResource(ModelResource):
     class Meta:
         queryset =  Dashboard.objects.all()
-        resource_name = 'Dashboard'
+        resource_name = 'dashboard'
         excludes = []
         list_allowed_methods = ['get']
         authorization = DjangoAuthorization()
@@ -252,7 +355,8 @@ class DashboardResource(ModelResource):
             get=("read",),
             put=("read","write")
         )
-    # def authorized_read_list(self, object_list, bundle):
-    #     return object_list.filter(user=bundle.request.user)
+    def authorized_read_list(self, object_list, bundle):
+    # need to set this so returns the company in the users settings - they can choose any company they are part of
+         return object_list.filter(user=bundle.request.user)[0:1]
         
        
