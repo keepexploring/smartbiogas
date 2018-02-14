@@ -1,12 +1,10 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import base from '../../css/base.scss';
 
-import { TechniciansTable } from './TechniciansTable.jsx';
+import TechniciansTable from './TechniciansTable.jsx';
 import * as TechniciansService from '../../services/TechniciansService';
 import * as Helpers from '../../utils/Helpers';
 
-export class Technicians extends React.Component {
+export default class Technicians extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -16,11 +14,13 @@ export class Technicians extends React.Component {
 
 	componentWillMount() {
 		TechniciansService.getTechnicians().then((response) => {
-			this.setState({ technicians: response.data });
-			this.render();
+			let techniciansData = response.data.objects.map(function (tech) {
+				return TechniciansService.buildTechnicianDataModel(tech);
+			});
+			this.setState({ technicians: techniciansData });
 		})
 		.catch(function (error) {
-			Helpers.handleError();
+			Helpers.handleHttpError();
 		});
 	}
 
@@ -33,6 +33,3 @@ export class Technicians extends React.Component {
 		return ("loading...");
 	}
 }
-
-const rootElement = document.getElementById('technicians');
-ReactDOM.render(<Technicians />, rootElement);

@@ -1,18 +1,18 @@
 import React from 'react';
+
 import { Table } from '../tables/Table.jsx';
 import TopBar from '../containers/TopBar.jsx';
 import BlockHeader from '../shared/BlockHeader.jsx';
-import { TechnicianInfo } from './TechnicianInfo.jsx';
-import axios from 'axios';
+import TechnicianInfo from './TechnicianInfo.jsx';
 
-export class TechniciansTable extends React.Component {
+export default class TechniciansTable extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			headers: {
 				full_name: 'Name',
-				phone: 'Phone Number',
-				location: 'Location',
+				phone_number: 'Phone Number',
+				country: 'Country',
 				jobs_completed: 'Jobs',
 				status: 'Status'
 			},
@@ -22,15 +22,14 @@ export class TechniciansTable extends React.Component {
 		this.selectTechnician = this.selectTechnician.bind(this);
 	}
 
-	selectTechnician(rowInfo) {
-		this.setState({currentTechnician: rowInfo.original}, this.render);
-	}
+	componentDidUpdate(){ }
 
-	componentDidUpdate(){
-		this.render();
+	selectTechnician(rowInfo) {
+		this.setState({currentTechnician: rowInfo.original});
 	}
 
 	render() {
+		console.log('render');
 		var technicianInfo = null;
 		if(this.state.currentTechnician != null) {
 			technicianInfo = <TechnicianInfo profile={this.state.currentTechnician} />

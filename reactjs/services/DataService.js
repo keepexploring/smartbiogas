@@ -1,6 +1,6 @@
-import http from '../utils/HttpClient';
+import HttpClient from '../utils/HttpClient';
 import * as constants from '../utils/Constants';
 
 export const getDashboardData = () => {
-	return http.get(constants.dashboardEndpoint);
+	return HttpClient.currentInstance.get(constants.dashboardEndpoint);
 }

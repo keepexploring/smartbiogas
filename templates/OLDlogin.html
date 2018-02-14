@@ -30,7 +30,6 @@
             <h4 class="text-center fancy">
                 <span>Admin Login</span>
             </h4>
-       
 
         {% if form.errors %}
         <p>Your username and password didn't match. Please try again.</p>
@@ -40,6 +39,7 @@
         <h1 class="text-center" >Welcome</h1>
         {% endif %} {% endif %}
     </header>
+    
         <form method="post" action="{% url 'login' %}">
             {% csrf_token %}
             <table style="width:100%">

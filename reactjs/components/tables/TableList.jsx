@@ -9,8 +9,6 @@ const TableList = (props) => {
             <ListRow key={index} header={title} value={value} />
         )
     }, this);
-    
-    console.log(props);
 
     return (
         <div className='row table-list'>

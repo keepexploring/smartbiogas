@@ -34,19 +34,19 @@ a{
 
 /* LOGIN - Header.
 ================================================================= */
-header{
+.login-template header{
     margin-top:150px;
     margin-bottom:50px;
 }
-header img{
+.login-template  header img{
     margin: 50px;
 }
 
 /* heading with lines */
-.fancy{
+.login-template .fancy{
     margin-bottom:50px;
 }
-.fancy span{
+.login-template .fancy span{
     display: inline-block;
     position: relative; 
     width:25%
