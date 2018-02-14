@@ -291,12 +291,14 @@ class UserDetailResource(ModelResource): # parent
         else:
             flag = 0
             if list_of_company_ids_admin[0] is True:
+                # we need to filter this to allow admins to only be able to create users for companies they are admin for.
                 pass
             else:
                 bundle.obj = UserDetail.objects.none()
                 bundle.data = {}
 
         bundle = self.full_hydrate(bundle)
+        
         return bundle
 
     
@@ -379,10 +381,48 @@ class JobHistoryResource(ModelResource):
 
     def obj_update(self, bundle, **kwargs):
         #pdb.set_trace()
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+
         uob = bundle.request.user
         part_of_groups = uob.groups.all()
         perm = Permissions(part_of_groups)
-        list_of_company_ids = perm.check_auth_admin()
+        list_of_company_ids_admin = perm.check_auth_admin()
+        list_of_company_ids_tech = perm.check_auth_tech()
+
+        if uob.is_superuser:
+            try:
+                bundle.obj = JobHistory.objects.get(pk=pk) # a superuser can edit any technican's record
+            except:     
+                raise CustomBadRequest(
+                        code="403",
+                        message="Object not found")
+        else:
+            flag = 0
+            if list_of_company_ids_admin[0] is True:
+                try:
+                    bundle.obj = JobHistory.objects.get(pk=pk,fixers__company__company_id__in = list_of_company_ids_admin[1]) # a superuser can edit any technican's record
+                except:
+                    flag = 1
+                fields_to_allow_update_on = ['due_date','date_completed','completed','job_status','verification_of_engagement','fault_description','other','overdue_for_acceptance','priority','fault_class']
+                bundle = keep_fields(bundle, fields_to_allow_update_on)
+            
+            # A technician can only update their own details
+            if (flag == 1 and list_of_company_ids_tech[0] is True):
+                try:
+                    bundle.obj = JobHistory.objects.get(pk=pk, fixers__user = uob)
+                    #bundle.obj = UserDetail.objects.get(pk=pk,company__company_id__in = list_of_company_ids_tech[1]) # a superuser can edit any technican's record
+                except:     
+                    raise CustomBadRequest(
+                            code="403",
+                            message="Object not found")
+                fields_to_allow_update_on = ['completed','job_status','verification_of_engagement','fault_description','other','overdue_for_acceptance','priority','fault_class']
+                bundle = keep_fields(bundle, fields_to_allow_update_on)
+            else:
+                bundle.obj = TechnicianDetail.objects.none()
+                bundle.data ={}
 
         return bundle
 
@@ -429,8 +469,12 @@ class DashboardResource(ModelResource):
             get=("read",),
             put=("read","write")
         )
-    def authorized_read_list(self, object_list, bundle):
+   # def authorized_read_list(self, object_list, bundle):
     # need to set this so returns the company in the users settings - they can choose any company they are part of
-         return object_list.filter(user=bundle.request.user)[0:1]
+     #   uob = bundle.request.user
+      #  user_object = UserDetail.objects.filter(user=uob)
+      #  company_ids = 
+      #  company_to_display = 
+      #  return object_list.filter(company__company_id=)
         
     
