@@ -12,8 +12,8 @@ urlpatterns = [
     # url(r'^.*/', AppView.as_view(), name='app'),
     
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^login/$', auth_views.LoginView.as_view(template_name='login.html'),{'authentication_form':LoginForm},name='login'),
-    url(r'^login2/$', LoginView.as_view(), name='login2'), 
+    #url(r'^login/$', auth_views.LoginView.as_view(template_name='login.html'),{'authentication_form':LoginForm},name='login'),
+    #url(r'^login2/$', LoginView.as_view(), name='login2'), 
     url(r'^logout/$', auth_views.logout, {'next_page': '/login/'}, name='logout'),
     url(r'^', include('django_dashboard.urls')),
     #url(r'^dashboard/', include('django_dashboard.urls')),

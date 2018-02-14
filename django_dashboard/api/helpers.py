@@ -2,6 +2,7 @@ import json
 
 from tastypie.exceptions import TastypieError
 from tastypie.http import HttpBadRequest
+import uuid
 
 
 class CustomBadRequest(TastypieError):
@@ -36,17 +37,46 @@ def check_if_exists(data_list,id_):
             return [True, kk["company_id"],en]
     return [False]
 
-def get_companies_and_permissions(group_list):
-    companies_and_permissions = []
-    for ii in group_list:
-        data = extract_company_id(ii.name)
-        exists = check_if_exists(companies_and_permissions,data["company_id"])
-        if (exists[0]==True):
-            companies_and_permissions[exists[2]]["permissions"] =  companies_and_permissions[exists[2]]["permissions"] + data["permissions"]
-        else:
-            companies_and_permissions.append(data)
+class Permissions():
 
-    return companies_and_permissions
+    def __init__(self, part_of_group):
+        self.part_of_group = part_of_group
+
+    def get_companies_and_permissions(self):
+        self.companies_and_permissions = []
+        for ii in self.part_of_group:
+            data = extract_company_id(ii.name)
+            exists = check_if_exists(self.companies_and_permissions,data["company_id"])
+            if (exists[0]==True):
+                self.companies_and_permissions[exists[2]]["permissions"] =  self.companies_and_permissions[exists[2]]["permissions"] + data["permissions"]
+            else:
+                self.companies_and_permissions.append(data)
+
+        return self.companies_and_permissions
+
+
+    def check_auth_admin(self):
+        self.get_companies_and_permissions()
+        list_of_company_ids = []
+        for pm in self.companies_and_permissions: # go through each company they are part of and build up the bundle
+            if "admin" in pm["permissions"]:
+                list_of_company_ids.append( uuid.UUID(pm["company_id"]) )
+        if len(list_of_company_ids) == 0:
+            return (False, list_of_company_ids)
+        else:
+            return (True, list_of_company_ids)
+
+    def check_auth_tech(self):
+        self.get_companies_and_permissions()
+        list_of_company_ids = []
+        for pm in self.companies_and_permissions: # go through each company they are part of and build up the bundle
+            if "tech" in pm["permissions"]:
+                list_of_company_ids.append( uuid.UUID(pm["company_id"]) )
+        if len(list_of_company_ids) == 0:
+            return (False, list_of_company_ids)
+        else:
+            return (True, list_of_company_ids)
+            
 
             
 def keep_fields(bundle,fields):

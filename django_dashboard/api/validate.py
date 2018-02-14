@@ -11,7 +11,6 @@ from tastypie.authorization import Authorization
 from tastypie.constants import ALL
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
 from tastypie.bundle import Bundle
-from helpers import get_companies_and_permissions
 from helpers import CustomBadRequest
 from helpers import keep_fields
 import datetime

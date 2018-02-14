@@ -26,7 +26,23 @@ class BiogasPlantContactResource(ModelResource):
             get=("read",),
             put=("read","write")
         )
-    # we 
+    
+    def obj_update(self, bundle, **kwargs):
+        #pdb.set_trace()
+        uob = bundle.request.user
+        part_of_groups = uob.groups.all()
+        perm = Permissions(part_of_groups)
+        list_of_company_ids = perm.check_auth_admin()
+
+        return bundle
+
+    def obj_create(self, bundle, **kwargs):
+        #pdb.set_trace()
+        uob = bundle.request.user
+        user_object = UserDetail.objects.filter(user=uob)
+
+        return bundle
+        
     def authorized_read_list(self, object_list, bundle):
         #return object_list.filter(user=bundle.request.user)
         #pdb.set_trace()

@@ -101,8 +101,9 @@ class UserDetail(models.Model):
     district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    postcode = models.CharField(null=True,max_length=20,blank=True)
     neighbourhood = models.CharField(null=True,max_length=20,blank=True)
+    postcode = models.CharField(null=True,max_length=20,blank=True)
+    postcode = models.CharField(null=True,max_length=20,blank=True)
     other_address_details = models.TextField(null=True,blank=True)
     datetime_created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
     datetime_modified = models.DateTimeField(null=True,blank=True,editable=False)
@@ -297,6 +298,7 @@ class BiogasPlant(models.Model):
     sensor_status = EnumField(SensorStatus, max_length=1,null=True, blank = True)
     current_status = EnumField(CurrentStatus, max_length=1,null=True)
     verfied = models.NullBooleanField(db_index=True,blank=True,default=False)
+    install_date = models.DateField(null=True,blank=True)
 
     def get_contact(self):
         #pdb.set_trace()

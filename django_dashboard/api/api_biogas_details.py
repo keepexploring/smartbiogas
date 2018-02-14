@@ -5,6 +5,7 @@ from django_dashboard.models import Company, UserDetail, TechnicianDetail, Bioga
 from tastypie.authorization import DjangoAuthorization
 from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
+from helpers import Permissions
 from tastypie.constants import ALL
 #from django_dashboard.api.api_biogas_contact import BiogasPlantContactResource
 
@@ -48,6 +49,22 @@ class BiogasPlantResource(ModelResource):
         #pdb.set_trace()
         dat = bundle.obj.contact.values()
         bundle.data['contact'] = [i for i in dat]
+        return bundle
+
+    def obj_update(self, bundle, **kwargs):
+        #pdb.set_trace()
+        uob = bundle.request.user
+        part_of_groups = uob.groups.all()
+        perm = Permissions(part_of_groups)
+        list_of_company_ids = perm.check_auth_admin()
+
+        return bundle
+
+    def obj_create(self, bundle, **kwargs):
+        #pdb.set_trace()
+        uob = bundle.request.user
+        user_object = UserDetail.objects.filter(user=uob)
+
         return bundle
 
     def authorized_read_list(self, object_list, bundle):

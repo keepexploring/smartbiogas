@@ -183,7 +183,7 @@ def create_jobs():
     fixture6 = AutoFixture(JobHistory,
         field_values={
             })
-    entries6=fixture6.create(100)
+    entries6=fixture6.create(1000)
 
 def create_dashboard_data():
     fixture7 = AutoFixture(Dashboard,
