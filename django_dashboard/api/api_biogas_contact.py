@@ -7,6 +7,7 @@ from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
 from tastypie.constants import ALL
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
+from django.db.models import Q
 
 import pdb
 
@@ -29,12 +30,54 @@ class BiogasPlantContactResource(ModelResource):
     
     def obj_update(self, bundle, **kwargs):
         #pdb.set_trace()
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+
         uob = bundle.request.user
         part_of_groups = uob.groups.all()
         perm = Permissions(part_of_groups)
-        list_of_company_ids = perm.check_auth_admin()
+        list_of_company_ids_admin = perm.check_auth_admin()
+        list_of_company_ids_tech = perm.check_auth_tech()
 
-        return bundle
+        if uob.is_superuser:
+            try:
+                bundle.obj = BiogasPlantContact.objects.get(pk=pk) # a superuser can edit any technican's record
+            except:     
+                raise CustomBadRequest(
+                        code="403",
+                        message="Object not found")
+        else:
+            flag = 0
+            if list_of_company_ids_admin[0] is True:
+                try:
+                    bundle.obj = BiogasPlantContact.objects.get( pk=pk,associated_company__company_id__in = list_of_company_ids_admin[1] ) # a superuser can edit any technican's record
+                    fields_to_allow_update_on = ['contact_type','first_name','surname','mobile','email','associated_company']
+                    bundle = keep_fields(bundle, fields_to_allow_update_on)
+                    flag = 2
+                except:
+                    flag = 1
+                
+            elif ( (flag == 1 or flag==0) and list_of_company_ids_tech[0] is True ):
+                try:
+                    bundle.obj = BiogasPlantContact.objects.get( pk=pk,associated_company__company_id__in = list_of_company_ids_admin[1])
+                    #bundle.obj = UserDetail.objects.get(pk=pk,company__company_id__in = list_of_company_ids_tech[1]) # a superuser can edit any technican's record
+                    fields_to_allow_update_on = ['contact_type','first_name','surname','mobile','email','associated_company']
+                    bundle = keep_fields(bundle, fields_to_allow_update_on)
+                except:     
+                    raise CustomBadRequest(
+                            code="403",
+                            message="You do not have permission to edit that contact")
+                
+            else:
+                bundle.obj = BiogasPlantContact.objects.none()
+                bundle.data ={}
+
+        bundle = self.full_hydrate(bundle)
+
+        #pdb.set_trace(0)
+        return super(BiogasPlantContact, self).obj_update(bundle, user=uob)
 
     def obj_create(self, bundle, **kwargs):
         #pdb.set_trace()

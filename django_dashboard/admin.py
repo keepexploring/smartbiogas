@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 from django.db import models
 
-from .models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, TechnicianDetail, BiogasPlant, JobHistory, Dashboard
+from .models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, TechnicianDetail, BiogasPlant, JobHistory, Dashboard, PendingJobs
 
 from django.contrib.admin import widgets
 from dynamic_raw_id.admin import DynamicRawIDMixin
@@ -34,13 +34,20 @@ class TechnicianDetailAdmin(admin.StackedInline):
         if request.role == 'COMPANY_ADMIN':
             return qs.filter(technicans=request.company)
 
+class PendingJobsAdmin(admin.ModelAdmin): # could make a stacked inline??
+    model = PendingJobs
+    list_display = ('biogas_plant','technician','job_id','datetime_created','job_details','accepted','technicians_rejected',)
+    list_filter = ('biogas_plant','technician','job_id','datetime_created','job_details','accepted','technicians_rejected',)
+    search_fields = ('biogas_plant','technician','job_id','datetime_created','job_details','accepted','technicians_rejected',)
+   
+
 class UserDetailAdmin(admin.ModelAdmin): # admin.StackedInline
     #inlines = (TechnicianDetailAdmin,)
     model = UserDetail
     form = UserDetailForm
     inlines = [TechnicianDetailAdmin,]
     readonly_fields=('first_name','last_name')
-    list_display = ('role','company_title','first_name','last_name','phone_number','region','district','ward','village','other_address_details','datetime_created')
+    list_display = ('role','company_title','first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
     list_filter = ('role','first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details')
     #ordering = ('first_name','last_name','role','phone_number','country','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
     filter_horizontal = ('company',)
@@ -91,7 +98,12 @@ class JobHistoryInline(admin.TabularInline):
         #    options = {'format': '%Y-%m-%d %H:%M'}
         #)}
     }
-    
+
+class JobsAdmin(admin.ModelAdmin):
+    model = JobHistory 
+    list_display= ('plant','job_status','job_id','client_feedback_star','priority','assistance','date_flagged','due_date','date_completed','completed',)
+    list_filter= ('plant','job_status','job_id','client_feedback_star','priority','assistance','date_flagged','due_date','date_completed','completed',)
+    search_fields= ['job_id',]
 
     
 
@@ -127,6 +139,8 @@ class UserAdmin(admin.ModelAdmin):
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(Dashboard, DashboardAdmin)
 admin.site.register(UserDetail, UserDetailAdmin)
+admin.site.register(JobHistory, JobsAdmin)
+admin.site.register(PendingJobs, PendingJobsAdmin)
 #admin.site.register(TechnicianDetail, TechnicianDetailAdmin)
 admin.site.register(BiogasPlant, BiogasPlantsAdmin)
 admin.site.register(BiogasPlantContact, BiogasPlantContactAdmin)

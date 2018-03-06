@@ -4,6 +4,7 @@ from tastypie.api import Api
 from api.api import CompanyResource, UserDetailResource, TechnicianDetailResource, JobHistoryResource, DashboardResource
 from api.api_biogas_contact import BiogasPlantContactResource
 from api.api_biogas_details import BiogasPlantResource
+from api.pending_jobs import PendingJobsResource
 from api.validate import ValidateToken
 from django_dashboard.views import RegionAutocomplete, CountryAutocomplete, ContinentAutocomplete, DistrictAutocomplete, WardAutocomplete, VillageAutocomplete, SupplierAutocomplete, VolumeAutocomplete 
 
@@ -15,6 +16,7 @@ v1_api.register(BiogasPlantContactResource())
 v1_api.register(BiogasPlantResource())
 v1_api.register(JobHistoryResource())
 v1_api.register(DashboardResource())
+v1_api.register(PendingJobsResource())
 v1_api.register(ValidateToken())
 
 urlpatterns = [

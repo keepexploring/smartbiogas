@@ -7,3 +7,4 @@ class JobStatus(Enum):
     ASSISTANCE = 3
     RESOLVED = 4
     FLAG = 5
+

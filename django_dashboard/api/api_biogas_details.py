@@ -6,7 +6,10 @@ from tastypie.authorization import DjangoAuthorization
 from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
 from helpers import Permissions
+from django.db.models import Q
 from tastypie.constants import ALL
+from tastypie_actions.actions import actionurls, action
+import json
 #from django_dashboard.api.api_biogas_contact import BiogasPlantContactResource
 
 import pdb
@@ -45,6 +48,57 @@ class BiogasPlantResource(ModelResource):
             put=("read","write")
         )
 
+    def prepend_urls(self):
+        return actionurls(self)
+
+
+    @action(allowed=['post'], require_loggedin=False,static=True)
+    def get_biogas_plants(self, request, **kwargs):
+        """Gte the biogas plants of an owner form their mobile number"""
+        self.is_authenticated(request)
+        data = json.loads( request.read() )
+        mobile=data['mobile']
+        bundle = self.build_bundle(data={}, request=request)
+        try:
+             # we specify the type of bundle in order to help us filter the action we take before we return
+            uob = bundle.request.user
+            if uob.is_superuser:
+                part_of_groups = uob.groups.all()
+                perm = Permissions(part_of_groups)
+                list_of_company_ids_admin = perm.check_auth_admin()
+                list_of_company_ids_tech = perm.check_auth_tech
+                #bundle.data['technicians'] = data_list
+                biogas_plants = BiogasPlant.objects.filter(contact__mobile=mobile)
+                #bundle.data['biogas_plants'] = [i for i in biogas_plants]
+
+                data_list = []
+                for bi in biogas_plants:
+                    data = { 
+                            "owner": [{"first_name":ii.first_name, "surname":ii.surname, "mobile":ii.mobile, "contact_type":ii.contact_type.name} for ii in bi.contact.all()],
+                            "biogas_plant_name": bi.biogas_plant_name,
+                             "associated_company": bi.associated_company,
+                            "country":bi.country,
+                            "region": bi.region,
+                            "district":bi.district,
+                            "ward": bi.ward,
+                            "village":bi.village,
+                            "type_biogas":bi.type_biogas,
+                            "supplier":bi.supplier,
+                            "volume_biogas":bi.volume_biogas,
+                            "QP_status":bi.QP_status,
+                            "sensor_status":bi.sensor_status,
+                            "current_status":bi.current_status,
+                            "verfied":bi.verfied,
+                            "uri":"/api/v1/biogasplant/"+str(bi.id)+"/"
+                           }
+                    data_list.append(data)
+                bundle.data['biogas_plants'] = data_list
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+    
+
     def dehydrate(self, bundle):
         #pdb.set_trace()
         dat = bundle.obj.contact.values()
@@ -53,19 +107,63 @@ class BiogasPlantResource(ModelResource):
 
     def obj_update(self, bundle, **kwargs):
         #pdb.set_trace()
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+
         uob = bundle.request.user
         part_of_groups = uob.groups.all()
         perm = Permissions(part_of_groups)
-        list_of_company_ids = perm.check_auth_admin()
+        list_of_company_ids_admin = perm.check_auth_admin()
+        list_of_company_ids_tech = perm.check_auth_tech()
 
-        return bundle
+        if uob.is_superuser:
+            try:
+                bundle.obj = BiogasPlant.objects.get(pk=pk) # a superuser can edit any technican's record
+            except:     
+                raise CustomBadRequest(
+                        code="403",
+                        message="Object not found")
+        else:
+            flag = 0
+            if list_of_company_ids_admin[0] is True: # pk=pk,,
+                try:
+                    
+                    bundle.obj = BiogasPlant.objects.get(Q(pk=pk),Q(associated_company__company_id__in = list_of_company_ids_admin[1]) | Q(constructing_technicians__company__company_id__in = list_of_company_ids_admin[1]) ) # a superuser can edit any technican's record
+                    fields_to_allow_update_on = ['UIC','contact','constructing_technicians','funding_souce','funding_source_notes','country','region','district','ward','village','postcode','other_address_details','type_biogas','supplier','volume_biogas','what3words','location','QP_status','sensor_status','current_status','verfied']
+                    bundle = keep_fields(bundle, fields_to_allow_update_on)
+                    flag = 2
+                except:
+                    flag = 1
+                
+            elif ( (flag == 1 or flag==0) and list_of_company_ids_tech[0] is True ):
+                try:
+                    bundle.obj = BiogasPlant.objects.get(Q(pk=pk),Q(associated_company__company_id__in = list_of_company_ids_admin[1]) | Q(constructing_technicians__company__company_id__in = list_of_company_ids_admin[1]))
+                    #bundle.obj = UserDetail.objects.get(pk=pk,company__company_id__in = list_of_company_ids_tech[1]) # a superuser can edit any technican's record
+                    fields_to_allow_update_on = ['UIC','contact','constructing_technicians','funding_souce','funding_source_notes','country','region','district','ward','village','postcode','other_address_details','type_biogas','supplier','volume_biogas','what3words','location','QP_status','sensor_status','current_status','verfied']
+                    bundle = keep_fields(bundle, fields_to_allow_update_on)
+                except:     
+                    raise CustomBadRequest(
+                            code="403",
+                            message="You do not have permission to edit that contact")
+                
+            else:
+                bundle.obj = BiogasPlant.objects.none()
+                bundle.data ={}
+
+        bundle = self.full_hydrate(bundle)
+
+        #pdb.set_trace(0)
+        return super(BiogasPlantResource, self).obj_update(bundle, user=uob)
+
 
     def obj_create(self, bundle, **kwargs):
         #pdb.set_trace()
         uob = bundle.request.user
         user_object = UserDetail.objects.filter(user=uob)
 
-        return bundle
+        return super(BiogasPlantResource, self).obj_create(bundle, user=uob)
 
     def authorized_read_list(self, object_list, bundle):
         #return object_list.filter(user=bundle.request.user)
@@ -79,7 +177,7 @@ class BiogasPlantResource(ModelResource):
             #pdb.set_trace()
             company_object = user_object[0].company.all()
             company_names = [co.company_name for co in company_object]
-            return object_list.filter(contact__associated_company__company_name__in=company_names)
+            return object_list.filter(Q(contact__associated_company__company_name__in=company_names) | Q(associated_company__company_name__in=company_names))
 
         if user_object[0].role.label == 'Technician': # only return the user info of the logged in technican
             # a technician cannot get the user details associated with a company

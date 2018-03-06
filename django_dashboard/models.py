@@ -181,7 +181,7 @@ class TechnicianDetail(models.Model):
     #acredit_to_install = ArrayField(models.CharField(max_length=200, choices = ACCREDITED_TO_INSTALL), default=list,blank=True, db_index=True,null=True) # choices=ACCREDITED_TO_INSTALL e.g. different digesters they can construct
     #acredit_to_install = models.SelectMultiple(max_length=200, choices = ACCREDITED_TO_INSTALL)
     acredit_to_install = MultiSelectField(choices = ACCREDITED_TO_INSTALL,blank=True, db_index=True,null=True)
-    acredited_to_fix= MultiSelectField(choices = ACCREDITED_TO_INSTALL,blank=True, db_index=True,null=True)
+    acredited_to_fix = MultiSelectField(choices = ACCREDITED_TO_INSTALL,blank=True, db_index=True,null=True)
     #acredited_to_fix = ArrayField(models.CharField(max_length=200), default=list, blank=True, db_index=True,null=True)
     specialist_skills = MultiSelectField(choices = SPECIALIST_SKILLS,blank=True, db_index=True,null=True)
     #specialist_skills = ArrayField(models.CharField(max_length=200), default=list, blank=True, db_index=True,null=True)
@@ -228,7 +228,7 @@ class TechnicianDetail(models.Model):
 class BiogasPlantContact(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, editable=False)
     #associated_company = models.ManyToManyField(Company)
-    associated_company = models.ForeignKey(Company, on_delete=models.CASCADE )
+    associated_company = models.ForeignKey(Company, on_delete=models.CASCADE ) # this field will be depreciated in the production version as will be on the biogas plant instead (and will be the company who constructed)
     contact_type = EnumField(ContactType, max_length=1)
     first_name = models.CharField(null=True,max_length=200)
     surname = models.CharField(null=True,max_length=200)
@@ -271,7 +271,10 @@ class BiogasPlant(models.Model):
     )
     plant_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
     
+    UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200) # Unique Identiifer Code (their is one of these on all biogas plants)
+    biogas_plant_name = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     
+    associated_company = models.ManyToManyField(Company, blank=True, related_name='biogas_plant_company') 
     contact = models.ManyToManyField(BiogasPlantContact, related_name='biogas_plant_detail') # a biogas plant can have one or many users and a user can have one or many biogas plants
     constructing_technicians = models.ManyToManyField(UserDetail,blank=True, related_name = 'constructing_technicians')
 
@@ -291,7 +294,7 @@ class BiogasPlant(models.Model):
     supplier = EnumField(SupplierBiogas, max_length=1,null=True,blank=True)
     #size_biogas = models.FloatField(null=True,blank=True) # maybe specify this in m3
     volume_biogas = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    what3words = models.CharField(max_length=200,null=True,blank=True)
+    volume_biogas = models.CharField(max_length=200,null=True,blank=True)
     location = models.PointField(geography=True, srid=4326,blank=True,db_index=True,null=True)
     #status = models.CharField(null=True,max_length=225,blank=True,choices=STATUS_CHOICES)
     QP_status = EnumField(QPStatus, max_length=1,null=True)
@@ -299,6 +302,10 @@ class BiogasPlant(models.Model):
     current_status = EnumField(CurrentStatus, max_length=1,null=True)
     verfied = models.NullBooleanField(db_index=True,blank=True,default=False)
     install_date = models.DateField(null=True,blank=True)
+
+
+    def __str__(self):
+        return '%s, %s, %s, %s' % (str(self.type_biogas), str(self.supplier), str(self.volume_biogas), str(self.plant_id) )
 
     def get_contact(self):
         #pdb.set_trace()
@@ -348,7 +355,10 @@ class BiogasPlant(models.Model):
 class JobHistory(models.Model):
     plant = models.ForeignKey(BiogasPlant, on_delete=models.CASCADE) # a biogas plan can have many job records
     fixers = models.ManyToManyField(UserDetail,blank=True) # associating it with someone who can fix it, blank means it is optional  - importan because it will not initially be associated
-
+    accepted_but_did_not_visit = models.ForeignKey(UserDetail,blank=True, null=True,related_name='acceptednovisit')
+    rejected_job = models.ForeignKey(UserDetail,blank=True, null=True, related_name='rejectedjob')
+    rejected_jobs = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
+    
     STATUS_CHOICES = (
     ('UNASSIGNED', "unassigned"),
     ('RESOLVING', "resolving"),
@@ -364,12 +374,14 @@ class JobHistory(models.Model):
     job_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
     #technicians_ids = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True) # a list of the technicians workng on this biogas
     date_flagged = models.DateTimeField(null=True)
+    date_accepted = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
     due_date = models.DateField(null=True,blank=True)# when the job should be completed by, this could be based on the problem e.g. water in the pipe would be less than rebuilding the plant
     #job_duration = models.IntegerField() # how long the job has been outstanding in seconds
     date_completed = models.DateField(null=True,blank=True)
     completed = models.NullBooleanField(db_index=True,blank=True,default=False)
     #job_status = models.CharField(choices=STATUS_CHOICES,default='UNASSIGNED',max_length=16,null=True)# states (unassigned, resolving- being worked on, assitance, overdue- accepted, but not been completed, after x number of days, resolved, feedback- if received low star, then flag up and push to an admin)
                 # decommissioned
+    dispute_raised = models.NullBooleanField(default=False,blank=True)
     job_status= EnumField(JobStatus, max_length=1,null=True)
     verification_of_engagement = models.NullBooleanField(db_index=True,blank=True,default=False)
     fault_description = models.TextField(null=True,blank=True) # a descrete number of fault descriptions
@@ -382,18 +394,90 @@ class JobHistory(models.Model):
         ],
         null=True,
         blank=True,
-     )#
+     )
+    
     client_feedback_additional = models.TextField(null=True,blank=True)# if the customer wants to give additional feedback
   
     overdue_for_acceptance = models.NullBooleanField(default=False,blank=True)# true or false - if after a certain period the job has not been accepted, mark as overdue and then flag priority
     priority = models.NullBooleanField(default=False,blank=True) # this can be triggered manually - increases search radius + confirm if techcians ara able to do or not
     fault_class = models.CharField(null=True,max_length=225,blank=True,choices=FAULT_CLASSES)
-    
+    assistance = models.NullBooleanField(default=False,blank=True)
+
+
+
+    @property
+    def _completed(self):
+        return self.completed
+        
+    @_completed.setter
+    def set_completed(self,value):
+        pdb.set_trace()
+        self._complete_signal = True
+        self.completed = value
+        if (self.completed == True and self.date_completed == None):
+            self.date_completed = datetime.datetime.utcnow()
+            self.job_status = 4 #'RESOLVED'
+        if (self.completed == False and self.date_completed is not None):
+            self.date_completed = None
+            self.job_status = 2 #'RESOLVING'
+
+
+    @property
+    def _priority(self):
+        return self.priority
+
+    @_priority.setter
+    def _priority(self,value):
+        self.priority = value
+        self._priority_signal = True
+        if (value == True and self.completed !=True):
+            self.job_status = 5 #'FLAG'
+        elif (value == False and self.completed !=True):
+            self.job_status = 2 #'RESOLVING'
+        elif self.completed == True:
+            self.job_status = 4 #'RESOLVED'
+
+    @property
+    def _assistance(self):
+        return self.assistance
+
+    @_assistance.setter
+    def _assistance(self,value):
+        self._assistance_signal = True
+        self.assistance = value
+        if (value == True and self.completed !=True):
+            self.job_status = 3 #'ASSISTANCE'
+        elif (value == False and self._completed !=True):
+            self.job_status = 2 #'RESOLVING'
+        elif self.completed == True:
+            self.job_status = 4 #'RESOLVED'
+            
+
 
     def save(self, *args, **kwargs):
+        #if getattr(self, '_assistance_signal', True): # these can be useful
+        #if getattr(self, '_complete_signal', True):
+        #if getattr(self, '_priority_signal', True):
         #pdb.set_trace()
-        #pass
+        if self.completed is not None:
+            self._complete=self.completed
+        if self.assistance is not None:
+            self._assistance=self.assistance
+        if self.priority is not None:
+            self._priority=self.priority
+
+        if not self.date_flagged: # when you save it for the first time, make sure we have a time!
+            self.date_flagged = timezone.now()
+
+        # use signals to trigger a message to be sent to users once marked
+        
+        #if __name__ == '__main__':
+           
+        
+       # if __name__ == '__main__':
+        #    main()
         return super(JobHistory,self).save(*args,**kwargs)
+
 
 
     class Meta: # we can overide these in the search in the views
@@ -491,3 +575,56 @@ class Messages(models.Model):
     message_to_num = PhoneNumberField(db_index=True,null=True,blank=True)
     message_from_email = models.EmailField(null=True,blank=True)
     message_to_email = models.EmailField(null=True,blank=True)
+
+
+class PendingJobs(models.Model):
+    #uid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
+    job_id = models.CharField(db_index=True,default=uuid.uuid4,blank=True,max_length=200, primary_key=True)
+    biogas_plant = models.ForeignKey(BiogasPlant, on_delete=models.CASCADE, blank=True, null=True,related_name='abiogasplant') # a job is associated with a biogas plant
+    technician = models.ForeignKey(UserDetail, on_delete=models.CASCADE, blank=True, null=True,related_name='atechician') # one techncian can have more than one job
+    datetime_created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
+    job_details = models.TextField(null=True,blank=True)
+    accepted = models.NullBooleanField(db_index=True,blank=True,null=True,default=None)
+    technicians_rejected = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
+    
+    # technicians_rejected will be a list of id's of technicans who have said they do not want this job - the system can get this and use to make sure it does not send messages to these technicians again
+
+    def check_to_accept_job(self):
+        if self.accepted is True:
+            job_id_uid = uuid(self.job_id) # keep the same id all the way through - makes searching easier!
+            JobHistory.objects.create(
+                    plant=self.biogas_plant,
+                    fixers=technician, 
+                    date_flagged=self.datetime_created,
+                    job_status=2,
+                    fault_description=self.job_details,
+                    job_id = job_id_uid
+                ) # job_status = 2 means 'resolving'
+            # remove job from pending jobs
+            PendingJobs.objects.filter(pk=self.id).delete() # delete the pending job
+            # now update the technicians details
+            techn = TechnicianDetail.objects.filter(technicians=technician)
+            techn.number_jobs_active = techn.number_jobs_active + 1 # we'll do this for the time being, in the future might be best to get all the jobs associated with this technician and count up
+            techn.status = True # check this is set to true
+            # now send message to user to confirm that a technician has accepted
+        elif self.accepted is False:
+            self.technicians_rejected.append(str(techn.technician_id))
+            # now call another function to search for another technician
+            
+
+    def save(self, *args, **kwargs):
+        self.check_to_accept_job() # check if technician has accepted and then creates a new job for that plant and technician
+        
+        if not self.datetime_created:
+            self.datetime_created = timezone.now()
+       
+
+        return super(PendingJobs,self).save(*args,**kwargs)
+
+    
+    class Meta: # we can overide these in the search in the views
+       # if (self.priority is False):
+          # get_latest_by = ["due_date"] # newest first
+        #else:
+        verbose_name = "Pending Job"
+        verbose_name_plural = "Pending Jobs"

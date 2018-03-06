@@ -45,12 +45,15 @@ class Permissions():
     def get_companies_and_permissions(self):
         self.companies_and_permissions = []
         for ii in self.part_of_group:
-            data = extract_company_id(ii.name)
-            exists = check_if_exists(self.companies_and_permissions,data["company_id"])
-            if (exists[0]==True):
-                self.companies_and_permissions[exists[2]]["permissions"] =  self.companies_and_permissions[exists[2]]["permissions"] + data["permissions"]
-            else:
-                self.companies_and_permissions.append(data)
+            try:
+                data = extract_company_id(ii.name)
+                exists = check_if_exists(self.companies_and_permissions,data["company_id"])
+                if (exists[0]==True):
+                    self.companies_and_permissions[exists[2]]["permissions"] =  self.companies_and_permissions[exists[2]]["permissions"] + data["permissions"]
+                else:
+                    self.companies_and_permissions.append(data)
+            except:
+                pass
 
         return self.companies_and_permissions
 
@@ -88,4 +91,10 @@ def keep_fields(bundle,fields):
         except:
             pass
     bundle.data = data_bundle
+    return bundle
+
+
+def remove_fields(bundle,fields):
+    for ff in fields:
+        bundle.data.pop(ff, None)
     return bundle
