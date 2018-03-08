@@ -98,3 +98,17 @@ def remove_fields(bundle,fields):
     for ff in fields:
         bundle.data.pop(ff, None)
     return bundle
+
+def datetime_to_string(date_obj):
+    try:
+        return date_obj.strftime("%Y-%m-%d %H:%M:%S")
+    except:
+        return ""
+
+def error_handle_wrapper(func):
+    try:
+        pdb.set_trace()
+        x = func()
+        return x
+    except:
+        return ""

@@ -355,8 +355,8 @@ class BiogasPlant(models.Model):
 class JobHistory(models.Model):
     plant = models.ForeignKey(BiogasPlant, on_delete=models.CASCADE) # a biogas plan can have many job records
     fixers = models.ManyToManyField(UserDetail,blank=True) # associating it with someone who can fix it, blank means it is optional  - importan because it will not initially be associated
-    accepted_but_did_not_visit = models.ForeignKey(UserDetail,blank=True, null=True,related_name='acceptednovisit')
-    rejected_job = models.ForeignKey(UserDetail,blank=True, null=True, related_name='rejectedjob')
+    accepted_but_did_not_visit = models.ManyToManyField(UserDetail,blank=True, related_name='acceptednovisit')
+    rejected_job = models.ManyToManyField(UserDetail,blank=True, related_name='rejectedjob')
     rejected_jobs = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
     
     STATUS_CHOICES = (

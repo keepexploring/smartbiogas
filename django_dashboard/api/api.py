@@ -14,6 +14,13 @@ import uuid
 import traceback
 from copy import copy
 from tastypie_actions.actions import actionurls, action
+from django.core import serializers
+import serpy
+from django.db.models import Q
+import uuid
+import json
+from helpers import datetime_to_string, error_handle_wrapper
+from django.core.paginator import Paginator
 import pdb
 
 # monkey patch the Resource init method to remove a particularly cpu hungry deepcopy
@@ -450,7 +457,7 @@ class JobHistoryResource(ModelResource):
         pdb.set_trace()
         pass
 
-    @action(allowed=['put'], require_loggedin=True)
+    @action(allowed=['put'], require_loggedin=False, static=False)
     def abandon_job(self, request, **kwargs):
         self.is_authenticated(request)
 
@@ -459,20 +466,223 @@ class JobHistoryResource(ModelResource):
             #job_id = 
         except:
             pk = kwargs['pk']
+
+        uid = uuid.UUID(hex=pk)
         
         bundle = self.build_bundle(data={}, request=request)
-        uob = bundle.request.user
-        part_of_groups = uob.groups.all()
-        perm = Permissions(part_of_groups)
-        list_of_company_ids_admin = perm.check_auth_admin()
-        list_of_company_ids_tech = perm.check_auth_tech()
-        pass
+        try:
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            pdb.set_trace()
+            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))
+            current_job[0].rejected_job.set(current_job[0].fixers) # this is
+            current_job[0].update(fixers = None, completed = False, job_status = 1, verification_of_engagement = False, priority = True)
+            bundle.data = { "message":"job_abandoned", "job_id": pk }
 
-    @action(allowed=['get'], require_loggedin=True)
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+
+
+    @action(allowed=['get'], require_loggedin=False,static=True)
+    def get_abandoned_jobs(self, request, **kwargs):
+        self.is_authenticated(request)
+        bundle = self.build_bundle(data={}, request=request)
+
+        try:
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            abandoned_jobs = JobHistory.objects.filter(fixers__user=None)
+            serialized_jobs = json.loads( serializers.serialize('json', abandoned_jobs) )
+
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+
+    @action(allowed=['get'], require_loggedin=False,static=True)
+    def get_active_jobs(self, request, **kwargs):
+        self.is_authenticated(request)
+        bundle = self.build_bundle(data={}, request=request)
+
+        try:
+            
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            #pdb.set_trace()
+            current_jobs = JobHistory.objects.filter(fixers__user=uob, completed=False)
+
+            
+            job_list = []
+            for job in current_jobs:
+                job_record = {}
+                job_record["job_id"] = job.pk.hex
+                
+                job_record["install_date"] = datetime_to_string(job.plant.install_date)
+                job_record["date_flagged"] = datetime_to_string(job.date_flagged)
+                job_record["date_accepted"] = datetime_to_string(job.date_accepted)
+                
+                job_record["job_status"] = job.job_status
+                job_record["fault_description"] = job.fault_description
+                job_record["other"] = job.other
+                job_record["priority"] = job.priority
+                job_record["fault_class"] = job.fault_class
+                job_record["district"] = job.plant.district
+                job_record["ward"] = job.plant.ward
+                job_record["volume"] = job.plant.volume_biogas
+                try:
+                    job_record["longitude"] = job.plant.location.get_x()
+                    job_record["latitude"] = job.plant.location.get_y()
+                except:
+                    pass
+                
+                try:
+                    job_record["supplier"] = job.plant.supplier.name
+                except:
+                    pass
+        
+                job_record["QP_status"] = job.plant.QP_status
+                job_record["sensor_status"] = job.plant.sensor_status
+                job_record["current_status"] = job.plant.current_status
+                job_record["type_biogas"] = job.plant.type_biogas
+                
+                job_list.append(job_record)
+            
+            bundle.data = {'data':job_list}
+        except Exception as e:
+            #print(e)
+            pass
+
+        return self.create_response(request, bundle)
+
+    
+    @action(allowed=['post'], require_loggedin=False,static=True)
+    def get_historical_jobs(self, request, **kwargs):
+        self.is_authenticated(request)
+
+        data = json.loads( request.read() )
+        page=int(data['page']) # add in some error handling here
+        per_page = int(data["per_page"])
+
+        bundle = self.build_bundle(data={}, request=request)
+
+        try:
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            historical_jobs = JobHistory.objects.filter(fixers__user=uob, completed=True)
+            pag = Paginator(historical_jobs, per_page)
+            historical_jobs=pag.page(page)
+            #serialized_jobs = json.loads( serializers.serialize('json', historical_jobs) )
+            job_list = []
+            
+            for job in historical_jobs:
+                job_record = {}
+                job_record["job_id"] = job.pk.hex
+                
+                job_record["install_date"] = datetime_to_string(job.plant.install_date)
+                job_record["job_status"] = job.job_status
+                job_record["fault_description"] = job.fault_description
+                job_record["other"] = job.other
+                job_record["district"] = job.plant.district
+                job_record["ward"] = job.plant.ward
+                job_record["volume"] = job.plant.volume_biogas
+                try:
+                    job_record["longitude"] = job.plant.location.get_x()
+                    job_record["latitude"] = job.plant.location.get_y()
+                except:
+                    pass
+                
+                try:
+                    job_record["supplier"] = job.plant.supplier.name
+                except:
+                    pass
+        
+                job_record["QP_status"] = job.plant.QP_status
+                job_record["sensor_status"] = job.plant.sensor_status
+                job_record["current_status"] = job.plant.current_status
+                job_record["type_biogas"] = job.plant.type_biogas
+                
+                job_list.append(job_record)
+            
+            bundle.data = {'data':job_list}
+            bundle.data['pagination'] = {"item_count":pag.count, "page_count":pag.num_pages,"page_num":page,"has_next":historical_jobs.has_next(),"has_previous":historical_jobs.has_previous()}
+
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+
+    @action(allowed=['put'], require_loggedin=False,static=False)
+    def call_for_assistance(self, request, **kwargs):
+        self.is_authenticated(request)
+        try:
+            pk = int(kwargs['pk'])
+            #job_id = 
+        except:
+            pk = kwargs['pk']
+
+        uid = uuid.UUID(hex=pk)
+        bundle = self.build_bundle(data={}, request=request)
+
+        try:
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))
+            current_job.job_status = 5
+            current_job.priority = True
+            bundle.data = {"message":"We have requested additional assistance for you","job_id":pk}
+
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+
+
+
+    @action(allowed=['put'], require_loggedin=False, static=False)
     def job_complete(self, request, **kwargs):
         self.is_authenticated(request)
-        pdb.set_trace()
-        pass
+        #pdb.set_trace()
+        try:
+            pk = int(kwargs['pk'])
+            #job_id = 
+        except:
+            pk = kwargs['pk']
+
+        uid = uuid.UUID(hex=pk)
+        
+
+        bundle = self.build_bundle(data={}, request=request)
+        
+        try:
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))
+            current_job.update(completed = True, job_status = 4, priority = False)
+            bundle.data = {"message":"job completed", "job_id":pk}
+        except:
+            pass
+
+        return self.create_response(request, bundle)
 
     @action(allowed=['get'], require_loggedin=True)
     def get_excluded_technicians(self, request, **kwargs):

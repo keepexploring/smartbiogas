@@ -46,7 +46,7 @@ class PendingJobsResource(ModelResource):
 
         uid = uuid.UUID(hex=pk) # introduce some error handling here in case the form of pk is wrong
 
-        pdb.set_trace()
+        #pdb.set_trace()
         bundle = self.build_bundle(data={'job_id': kwargs['pk']}, request=request)
         try:
              # we specify the type of bundle in order to help us filter the action we take before we return
@@ -58,7 +58,7 @@ class PendingJobsResource(ModelResource):
             #obj = self.cached_obj_get(bundle=bundle, **self.remove_api_resource_names(kwargs))
             pending_job = PendingJobs.objects.get(job_id=uid) # job_id is the primary key
 
-            pdb.set_trace()
+            #pdb.set_trace()
             if pending_job is not None:
                 history = JobHistory()
                 history.job_id=uid
