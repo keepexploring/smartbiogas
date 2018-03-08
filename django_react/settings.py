@@ -28,9 +28,9 @@ SECRET_KEY = Config.get("django","secret_key")
 #'frobam8*+@h(p%#8ft+)x=e73d_t(jch3hn%-nf+6f=y5zq=kb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1','localhost']
+ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1','localhost','api.smartbiogas.org']
 
 # LOGIN_URL = 'login'
 # LOGIN_REDIRECT_URL = 'home'
@@ -74,6 +74,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'django_react.disable.DisableCSRF',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -91,7 +92,9 @@ CORS_ORIGIN_ALLOW_ALL = True # this should be restricted in the future for secur
 
 OAUTH2_PROVIDER = {
     # this is the list of available scopes
-    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'}
+    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'},
+    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
+
 }
 
 ROOT_URLCONF = 'django_react.urls'
