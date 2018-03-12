@@ -44,11 +44,13 @@ class PendingJobsResource(ModelResource):
             pk = kwargs['pk']
 
 
-        uid = uuid.UUID(hex=pk) # introduce some error handling here in case the form of pk is wrong
+        
+        try:
+
+            uid = uuid.UUID(hex=pk) # introduce some error handling here in case the form of pk is wrong
 
         #pdb.set_trace()
-        bundle = self.build_bundle(data={'job_id': kwargs['pk']}, request=request)
-        try:
+            bundle = self.build_bundle(data={'job_id': kwargs['pk']}, request=request)
              # we specify the type of bundle in order to help us filter the action we take before we return
             uob = bundle.request.user
             part_of_groups = uob.groups.all()
@@ -59,6 +61,7 @@ class PendingJobsResource(ModelResource):
             pending_job = PendingJobs.objects.get(job_id=uid) # job_id is the primary key
 
             #pdb.set_trace()
+            history = JobHistory(job_id=uid,plant=pending_job.biogas_plant)
             if pending_job is not None:
                 history = JobHistory()
                 history.job_id=uid
@@ -89,12 +92,13 @@ class PendingJobsResource(ModelResource):
             pk = kwargs['pk']
 
 
-        uid = uuid.UUID(hex=pk) # introduce some error handling here in case the form of pk is wrong
-
-        pdb.set_trace()
-        bundle = self.build_bundle(data={'job_id': kwargs['pk']}, request=request)
+        
 
         try:
+            uid = uuid.UUID(hex=pk) # introduce some error handling here in case the form of pk is wrong
+
+            #pdb.set_trace()
+            bundle = self.build_bundle(data={'job_id': kwargs['pk']}, request=request)
              # we specify the type of bundle in order to help us filter the action we take before we return
             uob = bundle.request.user
             part_of_groups = uob.groups.all()
@@ -294,7 +298,7 @@ class PendingJobsResource(ModelResource):
 
     def obj_create(self, bundle, **kwargs):
         # only superusers and create and delete pending jobs
-        pdb.set_trace()
+        #pdb.set_trace()
         uob = bundle.request.user
         user_object = UserDetail.objects.filter(user=uob)
 

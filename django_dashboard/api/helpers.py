@@ -94,6 +94,18 @@ def keep_fields(bundle,fields):
     return bundle
 
 
+def only_keep_fields(data,fields):
+    """Filter out fields from a user for security reasons"""
+    datakeep = {}
+    for bb in fields:
+        try:
+            datakeep[bb] = data[bb]
+        except:
+            pass
+            
+    return datakeep
+
+
 def remove_fields(bundle,fields):
     for ff in fields:
         bundle.data.pop(ff, None)

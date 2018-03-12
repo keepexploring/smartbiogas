@@ -402,8 +402,8 @@ class JobHistory(models.Model):
     priority = models.NullBooleanField(default=False,blank=True) # this can be triggered manually - increases search radius + confirm if techcians ara able to do or not
     fault_class = models.CharField(null=True,max_length=225,blank=True,choices=FAULT_CLASSES)
     assistance = models.NullBooleanField(default=False,blank=True)
-
-
+    description_help_need = models.TextField(null=True,blank=True)
+    reason_abandoning_job = models.TextField(null=True,blank=True)
 
     @property
     def _completed(self):

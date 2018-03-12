@@ -19,8 +19,10 @@ import serpy
 from django.db.models import Q
 import uuid
 import json
-from helpers import datetime_to_string, error_handle_wrapper
+from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields
 from django.core.paginator import Paginator
+from tastypie_actions.actions import actionurls, action
+import datetime
 import pdb
 
 # monkey patch the Resource init method to remove a particularly cpu hungry deepcopy
@@ -165,6 +167,113 @@ class TechnicianDetailResource(ModelResource): # child
         )
 
     
+    def prepend_urls(self):
+        return actionurls(self)
+
+
+    @action(allowed=['get'], require_loggedin=False, static=True)
+    def get_profile(self, request, **kwargs):
+        self.is_authenticated(request)
+
+        #pdb.set_trace()
+        try:
+            
+            bundle = self.build_bundle(data={}, request=request)
+             # we specify the type of bundle in order to help us filter the action we take before we return
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+
+            tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
+            user_detail = UserDetail.objects.get(user = uob)
+
+            detail = {}
+            detail['technician_id'] = tech_detail.technician_id
+            detail['acredit_to_install'] = tech_detail.acredit_to_install
+            detail['acredited_to_fix'] = tech_detail.acredited_to_fix
+            detail['specialist_skills'] = tech_detail.specialist_skills
+            detail['number_jobs_active'] = tech_detail.number_jobs_active
+            detail['number_of_jobs_completed'] = tech_detail.number_of_jobs_completed
+            detail['status'] = tech_detail.status
+            detail['what3words'] = tech_detail.what3words
+            detail['location'] = tech_detail.location
+            detail['willing_to_travel'] = tech_detail.willing_to_travel
+            detail['languages_spoken'] = tech_detail.languages_spoken
+            #detail['company'] = user_detail.company.values() # this can be added later
+            detail['first_name'] = user_detail.first_name
+            detail['last_name'] = user_detail.last_name
+            detail['phone_number'] = user_detail.phone_number
+
+            bundle.data = detail
+
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+    
+    @action(allowed=['get'], require_loggedin=False, static=True)
+    def get_status(self, request, **kwargs):
+        self.is_authenticated(request)
+
+
+        #pdb.set_trace()
+        try:
+            bundle = self.build_bundle(data={}, request=request)
+             # we specify the type of bundle in order to help us filter the action we take before we return
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+
+            tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
+
+            bundle.data = {"status":tech_detail.status,"tech_id":str(tech_detail.technician_id)}
+
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+
+    @action(allowed=['put'], require_loggedin=False, static=False)
+    def change_status(self, request, **kwargs):
+        self.is_authenticated(request)
+
+        #pdb.set_trace()
+        try:
+            st = int(kwargs['pk'])
+            #job_id = 
+        except:
+            st = kwargs['pk']
+
+        try:
+            bundle = self.build_bundle(data={}, request=request)
+             # we specify the type of bundle in order to help us filter the action we take before we return
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
+            if (st is 1):
+                tech_detail.status = True
+                bundle.data = {"status":True,"tech_id":str(tech_detail.technician_id)}
+                
+            else:
+                tech_detail.status = False
+                bundle.data = {"status":False,"tech_id":str(tech_detail.technician_id)}
+            tech_detail.save()
+        
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+
+
+
+
 
     def obj_update(self, bundle, **kwargs):
         #pdb.set_trace()
@@ -450,36 +559,51 @@ class JobHistoryResource(ModelResource):
         pdb.set_trace()
         pass
 
-    @action(allowed=['get'], require_loggedin=True)
+    @action(allowed=['post'], require_loggedin=True)
     def tech_request_help(self, request, **kwargs):
         """Find a new technician when they accepted but did not take"""
         self.is_authenticated(request)
         pdb.set_trace()
         pass
 
-    @action(allowed=['put'], require_loggedin=False, static=False)
+    @action(allowed=['post'], require_loggedin=False, static=False)
     def abandon_job(self, request, **kwargs):
         self.is_authenticated(request)
-
+        #pdb.set_trace()
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['reasons','additional_comments'])
+        
         try:
             pk = int(kwargs['pk'])
-            #job_id = 
         except:
             pk = kwargs['pk']
 
-        uid = uuid.UUID(hex=pk)
+        
         
         bundle = self.build_bundle(data={}, request=request)
         try:
+            uid = uuid.UUID(hex=pk)
             uob = bundle.request.user
             part_of_groups = uob.groups.all()
             perm = Permissions(part_of_groups)
             list_of_company_ids_admin = perm.check_auth_admin()
             list_of_company_ids_tech = perm.check_auth_tech()
-            pdb.set_trace()
-            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))
-            current_job[0].rejected_job.set(current_job[0].fixers) # this is
-            current_job[0].update(fixers = None, completed = False, job_status = 1, verification_of_engagement = False, priority = True)
+            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))[0]
+            user_detail = UserDetail.objects.get(user=uob)
+            current_job.rejected_job.add(user_detail) # this is
+            current_job.fixers.remove(user_detail)
+            #fixers  = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))[0]
+            current_job.completed = False
+            current_job.job_status = 1
+            current_job.verification_of_engagement = False
+            current_job.priority = True
+            if "help_type" in data.keys():
+                current_job.reason_abandoning_job = str(current_job.reason_abandoning_job) + "\n \n" + datetime_to_string(datetime.datetime.now()) + "\n" + data['reasons']
+            
+            if "additional_comments" in data.keys():
+                current_job.other = str(current_job.other) + "\n \n" + datetime_to_string(datetime.datetime.now()) +" [abandon_job] "  + "\n" + data['additional_comments']
+
+            current_job.save()
             bundle.data = { "message":"job_abandoned", "job_id": pk }
 
         except:
@@ -493,14 +617,21 @@ class JobHistoryResource(ModelResource):
         self.is_authenticated(request)
         bundle = self.build_bundle(data={}, request=request)
 
+        #pdb.set_trace()
+
         try:
             uob = bundle.request.user
             part_of_groups = uob.groups.all()
             perm = Permissions(part_of_groups)
             list_of_company_ids_admin = perm.check_auth_admin()
             list_of_company_ids_tech = perm.check_auth_tech()
-            abandoned_jobs = JobHistory.objects.filter(fixers__user=None)
-            serialized_jobs = json.loads( serializers.serialize('json', abandoned_jobs) )
+
+            if uob.is_superuser:
+                abandoned_jobs = JobHistory.objects.exclude(rejected_job=None)
+                serialized_jobs = json.loads( serializers.serialize('json', abandoned_jobs) )
+                bundle.data = {'data':serialized_jobs}
+            else:
+                bundle.data = {}
 
         except:
             pass
@@ -558,7 +689,7 @@ class JobHistoryResource(ModelResource):
                 
                 job_list.append(job_record)
             
-            bundle.data = {'data':job_list}
+            bundle.data = {'data':job_list[0]}
         except Exception as e:
             #print(e)
             pass
@@ -625,9 +756,12 @@ class JobHistoryResource(ModelResource):
 
         return self.create_response(request, bundle)
 
-    @action(allowed=['put'], require_loggedin=False,static=False)
+    @action(allowed=['post'], require_loggedin=False,static=False)
     def call_for_assistance(self, request, **kwargs):
         self.is_authenticated(request)
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['help_type','additional_comments'])
+        #pdb.set_trace()
         try:
             pk = int(kwargs['pk'])
             #job_id = 
@@ -643,9 +777,16 @@ class JobHistoryResource(ModelResource):
             perm = Permissions(part_of_groups)
             list_of_company_ids_admin = perm.check_auth_admin()
             list_of_company_ids_tech = perm.check_auth_tech()
-            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))
+            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))[0]
             current_job.job_status = 5
             current_job.priority = True
+            if "help_type" in data.keys():
+                current_job.description_help_need = str(current_job.description_help_need) + "\n \n" + datetime_to_string(datetime.datetime.now()) + "\n" + data['help_type']
+            
+            if "additional_comments" in data.keys():
+                current_job.other = str(current_job.other) + "\n \n" + datetime_to_string(datetime.datetime.now()) + " [call_for_assistance] " + "\n" + data['additional_comments']
+
+            current_job.save()
             bundle.data = {"message":"We have requested additional assistance for you","job_id":pk}
 
         except:
@@ -655,29 +796,36 @@ class JobHistoryResource(ModelResource):
 
 
 
-    @action(allowed=['put'], require_loggedin=False, static=False)
+    @action(allowed=['post'], require_loggedin=False, static=False)
     def job_complete(self, request, **kwargs):
         self.is_authenticated(request)
         #pdb.set_trace()
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['issue','additional_comments'])
         try:
             pk = int(kwargs['pk'])
             #job_id = 
         except:
             pk = kwargs['pk']
-
-        uid = uuid.UUID(hex=pk)
-        
-
-        bundle = self.build_bundle(data={}, request=request)
         
         try:
+            uid = uuid.UUID(hex=pk)
+            bundle = self.build_bundle(data={}, request=request)
             uob = bundle.request.user
             part_of_groups = uob.groups.all()
             perm = Permissions(part_of_groups)
             list_of_company_ids_admin = perm.check_auth_admin()
             list_of_company_ids_tech = perm.check_auth_tech()
-            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))
-            current_job.update(completed = True, job_status = 4, priority = False)
+            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))[0]
+            if "issue" in data.keys():
+                current_job.fault_description = str(current_job.fault_description) + "\n \n" + datetime_to_string(datetime.datetime.now()) + "\n" + data['issue']
+            
+            if "additional_comments" in data.keys():
+                current_job.other = str(current_job.other) + "\n \n" + datetime_to_string(datetime.datetime.now()) + " [job_complete] "+ "\n" + data['additional_comments']
+            current_job.completed = True
+            current_job.job_status = 4
+            current_job.priority = False
+            current_job.save()
             bundle.data = {"message":"job completed", "job_id":pk}
         except:
             pass
