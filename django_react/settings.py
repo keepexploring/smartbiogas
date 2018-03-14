@@ -30,7 +30,7 @@ SECRET_KEY = Config.get("django","secret_key")
 #'frobam8*+@h(p%#8ft+)x=e73d_t(jch3hn%-nf+6f=y5zq=kb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 mimetypes.add_type("text/css", ".css", True)
 

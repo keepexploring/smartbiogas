@@ -20,6 +20,8 @@ from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User, Group, Permission
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.text import slugify
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 import pdb
 
@@ -78,8 +80,9 @@ class Company(models.Model):
 
 
 class UserDetail(models.Model):
-    #uid = models.CharField(db_index=True)
-    user = models.OneToOneField(User,on_delete=models.CASCADE,related_name='usera') # a user
+    #uid = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True,primary_key=True)
+    #id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, null=True, blank=True)
+    user = models.OneToOneField(User,on_delete=models.CASCADE) # a user
     #admin_role_in_companies = models.ManyToManyField(Company, blank=True, related_name="admin_role_in",) # the companies the User has an admin role in
     #technican_role_in_companies = models.ManyToManyField(Company, blank=True,related_name="tech_role_in") # the companies the User has a technican role in
     
@@ -112,7 +115,10 @@ class UserDetail(models.Model):
         return '%s, %s %s' % (self.last_name,self.first_name,self.phone_number)
 
     def save(self, *args, **kwargs):
-        self.add_new_users_to_groups()
+        #pdb.set_trace()
+        #if self.id is None:
+            #self.id = uuid.uuid4()
+        #self.add_new_users_to_groups()
         if not self.datetime_created:
             self.datetime_created = timezone.now()
         self.datetime_modified = timezone.now()
@@ -123,14 +129,11 @@ class UserDetail(models.Model):
         #pdb.set_trace()
         #pdb.set_trace()
         return super(UserDetail,self).save(*args,**kwargs)
+
+
     
-    def add_new_users_to_groups(self): # initially add the users to the technican's group of the company that they are in
-        #pdb.set_trace()
-        companies = self.company.all()
-        for cy in companies:
-            tech_group_name = slugify(cy.company_name)+"__tech__"+str(cy.company_id)
-            _group_, created = Group.objects.get_or_create(name=tech_group_name)
-            _group_.user_set.add(self.user)
+     # initially add the users to the technican's group of the company that they are in
+        
 
 
         #new_group2, created2 = Group.objects.get_or_create(name=admin_group_name)
@@ -152,6 +155,15 @@ class UserDetail(models.Model):
                         ("edit_user", "Edit a user's profile"),
 
         )
+
+@receiver(post_save, sender=UserDetail, dispatch_uid="update_user_groups")
+def add_new_users_to_groups(sender, instance, **kwargs):
+    companies = instance.company.all()
+    for cy in companies:
+        tech_group_name = slugify(cy.company_name)+"__tech__"+str(cy.company_id)
+        _group_, created = Group.objects.get_or_create(name=tech_group_name)
+        _group_.user_set.add(instance.user)
+    
 
 class TechnicianDetail(models.Model):
     BOOL_CHOICES = ((True, 'Active'), (False, 'Inactive'))
