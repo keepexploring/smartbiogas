@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from tastypie.resources import ModelResource, Resource
+from tastypie.resources import ModelResource, Resource , ALL_WITH_RELATIONS
 from tastypie import fields, utils
 from django_dashboard.models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, BiogasPlant, JobHistory, Dashboard, PendingJobs
 from tastypie.authorization import DjangoAuthorization
@@ -99,7 +99,7 @@ class CompanyResource(ModelResource):
         return super(CompanyResource, self).obj_create(bundle, user=bundle.request.user)
 
     def obj_update(self, bundle, **kwargs):
-        pdb.set_trace()
+        #pdb.set_trace()
 
         uob = bundle.request.user
         user_object = UserDetail.objects.filter(user=uob)
@@ -326,6 +326,7 @@ class TechnicianDetailResource(ModelResource): # child
 
 class UserDetailResource(ModelResource): # parent
     technician_details = fields.OneToOneField(TechnicianDetailResource, 'technician_details', related_name="technician_details",null=True, blank=True, full=True)
+    user = fields.OneToOneField( User, 'usera', related_name = 'user', null=True, blank=True, full=True )
     # N.B. the related name is the name in the models that 'appears' in the parent class and is used for reverse looku from the child class
     # useful info http://django-tastypie.readthedocs.io/en/latest/tutorial.html#creating-more-resources - this is not reverse look up but provides the background info
     class Meta:  
@@ -340,7 +341,8 @@ class UserDetailResource(ModelResource): # parent
                     'district':ALL,
                     'ward':ALL,
                     'village':ALL,
-                    'phone_number':ALL
+                    'phone_number':ALL,
+                    'user': ALL,
                     }
         #filtering = {'username':ALL} # can use the filtering options from django
         authorization = DjangoAuthorization()
@@ -523,9 +525,8 @@ class UserDetailResource(ModelResource): # parent
 
 class JobHistoryResource(ModelResource):
     #plant = fields.ToManyField(BiogasPlantResource, 'plant', null=True, blank=True, full=True)
-
-
-
+    fixers = fields.ManyToManyField(UserDetailResource, 'fixerss', related_name="fixerss", null=True, blank=True, full=True)
+    
     class Meta:
         queryset = JobHistory.objects.all()
         resource_name = 'jobs'
@@ -537,8 +538,9 @@ class JobHistoryResource(ModelResource):
                     'verification_of_engagement':ALL,
                     'due_date':ALL,
                     'date_completed':ALL,
-                    'fixers':ALL,
-                    'plant':ALL
+                    'fixers':ALL_WITH_RELATIONS,
+                    'plant':ALL_WITH_RELATIONS,
+                    'user':ALL_WITH_RELATIONS,
                     }
         authorization = DjangoAuthorization()
         authentication = OAuth2ScopedAuthentication(
@@ -1005,6 +1007,8 @@ class DashboardResource(ModelResource):
             get=("read",),
             put=("read","write")
         )
+
+
     
 # 
 

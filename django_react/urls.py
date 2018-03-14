@@ -24,7 +24,8 @@ urlpatterns = [
     # url(r'^', include('django_dashboard.urls')),
     # url(r'^admin/dynamic_raw_id/', include('dynamic_raw_id.urls')),
     # url('^searchableselect/', include('searchableselect.urls')),
-] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT) 
+# + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
 # Catch-All: These urls are handled by the single page BaseApp and react-router

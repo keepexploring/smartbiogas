@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
-from django.contrib.postgres.fields import ArrayField, HStoreField, JSONField
+from django.contrib.postgres.fields import ArrayField, HStoreField
 from django.core.validators import MaxValueValidator, MinValueValidator, EmailValidator
 from geopy.geocoders import Nominatim
 from django.utils import timezone
@@ -79,7 +79,7 @@ class Company(models.Model):
 
 class UserDetail(models.Model):
     #uid = models.CharField(db_index=True)
-    user = models.OneToOneField(User,on_delete=models.CASCADE) # a user
+    user = models.OneToOneField(User,on_delete=models.CASCADE,related_name='usera') # a user
     #admin_role_in_companies = models.ManyToManyField(Company, blank=True, related_name="admin_role_in",) # the companies the User has an admin role in
     #technican_role_in_companies = models.ManyToManyField(Company, blank=True,related_name="tech_role_in") # the companies the User has a technican role in
     
@@ -354,7 +354,7 @@ class BiogasPlant(models.Model):
 # have an array of fault types
 class JobHistory(models.Model):
     plant = models.ForeignKey(BiogasPlant, on_delete=models.CASCADE) # a biogas plan can have many job records
-    fixers = models.ManyToManyField(UserDetail,blank=True) # associating it with someone who can fix it, blank means it is optional  - importan because it will not initially be associated
+    fixers = models.ManyToManyField(UserDetail,blank=True, related_name="fixerss") # associating it with someone who can fix it, blank means it is optional  - importan because it will not initially be associated
     accepted_but_did_not_visit = models.ManyToManyField(UserDetail,blank=True, related_name='acceptednovisit')
     rejected_job = models.ManyToManyField(UserDetail,blank=True, related_name='rejectedjob')
     rejected_jobs = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)

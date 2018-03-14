@@ -14,6 +14,8 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 import ConfigParser
 import configparser
+import mimetypes
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -29,6 +31,8 @@ SECRET_KEY = Config.get("django","secret_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+
+mimetypes.add_type("text/css", ".css", True)
 
 ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1','localhost','api.smartbiogas.org']
 
@@ -70,6 +74,7 @@ INSTALLED_APPS = (
     'datetimepicker',
     'phonenumber_field',
     'autofixture',
+    
     #'django_seed',
 )
 
@@ -84,7 +89,10 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 )
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CORS_ORIGIN_ALLOW_ALL = True # this should be restricted in the future for security
 
@@ -174,9 +182,9 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
 #STATIC_ROOT 
 
-STATICFILES_DIRS = (
-     os.path.join(BASE_DIR, 'assets'),
-)
+#STATICFILES_DIRS = (
+#    os.path.join(BASE_DIR, 'assets'),
+#)
 
 WEBPACK_LOADER = {
     'DEFAULT': {
