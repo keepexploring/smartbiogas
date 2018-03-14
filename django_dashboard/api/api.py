@@ -342,7 +342,7 @@ class UserDetailResource(ModelResource): # parent
                     'ward':ALL,
                     'village':ALL,
                     'phone_number':ALL,
-                    'user': ALL,
+                    'user': ALL_WITH_RELATIONS,
                     }
         #filtering = {'username':ALL} # can use the filtering options from django
         authorization = DjangoAuthorization()
@@ -525,7 +525,7 @@ class UserDetailResource(ModelResource): # parent
 
 class JobHistoryResource(ModelResource):
     #plant = fields.ToManyField(BiogasPlantResource, 'plant', null=True, blank=True, full=True)
-    fixers = fields.ManyToManyField(UserDetailResource, 'fixerss', related_name="fixerss", null=True, blank=True, full=True)
+    #fixers = fields.ManyToManyField(UserDetailResource, 'fixerss', related_name="fixerss", null=True, blank=True, full=True)
     
     class Meta:
         queryset = JobHistory.objects.all()
@@ -540,7 +540,6 @@ class JobHistoryResource(ModelResource):
                     'date_completed':ALL,
                     'fixers':ALL_WITH_RELATIONS,
                     'plant':ALL_WITH_RELATIONS,
-                    'user':ALL_WITH_RELATIONS,
                     }
         authorization = DjangoAuthorization()
         authentication = OAuth2ScopedAuthentication(
@@ -866,6 +865,8 @@ class JobHistoryResource(ModelResource):
 
 
     def dehydrate(self, bundle):
+
+        #pdb.set_trace()
         
         plant_info = bundle.obj.plant.__dict__ # one biogas plant associated with one job
         contact_info = bundle.obj.plant.contact.values()
