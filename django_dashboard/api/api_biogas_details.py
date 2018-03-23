@@ -5,10 +5,12 @@ from django_dashboard.models import Company, UserDetail, TechnicianDetail, Bioga
 from tastypie.authorization import DjangoAuthorization
 from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
-from helpers import Permissions
+from helpers import Permissions, only_keep_fields, if_empty_fill_none
 from django.db.models import Q
 from tastypie.constants import ALL
 from tastypie_actions.actions import actionurls, action
+from django.contrib.gis.geos import Point
+import uuid
 import json
 #from django_dashboard.api.api_biogas_contact import BiogasPlantContactResource
 
@@ -95,6 +97,55 @@ class BiogasPlantResource(ModelResource):
                 bundle.data['biogas_plants'] = data_list
         except:
             pass
+
+        return self.create_response(request, bundle)
+
+    @action(allowed=['post'], require_loggedin=False, static=True)
+    def create_biogas_plant(self, request, **kwargs):
+        
+        self.is_authenticated(request)
+        data = json.loads( request.read() )
+        fields = ["UIC", "biogas_plant_name", "associated_company","contact","funding_source","latitude","longitude","country","village","region","district","ward","what3words","type_biogas","volume_biogas","install_date","other_address_details","current_status","contruction_tech"]
+        data = only_keep_fields(data, fields)
+        data = if_empty_fill_none(data, fields)
+        
+        bundle = self.build_bundle(data={}, request=request)
+        try:
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            biogasplant = BiogasPlant() # if plant_id is a field we need to add it to the plant that has been specified
+            biogasplant.UIC = data['UIC']
+            biogasplant.biogas_plant_name = data['biogas_plant_name']
+            biogasplant.funding_souce = data['funding_source']
+            biogasplant.country = data['country']
+            biogasplant.region = data['region']
+            biogasplant.district = data['district']
+            biogasplant.ward = data['ward']
+            biogasplant.village = data['village']
+            biogasplant.other_address_details = data['other_address_details']
+            biogasplant.type_biogas = data['type_biogas']
+            biogasplant.volume_biogas = data['volume_biogas']
+            biogasplant.location = Point(data['longitude'],data['latitude'])
+            
+            biogasplant.current_status = data['current_status']
+            bb=biogasplant.save()
+            if data["contruction_tech"] == "me":
+                biogasplant.constructing_technicians.add(UserDetail.objects.get(user=uob) )
+            if (data['contact'] is not None): # now link the biogas plant to a contact
+                #pdb.set_trace()
+                uid = uuid.UUID(hex=data['contact'])
+                biogasplant.contact.add(BiogasPlantContact.objects.get( uid = uid) )
+            if (data['associated_company'] is not None):
+                #biogasplant.associated_company = data['associated_company']]
+                pass
+            plant_id = biogasplant.plant_id.hex
+            #create(first_name=data['firstname'],surname=surname,mobile,contact_type=contact_type, mobile=mobile, email=email)
+            bundle.data = {"message":"biogas plant created","uid":plant_id}
+        except:
+            bundle.data = {"message":"error"}
 
         return self.create_response(request, bundle)
     

@@ -98,6 +98,7 @@ class UserDetail(models.Model):
     user_photo = models.ImageField(upload_to = 'UserPhotos',null=True,blank=True)
     #phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
     phone_number = PhoneNumberField(db_index=True, null=True, blank=True)
+    email = models.EmailField(null=True,blank=True)
     country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     #region = models.ManyToManyField('django_dashboard.region')
@@ -125,9 +126,6 @@ class UserDetail(models.Model):
         self.first_name = self.user.first_name
         self.last_name = self.user.last_name
 
-
-        #pdb.set_trace()
-        #pdb.set_trace()
         return super(UserDetail,self).save(*args,**kwargs)
 
 
@@ -240,7 +238,7 @@ class TechnicianDetail(models.Model):
 class BiogasPlantContact(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, editable=False)
     #associated_company = models.ManyToManyField(Company)
-    associated_company = models.ForeignKey(Company, on_delete=models.CASCADE ) # this field will be depreciated in the production version as will be on the biogas plant instead (and will be the company who constructed)
+    associated_company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True ) # this field will be depreciated in the production version as will be on the biogas plant instead (and will be the company who constructed)
     contact_type = EnumField(ContactType, max_length=1)
     first_name = models.CharField(null=True,max_length=200)
     surname = models.CharField(null=True,max_length=200)
@@ -305,7 +303,7 @@ class BiogasPlant(models.Model):
     type_biogas = EnumField(TypeBiogas, max_length=1,null=True)
     supplier = EnumField(SupplierBiogas, max_length=1,null=True,blank=True)
     #size_biogas = models.FloatField(null=True,blank=True) # maybe specify this in m3
-    volume_biogas = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    #volume_biogas = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     volume_biogas = models.CharField(max_length=200,null=True,blank=True)
     location = models.PointField(geography=True, srid=4326,blank=True,db_index=True,null=True)
     #status = models.CharField(null=True,max_length=225,blank=True,choices=STATUS_CHOICES)
@@ -314,7 +312,7 @@ class BiogasPlant(models.Model):
     current_status = EnumField(CurrentStatus, max_length=1,null=True)
     verfied = models.NullBooleanField(db_index=True,blank=True,default=False)
     install_date = models.DateField(null=True,blank=True)
-
+    what3words =  models.CharField(max_length=200,null=True,blank=True)
 
     def __str__(self):
         return '%s, %s, %s, %s' % (str(self.type_biogas), str(self.supplier), str(self.volume_biogas), str(self.plant_id) )

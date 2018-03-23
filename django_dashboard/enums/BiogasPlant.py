@@ -39,6 +39,8 @@ class CurrentStatus(Enum):
     ACTIVE = 1
     FAULT = 2
     UNKNOWN = 3
+    UNDER_CONSTRUCTION = 4
+    COMMISSIONING = 5
     
 #class VolumeBiogas(Enum):
 

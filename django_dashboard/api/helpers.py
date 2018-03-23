@@ -105,6 +105,26 @@ def only_keep_fields(data,fields):
             
     return datakeep
 
+def if_empty_fill_none(data,fields):
+    dataout = {}
+    for ff in fields:
+        try:
+            dataout[ff] = data[ff]
+        except:
+            dataout[ff] = None
+    return dataout
+
+def map_fields(data,fields_to_map):
+    """If you need to change the fields in a dictionary to different keys
+    The fields_to_map needs to be a list of tuples with the fields (before, after) """
+    for jj in fields_to_map:
+        data[jj[1]] = data[jj[0]]
+        try:
+            del data[jj[0]]
+        except:
+            pass
+    return data
+
 
 def remove_fields(bundle,fields):
     for ff in fields:

@@ -99,7 +99,7 @@ class SupplierAutocomplete(autocomplete.Select2ListView):
         return self. suppliers
 
 class VolumeAutocomplete(autocomplete.Select2ListView):
-    volume = ['<3.0m3','3.0m3','4.0m3','5.0m3','6.0m3','7.0m3','8.0m3','9.0m3','10.0m3','11.0m3','12.0m3','>12.0m3']
+    volume = ['<3m3','3m3','4m3','5m3','6m3','7m3','8m3','9m3','10m3','11m3','12m3','>12m3']
     def get_list(self):
         if not self.request.user.is_authenticated():
              return []

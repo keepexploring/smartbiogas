@@ -8,8 +8,9 @@ from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
 from tastypie.constants import ALL
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
 from django.db.models import Q
-from helpers import only_keep_fields
+from helpers import only_keep_fields, if_empty_fill_none, Permissions
 from tastypie_actions.actions import actionurls, action
+import json
 
 import pdb
 
@@ -87,7 +88,40 @@ class BiogasPlantContactResource(ModelResource):
         return super(BiogasPlantContact, self).obj_update(bundle, user=uob)
 
     @action(allowed=['post'], require_loggedin=False, static=True)
-    def create_biogas_owner(self, request, **kwargs):
+    def create_biogas_contact(self, request, **kwargs):
+        #pdb.set_trace()
+        self.is_authenticated(request)
+        data = json.loads( request.read() )
+        fields = ["contact_type", "firstname", "surname","mobile","owner","village","region","district","wards","what3words","UIC"]
+        data = only_keep_fields(data, fields)
+        data = if_empty_fill_none(data, fields)
+        
+        bundle = self.build_bundle(data={}, request=request)
+        try:
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+
+            contact = BiogasPlantContact() # if plant_id is a field we need to add it to the plant that has been specified
+            contact.first_name = data['firstname']
+            contact.surname = data['surname']
+            contact.mobile = data['mobile']
+            contact.contact_type = data['contact_type']
+            bb=contact.save()
+
+            uuid = contact.uid
+
+            #create(first_name=data['firstname'],surname=surname,mobile,contact_type=contact_type, mobile=mobile, email=email)
+            bundle.data = {"message":"contact created","uid":uuid.hex}
+        except:
+             bundle.data = {"message":"error"}
+
+        return self.create_response(request, bundle)
+
+    @action(allowed=['put'], require_loggedin=False, static=False)
+    def create_biogas_plant(self, request, **kwargs):
         self.is_authenticated(request)
         data = json.loads( request.read() )
         data = only_keep_fields(data, ["firstname", "surname","mobile","owner","village","region","district","wards","what3words"])
@@ -99,7 +133,8 @@ class BiogasPlantContactResource(ModelResource):
             perm = Permissions(part_of_groups)
             list_of_company_ids_admin = perm.check_auth_admin()
             list_of_company_ids_tech = perm.check_auth_tech()
-            contact = BiogasPlantContact()
+            contact = BiogasPlantContact.objects.create(first_name,surname,mobile,contact_type)
+
         except:
             pass
 

@@ -19,9 +19,11 @@ import serpy
 from django.db.models import Q
 import uuid
 import json
-from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields
+from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
+from django_postgres_extensions.models.functions import ArrayAppend
+from django.contrib.gis.geos import Point
 import datetime
 import pdb
 
@@ -175,7 +177,6 @@ class TechnicianDetailResource(ModelResource): # child
     def get_profile(self, request, **kwargs):
         self.is_authenticated(request)
 
-        #pdb.set_trace()
         try:
             
             bundle = self.build_bundle(data={}, request=request)
@@ -197,14 +198,15 @@ class TechnicianDetailResource(ModelResource): # child
             detail['number_jobs_active'] = tech_detail.number_jobs_active
             detail['number_of_jobs_completed'] = tech_detail.number_of_jobs_completed
             detail['status'] = tech_detail.status
-            detail['what3words'] = tech_detail.what3words
+            #detail['what3words'] = tech_detail.what3words
             detail['location'] = tech_detail.location
             detail['willing_to_travel'] = tech_detail.willing_to_travel
             detail['languages_spoken'] = tech_detail.languages_spoken
             #detail['company'] = user_detail.company.values() # this can be added later
             detail['first_name'] = user_detail.first_name
             detail['last_name'] = user_detail.last_name
-            detail['phone_number'] = user_detail.phone_number
+            detail['mobile'] = user_detail.phone_number
+            detail["email"] = user_detail.email
 
             bundle.data = detail
 
@@ -212,7 +214,43 @@ class TechnicianDetailResource(ModelResource): # child
             pass
 
         return self.create_response(request, bundle)
-    
+
+    @action(allowed=['put'], require_loggedin=False, static=True)
+    def edit_profile(self, request, **kwargs):
+        self.is_authenticated(request)
+        data = json.loads( request.read() )
+        fields = ["mobile", "email","languages_spoken","latitude","longitude","specialist_skills","willing_to_travel"]
+        data = only_keep_fields(data, fields)
+        ud_fields = ["phone_number","email"]
+        td_fields = ["specialist_skills","willing_to_travel"]
+        data = map_fields( data, [ ("mobile","phone_number") ] )
+
+        try:
+            td = { key:item for key, item in data.iteritems() if key in td_fields}
+            ud = { key:item for key, item in data.iteritems() if key in ud_fields}
+            bundle = self.build_bundle(data={}, request=request)
+             # we specify the type of bundle in order to help us filter the action we take before we return
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            tech_detail = TechnicianDetail.objects.filter(technicians__user = uob)
+            user_detail = UserDetail.objects.filter(user = uob)
+            tech_detail.update(**td)
+            user_detail.update(**ud)
+            tech_detail.update( languages_spoken = ArrayAppend("languages_spoken", data["languages_spoken"]) )
+            if "latitude" in data.keys() and "longitude" in data.keys():
+                tech_detail.location = Point(data['longitude'],data['latitude'])
+                tech_detail.save()
+            
+            bundle.data = {"message":"Profile updated"}
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+
+
     @action(allowed=['get'], require_loggedin=False, static=True)
     def get_status(self, request, **kwargs):
         self.is_authenticated(request)
