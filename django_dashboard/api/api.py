@@ -218,6 +218,7 @@ class TechnicianDetailResource(ModelResource): # child
     @action(allowed=['put'], require_loggedin=False, static=True)
     def edit_profile(self, request, **kwargs):
         self.is_authenticated(request)
+        #pdb.set_trace()
         data = json.loads( request.read() )
         fields = ["mobile", "email","languages_spoken","latitude","longitude","specialist_skills","willing_to_travel"]
         data = only_keep_fields(data, fields)
@@ -690,11 +691,11 @@ class JobHistoryResource(ModelResource):
             list_of_company_ids_admin = perm.check_auth_admin()
             list_of_company_ids_tech = perm.check_auth_tech()
             #pdb.set_trace()
-            current_jobs = JobHistory.objects.filter(fixers__user=uob, completed=False)
+            current_jobs = JobHistory.objects.filter(fixers__user=uob, completed=False).order_by('-date_flagged')
 
-            
             job_list = []
             for job in current_jobs:
+                #pdb.set_trace()
                 job_record = {}
                 job_record["job_id"] = job.pk.hex
                 

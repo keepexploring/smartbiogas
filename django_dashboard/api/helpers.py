@@ -117,9 +117,9 @@ def if_empty_fill_none(data,fields):
 def map_fields(data,fields_to_map):
     """If you need to change the fields in a dictionary to different keys
     The fields_to_map needs to be a list of tuples with the fields (before, after) """
-    for jj in fields_to_map:
-        data[jj[1]] = data[jj[0]]
+    for jj in fields_to_map: 
         try:
+            data[jj[1]] = data[jj[0]]
             del data[jj[0]]
         except:
             pass

@@ -34,9 +34,8 @@ class PendingJobsResource(ModelResource):
 
     @action(allowed=['put'], require_loggedin=False, static=False)
     def accept_job(self, request, **kwargs):
-        
         self.is_authenticated(request)
-
+        #pdb.set_trace()
         try:
             pk = int(kwargs['pk'])
             #job_id = 
