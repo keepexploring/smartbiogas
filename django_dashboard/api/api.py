@@ -729,7 +729,7 @@ class JobHistoryResource(ModelResource):
                 
                 job_list.append(job_record)
             
-            bundle.data = {'data':job_list[0:5]}
+            bundle.data = {'data':job_list}
         except Exception as e:
             #print(e)
             pass
