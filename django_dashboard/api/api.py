@@ -225,7 +225,7 @@ class TechnicianDetailResource(ModelResource): # child
         ud_fields = ["phone_number","email"]
         td_fields = ["specialist_skills","willing_to_travel"]
         data = map_fields( data, [ ("mobile","phone_number") ] )
-
+        
         try:
             td = { key:item for key, item in data.iteritems() if key in td_fields}
             ud = { key:item for key, item in data.iteritems() if key in ud_fields}
@@ -241,9 +241,9 @@ class TechnicianDetailResource(ModelResource): # child
             tech_detail.update(**td)
             user_detail.update(**ud)
             tech_detail.update( languages_spoken = ArrayAppend("languages_spoken", data["languages_spoken"]) )
+            #pdb.set_trace()
             if "latitude" in data.keys() and "longitude" in data.keys():
-                tech_detail.location = Point(data['longitude'],data['latitude'])
-                tech_detail.save()
+                tech_detail.update(location=Point(data['longitude'],data['latitude']) )
             
             bundle.data = {"message":"Profile updated"}
         except:

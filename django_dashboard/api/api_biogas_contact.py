@@ -8,7 +8,7 @@ from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
 from tastypie.constants import ALL
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
 from django.db.models import Q
-from helpers import only_keep_fields, if_empty_fill_none, Permissions
+from helpers import only_keep_fields, if_empty_fill_none, Permissions, map_fields, to_serializable
 from tastypie_actions.actions import actionurls, action
 import json
 
@@ -119,6 +119,68 @@ class BiogasPlantContactResource(ModelResource):
              bundle.data = {"message":"error"}
 
         return self.create_response(request, bundle)
+
+
+    @action(allowed=['post'], require_loggedin=False, static=True)
+    def find_biogas_owner(self, request, **kwargs):
+        self.is_authenticated(request)
+        
+        data = json.loads( request.read() )
+        data = only_keep_fields(data, ["mobile"] )
+
+        try:
+            bundle = self.build_bundle(data={}, request=request)
+            uob = bundle.request.user
+            if uob.is_superuser:
+                part_of_groups = uob.groups.all()
+                perm = Permissions(part_of_groups)
+                list_of_company_ids_admin = perm.check_auth_admin()
+                list_of_company_ids_tech = perm.check_auth_tech()
+                
+                contacts = BiogasPlantContact.objects.filter(mobile=data['mobile'])
+                data_to_return = []
+                for cc in contacts:
+                    biogas_owner = {}
+                    biogas_owner['first_name'] = cc.first_name
+                    biogas_owner['mobile'] = cc.mobile
+                    biogas_owner['first_name'] = cc.first_name
+                    biogas_owner['contact_type'] = cc.contact_type.name
+                    biogas_owner['email'] = cc.email
+                    biogas_plant_queryset = cc.biogas_plant_detail.get_queryset()
+                    biogas_plants_owned_list = []
+                    
+                    for bb in biogas_plant_queryset:
+                        biogas_plant_owned = {}
+                        biogas_plant_owned['UIC'] = to_serializable(bb.UIC)[0]
+                        biogas_plant_owned['biogas_plant_name'] = to_serializable(bb.biogas_plant_name)[0]
+                        biogas_plant_owned['country'] = to_serializable(bb.country)[0]
+                        biogas_plant_owned['region'] = to_serializable(bb.region)[0]
+                        biogas_plant_owned['district'] = to_serializable(bb.district)[0]
+                        biogas_plant_owned['ward'] = to_serializable(bb.ward)[0]
+                        biogas_plant_owned['village'] = to_serializable(bb.village)[0]
+                        biogas_plant_owned['other_address_details'] = to_serializable(bb.other_address_details)[0]
+                        biogas_plant_owned['type_biogas'] = to_serializable(bb.type_biogas)[0]
+                        biogas_plant_owned['supplier'] = to_serializable(bb.supplier)[0]
+                        biogas_plant_owned['volume_biogas'] = to_serializable(bb.volume_biogas)[0]
+                        
+                        biogas_plant_owned['latitude'] = to_serializable(bb.location)[1]
+                        biogas_plant_owned['longitude'] = to_serializable(bb.location)[0]
+                        biogas_plant_owned['sensor_status'] = to_serializable(bb.sensor_status)[0]
+                        biogas_plant_owned['current_status'] = to_serializable(bb.current_status)[0]
+                        biogas_plant_owned['verfied'] = to_serializable(bb.verfied)[0]
+                        biogas_plant_owned['install_date'] = to_serializable(bb.install_date)[0]
+                        biogas_plants_owned_list.append(biogas_plant_owned)
+                    #pdb.set_trace()
+                    biogas_owner['biogas_plants'] = biogas_plants_owned_list
+                    data_to_return.append(biogas_owner)
+                bundle.data['data'] = data_to_return
+            else:
+                bundle.data = {"message":"you are not authorised"}
+        except Exception as e:
+            print(e)
+
+        return self.create_response(request, bundle)
+
 
     @action(allowed=['put'], require_loggedin=False, static=False)
     def create_biogas_plant(self, request, **kwargs):

@@ -2,6 +2,10 @@ import json
 
 from tastypie.exceptions import TastypieError
 from tastypie.http import HttpBadRequest
+import attr
+import datetime
+from enumfields import Enum
+from django.contrib.gis.geos import Point
 import uuid
 
 
@@ -139,8 +143,22 @@ def datetime_to_string(date_obj):
 
 def error_handle_wrapper(func):
     try:
-        pdb.set_trace()
-        x = func()
-        return x
+        return func(*args,**argv)
     except:
         return ""
+
+def to_serializable(val):
+    if isinstance(val, datetime.datetime):
+        return (val.isoformat() + "Z", None)
+    elif isinstance(val, Enum):
+        return (val.name, None)
+    elif isinstance(val, Point):
+        return (val[0],val[1])
+    elif attr.has(val.__class__):
+        return attr.asdict(val)
+    elif isinstance(val, Exception):
+        return {
+            "error": val.__class__.__name__,
+            "args": val.args,
+        }
+    return (str(val),None)
