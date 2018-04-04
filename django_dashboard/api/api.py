@@ -22,7 +22,7 @@ import json
 from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
-from django_postgres_extensions.models.functions import ArrayAppend
+from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
 from django.contrib.gis.geos import Point
 import datetime
 import pdb
@@ -218,7 +218,7 @@ class TechnicianDetailResource(ModelResource): # child
     @action(allowed=['put'], require_loggedin=False, static=True)
     def edit_profile(self, request, **kwargs):
         self.is_authenticated(request)
-        #pdb.set_trace()
+        
         data = json.loads( request.read() )
         fields = ["mobile", "email","languages_spoken","latitude","longitude","specialist_skills","willing_to_travel"]
         data = only_keep_fields(data, fields)
@@ -240,7 +240,11 @@ class TechnicianDetailResource(ModelResource): # child
             user_detail = UserDetail.objects.filter(user = uob)
             tech_detail.update(**td)
             user_detail.update(**ud)
-            tech_detail.update( languages_spoken = ArrayAppend("languages_spoken", data["languages_spoken"]) )
+            #pdb.set_trace()
+            try:
+                tech_detail.update( languages_spoken = data["languages_spoken"] )  # ArrayReplace("languages_spoken", 
+            except:
+                pass
             #pdb.set_trace()
             if "latitude" in data.keys() and "longitude" in data.keys():
                 tech_detail.update(location=Point(data['longitude'],data['latitude']) )
