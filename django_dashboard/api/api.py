@@ -200,6 +200,8 @@ class TechnicianDetailResource(ModelResource): # child
             detail['status'] = tech_detail.status
             #detail['what3words'] = tech_detail.what3words
             detail['location'] = tech_detail.location
+            detail['latitude'] = tech_detail.location.get_y()
+            detail['longitude'] = tech_detail.location.get_x() 
             detail['willing_to_travel'] = tech_detail.willing_to_travel
             detail['languages_spoken'] = tech_detail.languages_spoken
             #detail['company'] = user_detail.company.values() # this can be added later
