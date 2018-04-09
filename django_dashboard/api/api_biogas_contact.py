@@ -95,7 +95,7 @@ class BiogasPlantContactResource(ModelResource):
         fields = ["contact_type", "firstname", "surname","mobile","owner","village","region","district","wards","what3words","UIC"]
         data = only_keep_fields(data, fields)
         data = if_empty_fill_none(data, fields)
-        
+        #pdb.set_trace()
         bundle = self.build_bundle(data={}, request=request)
         try:
             uob = bundle.request.user
@@ -138,6 +138,7 @@ class BiogasPlantContactResource(ModelResource):
                 list_of_company_ids_tech = perm.check_auth_tech()
                 
                 contacts = BiogasPlantContact.objects.filter(mobile=data['mobile'])
+                
                 data_to_return = []
                 for cc in contacts:
                     biogas_owner = {}
@@ -146,9 +147,10 @@ class BiogasPlantContactResource(ModelResource):
                     biogas_owner['first_name'] = cc.first_name
                     biogas_owner['contact_type'] = cc.contact_type.name
                     biogas_owner['email'] = cc.email
+                    biogas_owner['contact'] = to_serializable(cc.uid)[0]
                     biogas_plant_queryset = cc.biogas_plant_detail.get_queryset()
                     biogas_plants_owned_list = []
-                    
+                    #pdb.set_trace()
                     for bb in biogas_plant_queryset:
                         biogas_plant_owned = {}
                         biogas_plant_owned['UIC'] = to_serializable(bb.UIC)[0]
@@ -162,7 +164,6 @@ class BiogasPlantContactResource(ModelResource):
                         biogas_plant_owned['type_biogas'] = to_serializable(bb.type_biogas)[0]
                         biogas_plant_owned['supplier'] = to_serializable(bb.supplier)[0]
                         biogas_plant_owned['volume_biogas'] = to_serializable(bb.volume_biogas)[0]
-                        
                         biogas_plant_owned['latitude'] = to_serializable(bb.location)[1]
                         biogas_plant_owned['longitude'] = to_serializable(bb.location)[0]
                         biogas_plant_owned['sensor_status'] = to_serializable(bb.sensor_status)[0]

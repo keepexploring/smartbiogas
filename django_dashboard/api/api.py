@@ -428,30 +428,34 @@ class UserDetailResource(ModelResource): # parent
             
             #bundle = self.build_bundle(obj=techs, request=request)
             #bundle = self.alter_detail_data_to_serialize(request, bundle)
-            pdb.set_trace()
+            #pdb.set_trace()
             ##now serialize:
             data_list = []
             for ii in techs:
                 #pdb.set_trace()
-                data = {'company':ii.company.name,
-                        'first_name':ii.first_name,
-                        'last_name':ii.last_name,
-                        'country':ii.country,
-                        'village':ii.village,
-                        'region':ii.region,
-                        'uri':'/api/v1/users/' + str(ii.id) + '/',
-                        'longitude': ii.technician_details.location.get_x(),
-                        'latitude': ii.technician_details.location.get_y(),
-                        'acredited_to_fix':ii.technician_details.acredited_to_fix,
-                        'specialist_skills':ii.technician_details.specialist_skills,
-                        'number_jobs_active':ii.technician_details.number_jobs_active,
-                        'number_of_jobs_completed':ii.technician_details.number_of_jobs_completed,
-                        'status':ii.technician_details.status,
-                        'willing_to_travel':ii.technician_details.willing_to_travel,
-                        'languages_spoken':ii.technician_details.languages_spoken,
-                        'uid':ii.technician_details.technician_id,
-                        }
-                data_list.append(data)
+                try:
+                    data = {'company':ii.company.name,
+                            'first_name':ii.first_name,
+                            'last_name':ii.last_name,
+                            'country':ii.country,
+                            'village':ii.village,
+                            'region':ii.region,
+                            'mobile':ii.phone_number.as_international,
+                            'uri':'/api/v1/users/' + str(ii.id) + '/',
+                            'longitude': ii.technician_details.location.get_x(),
+                            'latitude': ii.technician_details.location.get_y(),
+                            'acredited_to_fix':ii.technician_details.acredited_to_fix,
+                            'specialist_skills':ii.technician_details.specialist_skills,
+                            'number_jobs_active':ii.technician_details.number_jobs_active,
+                            'number_of_jobs_completed':ii.technician_details.number_of_jobs_completed,
+                            'status':ii.technician_details.status,
+                            'willing_to_travel':ii.technician_details.willing_to_travel,
+                            'languages_spoken':ii.technician_details.languages_spoken,
+                            'uid':ii.technician_details.technician_id,
+                            }
+                    data_list.append(data)
+                except:
+                    pass
             bundle.data['technicians'] = data_list
 
             #bundle = self.build_bundle(data=bundle.data, request=request)

@@ -148,17 +148,20 @@ def error_handle_wrapper(func):
         return ""
 
 def to_serializable(val):
-    if isinstance(val, datetime.datetime):
-        return (val.isoformat() + "Z", None)
-    elif isinstance(val, Enum):
-        return (val.name, None)
-    elif isinstance(val, Point):
-        return (val[0],val[1])
-    elif attr.has(val.__class__):
-        return attr.asdict(val)
-    elif isinstance(val, Exception):
-        return {
-            "error": val.__class__.__name__,
-            "args": val.args,
-        }
-    return (str(val),None)
+    try:
+        if isinstance(val, datetime.datetime):
+            return (val.isoformat() + "Z", None)
+        elif isinstance(val, Enum):
+            return (val.name, None)
+        elif isinstance(val, Point):
+            return (val[0],val[1])
+        elif attr.has(val.__class__):
+            return (attr.asdict(val),0)
+        elif isinstance(val, Exception):
+            return {
+                "error": val.__class__.__name__,
+                "args": val.args,
+            }
+        return (str(val),None)
+    except:
+        return (None,None)
