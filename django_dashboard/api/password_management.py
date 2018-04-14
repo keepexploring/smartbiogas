@@ -102,7 +102,7 @@ class PasswordManagementResource(ModelResource):
             pm.user = uob
             pm.save()
             bundle.data = {"message":"If your number exists in the system you will soon receive a message"}
-            send_mail('Smart Biogas Password Reset', 'Here is your reset code: '+ str(hid), 'hello@smartbiogas.net', ['chiara@creativenergie.co.uk','joel@creativenergie.co.uk'], fail_silently=False, )   
+            send_mail('Smart Biogas Password Reset', 'Here is your reset code: '+ str(hid), 'hello@smartbiogas.net', ['joel@creativenergie.co.uk'], fail_silently=False, )   
         return self.create_response(request, bundle)
         
         
