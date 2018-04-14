@@ -638,3 +638,10 @@ class PendingJobs(models.Model):
         #else:
         verbose_name = "Pending Job"
         verbose_name_plural = "Pending Jobs"
+
+class PasswordManagement(models.Model):
+    reset_code =  models.CharField(editable=False, blank=True,null=True,max_length=200)
+    expiry_datetime = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
+    user = models.ForeignKey(User, blank =True, null=True, on_delete=models.CASCADE)
+
+

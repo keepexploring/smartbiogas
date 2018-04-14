@@ -262,7 +262,6 @@ class TechnicianDetailResource(ModelResource): # child
     def get_status(self, request, **kwargs):
         self.is_authenticated(request)
 
-
         #pdb.set_trace()
         try:
             bundle = self.build_bundle(data={}, request=request)

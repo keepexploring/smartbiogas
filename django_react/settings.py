@@ -257,3 +257,9 @@ HUEY = {
         'health_check_interval': 1,  # Check worker health every second.
     },
 }
+
+EMAIL_HOST = Config.get("email", "host")
+EMAIL_PORT = Config.get("email", "port")
+EMAIL_HOST_USER = Config.get("email", "user")
+EMAIL_HOST_PASSWORD = Config.get("email", "password")
+EMAIL_USE_TLS = True
