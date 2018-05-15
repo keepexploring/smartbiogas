@@ -7,6 +7,7 @@ import datetime
 from enumfields import Enum
 from django.contrib.gis.geos import Point
 import uuid
+import serpy
 
 
 class CustomBadRequest(TastypieError):
@@ -165,3 +166,16 @@ def to_serializable(val):
         return (str(val),None)
     except:
         return (None,None)
+
+
+class AddressSerializer(serpy.Serializer):
+    """The serializer schema definition."""
+    # Use a Field subclass like IntField if you need more validation.
+    id = serpy.IntField()
+    country = serpy.Field()
+    continent = serpy.Field()
+    region = serpy.Field()
+    district = serpy.Field()
+    ward = serpy.Field()
+    village = serpy.Field()
+    population = serpy.Field()

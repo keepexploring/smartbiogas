@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from tastypie.resources import ModelResource
 from tastypie import fields, utils
-from django_dashboard.models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, BiogasPlant, JobHistory, Dashboard
+from django_dashboard.models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, BiogasPlant, JobHistory, Dashboard, AddressData
 from tastypie.authorization import DjangoAuthorization
 from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
@@ -10,6 +10,9 @@ from django.db.models import Q
 from tastypie.constants import ALL
 from tastypie_actions.actions import actionurls, action
 from django.contrib.gis.geos import Point
+from django.core import serializers
+from helpers import AddressSerializer
+import serpy
 import uuid
 import json
 #from django_dashboard.api.api_biogas_contact import BiogasPlantContactResource
@@ -52,6 +55,18 @@ class BiogasPlantResource(ModelResource):
 
     def prepend_urls(self):
         return actionurls(self)
+
+
+    @action(allowed=['get'], require_loggedin=False,static=True)
+    def get_wards_villages(self, request, **kwargs):
+        self.is_authenticated(request)
+        #pdb.set_trace()
+        bundle = self.build_bundle(data={}, request=request)
+        address_data = AddressData.objects.all()
+        addresses= AddressSerializer(address_data, many=True).data
+        bundle.data = { 'data':addresses }
+
+        return self.create_response(request, bundle)
 
 
     @action(allowed=['post'], require_loggedin=False,static=True)
@@ -100,14 +115,16 @@ class BiogasPlantResource(ModelResource):
 
         return self.create_response(request, bundle)
 
+
     @action(allowed=['post'], require_loggedin=False, static=True)
     def create_biogas_plant(self, request, **kwargs):
         
         self.is_authenticated(request)
         data = json.loads( request.read() )
-        fields = ["UIC", "biogas_plant_name", "associated_company","contact","funding_source","latitude","longitude","country","village","region","district","ward","what3words","type_biogas","volume_biogas","install_date","other_address_details","current_status","contruction_tech"]
+        fields = ["UIC", "biogas_plant_name", "associated_company","contact","funding_source","latitude","longitude","country","village","region","district","ward","what3words","type_biogas","volume_biogas","install_date","other_address_details","current_status","contruction_tech","location_estimated"]
         data = only_keep_fields(data, fields)
         data = if_empty_fill_none(data, fields)
+        fields = data.keys()
         
         bundle = self.build_bundle(data={}, request=request)
         try:
@@ -117,20 +134,35 @@ class BiogasPlantResource(ModelResource):
             list_of_company_ids_admin = perm.check_auth_admin()
             list_of_company_ids_tech = perm.check_auth_tech()
             biogasplant = BiogasPlant() # if plant_id is a field we need to add it to the plant that has been specified
-            biogasplant.UIC = data['UIC']
-            biogasplant.biogas_plant_name = data['biogas_plant_name']
-            biogasplant.funding_souce = data['funding_source']
-            biogasplant.country = data['country']
-            biogasplant.region = data['region']
-            biogasplant.district = data['district']
-            biogasplant.ward = data['ward']
-            biogasplant.village = data['village']
-            biogasplant.other_address_details = data['other_address_details']
-            biogasplant.type_biogas = data['type_biogas']
-            biogasplant.volume_biogas = data['volume_biogas']
-            biogasplant.location = Point(data['longitude'],data['latitude'])
-            
-            biogasplant.current_status = data['current_status']
+            field_relations = {'UIC': biogasplant.UIC, 'biogas_plant_name':biogasplant.biogas_plant_name, 'funding_souce':biogasplant.funding_souce,
+                'country':biogasplant.country, 'region':biogasplant.region, 'district':biogasplant.district,
+                'ward':biogasplant.ward, 'village':biogasplant.village, 'other_address_details':biogasplant.other_address_details,
+                'type_biogas':biogasplant.type_biogas,'volume_biogas':biogasplant.volume_biogas, 'location':biogasplant.location, 
+                'location_estimated':biogasplant.location_estimated, 'current_status':biogasplant.current_status }
+            #pdb.set_trace()
+            #biogasplant.UIC = data['UIC']
+            #biogasplant.biogas_plant_name = data['biogas_plant_name']
+            #biogasplant.funding_souce = data['funding_source']
+            #biogasplant.country = data['country']
+            #biogasplant.region = data['region']
+            #biogasplant.district = data['district']
+            #biogasplant.ward = data['ward']
+            #biogasplant.village = data['village']
+            #biogasplant.other_address_details = data['other_address_details']
+            #biogasplant.type_biogas = data['type_biogas']
+            #biogasplant.volume_biogas = data['volume_biogas']
+            #biogasplant.location = Point(data['longitude'],data['latitude'])
+            #biogasplant.location_estimated = data["location_estimated"]
+            #biogasplant.current_status = data['current_status']
+            for fld in fields:
+                try:
+                    if fld == 'location':
+                        field_relations[fld] = Point(data['longitude'],data['latitude'])
+                    else:
+                        field_relations[fld] = data[fld]
+                except:
+                    pass
+
             bb=biogasplant.save()
             if data["contruction_tech"] == "me":
                 biogasplant.constructing_technicians.add(UserDetail.objects.get(user=uob) )

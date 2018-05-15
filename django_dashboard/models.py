@@ -305,6 +305,7 @@ class BiogasPlant(models.Model):
     #size_biogas = models.FloatField(null=True,blank=True) # maybe specify this in m3
     #volume_biogas = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     volume_biogas = models.CharField(max_length=200,null=True,blank=True)
+    location_estimated = models.NullBooleanField(default=False,blank=True)
     location = models.PointField(geography=True, srid=4326,blank=True,db_index=True,null=True)
     #status = models.CharField(null=True,max_length=225,blank=True,choices=STATUS_CHOICES)
     QP_status = EnumField(QPStatus, max_length=1,null=True)

@@ -19,7 +19,7 @@ import serpy
 from django.db.models import Q
 import uuid
 import json
-from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields
+from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
@@ -469,6 +469,11 @@ class UserDetailResource(ModelResource): # parent
         
         return self.create_response(request, bundle)
 
+
+    @action(allowed=['post'], require_loggedin=False,static=True)
+    def remove_technician_from_database(self, request, **kwargs):
+        pass
+
     
 
     def dehydrate(self, bundle):
@@ -674,11 +679,43 @@ class JobHistoryResource(ModelResource):
             perm = Permissions(part_of_groups)
             list_of_company_ids_admin = perm.check_auth_admin()
             list_of_company_ids_tech = perm.check_auth_tech()
-
+            pdb.set_trace()
             if uob.is_superuser:
-                abandoned_jobs = JobHistory.objects.exclude(rejected_job=None)
-                serialized_jobs = json.loads( serializers.serialize('json', abandoned_jobs) )
-                bundle.data = {'data':serialized_jobs}
+                #abandoned_jobs = JobHistory.objects.exclude(rejected_job=None).filter(Q(fixers=None))
+                abandoned_jobs = JobHistory.objects.filter(Q(fixers=None)) # for now we include all jobs that do not have fixers
+                #serialized_jobs = json.loads( serializers.serialize('json', abandoned_jobs) )
+                jobs_to_send = []
+                #pdb.set_trace()
+                for ab in abandoned_jobs:
+                    serialized_jobs = {}
+                    serialized_jobs["job_id"] = ab.job_id.hex
+                    serialized_jobs["fault_description"] = ab.fault_description
+                    serialized_jobs["description_help_need"] = ab.description_help_need
+                    serialized_jobs["dispute_raised"] = ab.dispute_raised
+                    serialized_jobs["fault_class"] = ab.fault_class
+                    serialized_jobs["plant"] = ab.plant
+                    serialized_jobs["reason_abandoning_job"] = ab.reason_abandoning_job
+                    serialized_jobs["assistance"] = ab.assistance
+                    serialized_jobs["date_flagged"] = ab.date_flagged
+                    serialized_jobs["location"] = to_serializable(ab.plant.location)
+                    serialized_jobs["ward"] = ab.plant.ward
+                    serialized_jobs["village"] = ab.plant.village
+                    serialized_jobs["country"] = ab.plant.country
+                    serialized_jobs["region"] = ab.plant.region
+                    serialized_jobs["district"] = ab.plant.district
+                    serialized_jobs["other_address_details"] = ab.plant.other_address_details
+                    contacts = []
+                    for cc in ab.plant.contact.all():
+                        contact = {}
+                        contact["first_name"] = cc.first_name
+                        contact["surname"] = cc.surname
+                        contact["mobile"] = cc.mobile
+                        contact["contact_type"] = cc.contact_type
+                        contacts.append(contact)
+                    serialized_jobs["contacts"] = contacts
+                    jobs_to_send.append(serialized_jobs)
+
+                bundle.data = {'data':jobs_to_send}
             else:
                 bundle.data = {}
 
@@ -687,9 +724,55 @@ class JobHistoryResource(ModelResource):
 
         return self.create_response(request, bundle)
 
+    @action(allowed=['post'], require_loggedin=False,static=False)
+    def reassign_abandoned_job(self, request, **kwargs):
+        self.is_authenticated(request)
+        #pdb.set_trace()
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['technician'])
+        
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+
+        bundle = self.build_bundle(data={}, request=request)
+
+        try:
+            uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            if uob.is_superuser:
+                job_to_reassign = JobHistory.objects.filter(job_id=uid)[0]
+                fixer_id = int(data['technician'].split("/")[-2])
+                user_to_reassign_to = UserDetail.objects.get(user__id=fixer_id) # the user id of the fixer is used to look up the user object
+                job_to_reassign.fixers.add(user_to_reassign_to)
+                bundle.data = { "message":"Job Reassigned" }
+            else:
+                 bundle.data = { "error":"Permission Denied" }
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+
+
+
+    @action(allowed=['post'], require_loggedin=False,static=True)
+    def register_new_ward_village(self, request, **kwargs):
+        pass
+
+    @action(allowed=['put'], require_loggedin=False,static=False)
+    def remove_technician_from_job(self, request, **kwargs):
+        pass
+
+
     @action(allowed=['get'], require_loggedin=False,static=True)
     def get_active_jobs(self, request, **kwargs):
         self.is_authenticated(request)
+        #pdb.set_trace()
         bundle = self.build_bundle(data={}, request=request)
 
         try:

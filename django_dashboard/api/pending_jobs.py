@@ -12,7 +12,7 @@ from helpers import keep_fields
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
 from django_dashboard.api.api import TechnicianDetailResource, UserDetailResource
 from tastypie_actions.actions import actionurls, action
-from helpers import remove_fields
+from helpers import remove_fields, to_serializable
 from django.core import serializers
 import uuid
 import json
@@ -166,7 +166,6 @@ class PendingJobsResource(ModelResource):
     @action(allowed=['get'], require_loggedin=False,static=True)
     def get_all_pending_jobs(self, request, **kwargs):
         self.is_authenticated(request)
-       
         bundle = self.build_bundle(data={}, request=request)
         try:
             #bundle = self.build_bundle(data={}, request=request) # we specify the type of bundle in order to help us filter the action we take before we return
@@ -187,8 +186,10 @@ class PendingJobsResource(ModelResource):
                 job['district'] = pending_jobs[nn].biogas_plant.district
                 job['ward'] = pending_jobs[nn].biogas_plant.ward
                 job['volume'] = pending_jobs[nn].biogas_plant.volume_biogas
-                job['longitude'] = pending_jobs[nn].biogas_plant.location.get_x()
-                job['latitude'] = pending_jobs[nn].biogas_plant.location.get_y()
+                job['location'] = to_serializable(pending_jobs[nn].biogas_plant.location)
+                if (job['location'][0] != 'None' and job['location'][0] != None): # we can remove this, but is useful to have explictly
+                    job['longitude'] = pending_jobs[nn].biogas_plant.location.get_x()
+                    job['latitude'] = pending_jobs[nn].biogas_plant.location.get_y()
                 job['QP_status'] = pending_jobs[nn].biogas_plant.QP_status
                 job['sensor_status'] = pending_jobs[nn].biogas_plant.sensor_status
                 job["current_status"] = pending_jobs[nn].biogas_plant.current_status
@@ -201,7 +202,9 @@ class PendingJobsResource(ModelResource):
                 job['date_created'] = ii['fields']['datetime_created']
                 all_jobs.append(job)
             bundle.data['jobs'] = all_jobs
-        except:
+        except Exception as error:
+            print(error)
+            pdb.set_trace()
             pass
 
         return self.create_response(request, bundle)
