@@ -6,14 +6,14 @@ from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
-from django.contrib.postgres.fields import ArrayField, HStoreField
+from django.contrib.postgres.fields import ArrayField, HStoreField, JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator, EmailValidator
 from geopy.geocoders import Nominatim
 from django.utils import timezone
 import uuid
 from random import randint # for testing data streams
 from enumfields import EnumField
-from django_dashboard.enums import ContactType, UserRole, JobStatus, QPStatus, CurrentStatus, TypeBiogas, SupplierBiogas, SensorStatus,FundingSourceEnum
+from django_dashboard.enums import ContactType, UserRole, JobStatus, QPStatus, CurrentStatus, TypeBiogas, SupplierBiogas, SensorStatus,FundingSourceEnum, CardTypes, EntityTypes, AlertTypes
 from django_dashboard.utilities import find_coordinates
 from multiselectfield import MultiSelectField
 from django.contrib.sessions.models import Session
@@ -87,6 +87,13 @@ class UserDetail(models.Model):
     #technican_role_in_companies = models.ManyToManyField(Company, blank=True,related_name="tech_role_in") # the companies the User has a technican role in
     
     company = models.ManyToManyField(Company)
+    logged_in_as = models.OneToOneField( # the user will need to choose (prob in a settings tab of some sort, who they are logged in as)
+        Company,
+        on_delete=models.CASCADE,
+        related_name="logged_in_as",
+        blank=True,
+        null=True
+    )
     #models.ManyTo.ManyField(Company)
     # maybe add choices here:
     
@@ -646,3 +653,197 @@ class PasswordManagement(models.Model):
     user = models.ForeignKey(User, blank =True, null=True, on_delete=models.CASCADE)
 
 
+
+class CardTemplate(models.Model):
+    id = models.AutoField(primary_key=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True ) # a company might not have access to all the available templates
+    template_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
+    name = models.CharField(db_index=True,null=True,blank=True,max_length=200) # This is an internal name for reference
+    title = models.CharField(null=True,blank=True,max_length=200)
+    description = models.CharField(db_index=True,null=True,blank=True,max_length=400)
+    card_type = EnumField(CardTypes, max_length=1,null=True)
+    entity_type = EnumField(EntityTypes, max_length=1,null=True)
+    image = models.ImageField(upload_to = 'WidgetCards',null=True,blank=True)
+    created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
+    updated = models.DateTimeField(null=True,blank=True,editable=False)
+    
+    def save(self, *args, **kwargs):
+        
+        self.updated = timezone.now()
+        if not self.created:
+            self.created = timezone.now()
+       
+        return super(CardTemplate,self).save(*args,**kwargs)
+
+class Card(models.Model):
+    id = models.AutoField(primary_key=True)
+    card_template = models.ForeignKey(CardTemplate, on_delete=models.CASCADE, blank=True, null=True, related_name="cards" )
+    value = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    template_id = models.CharField(db_index=True,null=False,blank=True,max_length=200)
+    created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
+    updated = models.DateTimeField(null=True,blank=True,editable=False)
+
+    def save(self, *args, **kwargs):
+        
+        self.updated = timezone.now()
+        if not self.created:
+            self.created = timezone.now()
+       
+
+        return super(Card,self).save(*args,**kwargs)
+
+class CardOrder(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.OneToOneField(UserDetail,on_delete=models.CASCADE) # we link the order of the dashboard card to a given user
+    card_order = ArrayField( models.CharField(max_length=200), blank = True ) # an array of the template_id's that should be shown
+
+    
+
+class PendingAction(models.Model):
+    id = models.AutoField(primary_key=True)
+    card = models.ForeignKey(Card, on_delete=models.CASCADE, blank=True, null=True, related_name="pending_actions" )
+    is_complete = models.BooleanField(db_index=True,default=False)
+    entity_type = EnumField(EntityTypes, max_length=1,null=True)
+    message = models.TextField(null=True,blank=True)
+    alert_type = EnumField(AlertTypes, max_length=1,null=True)
+    created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
+    updated = models.DateTimeField(null=True,blank=True,editable=False)
+
+    def save(self, *args, **kwargs):
+       
+        self.updated = timezone.now()
+        if not self.created:
+            self.created = timezone.now()
+       
+
+        return super(PendingAction,self).save(*args,**kwargs)
+
+###########################################################################
+# Indicator tables
+class UtilisationStatus(models.Model):
+    id = models.AutoField(primary_key=True)
+    utilisation_status = models.IntegerField(editable=False, db_index=True,null=True,blank=True)
+    utilisation_status_info = JSONField()
+    created = models.DateTimeField(null=True,blank=True,editable=False)
+    def clean(self):
+        utilisation_status_validator = {
+                            'underutilised_24h': {'type': 'int'},
+                            'use_in_last_24hours': {'type': 'float'},
+                            'underutilised_72hours' : {'type': 'int'},
+                            'use_in_last_72hours': {'type': 'float'},
+                            'underutilised_7days' : {'type': 'int'},
+                            'use_in_last_7days': {'type': 'float'},
+                            'underutilised_30days' : {'type': 'int'},
+                            'use_in_last_30days': {'type': 'float'},
+                                        }
+
+class LowGasPressure(models.Model):
+    id = models.AutoField(primary_key=True)
+    low_gas_pressure_status = models.IntegerField(editable=False, db_index=True,null=True,blank=True, help_text="If 0 gas pressure is low 10 means all is ok, in between is defined by internal logic")
+    low_gas_pressure_info = JSONField()
+    created = models.DateTimeField(null=True,blank=True,editable=False) # update this automatically
+
+    def clean(self):
+        low_gas_pressure_info_validator = {
+                        'mean_pressure_value24hRolling': {'type': 'float'},
+                        'mean_pressure_value7dRolling': {'type': 'float'},
+                        'mean_pressure_value30dRolling': {'type': 'float'}
+        }
+                        
+class TrendChangeDetectionPDecrease(models.Model):
+    id = models.AutoField(primary_key=True)
+    trend_change_detection_pdecrease = models.IntegerField(editable=False, db_index=True,null=True,blank=True)
+    trend_change_detection_pdecrease_info = JSONField()
+    created = models.DateTimeField(null=True,blank=True,editable=False)
+    def clean(self):
+        trend_change_detection_pdecrease_validator = {
+                            'percentage_decrease_7days': {'type': 'float'}
+                                                    }
+
+class TrendChangeDetectionPIncrease(models.Model):
+    id = models.AutoField(primary_key=True)
+    trend_change_detection_pincrease = models.IntegerField(editable=False, db_index=True,null=True,blank=True)
+    trend_change_detection_pincrease_info = JSONField()
+    created = models.DateTimeField(null=True,blank=True,editable=False)
+    def clean(self):
+        trend_change_detection_pincrease_validator = {
+                            'percentage_increase_7days': {'type': 'float'}
+                                                    }
+
+class BiogasSensorStatus(models.Model):
+    id = models.AutoField(primary_key=True)
+    sensor_status = models.IntegerField(editable=False, db_index=True,null=True,blank=True)
+    sensor_status_info = JSONField()
+    created = models.DateTimeField(null=True,blank=True,editable=False)
+
+    def clean(self):
+        sensor_status_validator = {
+                            'sensor_notworking_correctly_for_seconds': {'type': 'int'}
+                                  }
+
+class AutoFault(models.Model):
+    id = models.AutoField(primary_key=True)
+    auto_fault_detection = models.IntegerField(editable=False, db_index=True,null=True,blank=True)
+    auto_fault_detection_info = JSONField()
+    created = models.DateTimeField(null=True,blank=True,editable=False)
+
+    def clean(self):
+        auto_fault_detection_validator = {
+                            'fault' :  {'type': 'string'}
+                                         }
+
+class DataConnection(models.Model):
+    id = models.AutoField(primary_key=True)
+    data_connection_with_plant = models.IntegerField(editable=False, db_index=True,null=True,blank=True)
+    data_connection_with_plant_info = JSONField()
+    created = models.DateTimeField(null=True,blank=True,editable=False)
+
+    def clean(self):
+        auto_fault_detection_validator = {
+                    'last_data_received' :  {'type': 'int'}
+                                         }
+
+class IndictorJoinTable(models.Model):
+    id = models.AutoField(primary_key=True)
+    plant = models.OneToOneField(BiogasPlant,on_delete=models.CASCADE)
+    utilisation_status = models.ForeignKey(UtilisationStatus, on_delete=models.CASCADE, blank=True, null=True )
+    low_gas_pressure = models.ForeignKey(LowGasPressure, on_delete=models.CASCADE, blank=True, null=True )
+    trendChangeDetectionPDecrease = models.ForeignKey(TrendChangeDetectionPDecrease, on_delete=models.CASCADE, blank=True, null=True )
+    trendchangedetectionPIncrease = models.ForeignKey(TrendChangeDetectionPIncrease, on_delete=models.CASCADE, blank=True, null=True )
+    sensor_status = models.ForeignKey(BiogasSensorStatus, on_delete=models.CASCADE, blank=True, null=True )
+    auto_fault = models.ForeignKey(AutoFault, on_delete=models.CASCADE, blank=True, null=True )
+    data_connection = models.ForeignKey(DataConnection, on_delete=models.CASCADE, blank=True, null=True )
+
+
+
+    
+                                          
+        
+        
+
+        
+                                    
+# class LeaderBoard(models.Model):
+#     """Use this to create a sense of competition between users
+#        This is associated with a biogas plant. Therefore we can search all
+#        biogas plants associated with a given company or a give type etc"""
+#     biogas_plant
+#     hours_used_in_last_week
+#     hours_used_in_last_day
+
+    
+    
+
+
+    # def save(self, *args, **kwargs):
+      
+    #     self.updated = timezone.now()
+    #     if not self.datetime_created:
+    #         self.created = timezone.now()
+       
+
+    #     return super(Indictors,self).save(*args,**kwargs)
+
+class Thresholds(models.Model):
+    """Here we include the limits set by the user as to when a threshold is reached """
+    pass
