@@ -73,7 +73,6 @@ class ValidateToken(Resource):
             raise NotFound("Object not found") 
 
     def dehydrate(self, bundle):
-        pdb.set_trace()
         token = bundle.request.META["HTTP_TOKEN"]
         try:
             tok = OAuth2ScopedAuthentication().verify_access_token(token,bundle.request)
@@ -82,9 +81,9 @@ class ValidateToken(Resource):
             time_now = datetime.datetime.utcnow()
             time_now = time_now.replace(tzinfo=pytz.utc)
             time_remaining = expires - time_now
-            bundle.data ={"active":True,"expires":time_remaining.seconds}
+            bundle.data["response"] = {"active":True,"expires":time_remaining.seconds}
         except:
-            response ={"active":False}
+            response ={ "objects":[{"active":False}]}
             raise ImmediateHttpResponse(response=HttpResponse(json.dumps(response), status=401, content_type="application/json"))
 
 
