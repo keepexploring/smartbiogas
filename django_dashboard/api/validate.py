@@ -7,7 +7,9 @@ from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
 from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
-
+from django.http import HttpResponse
+from tastypie.exceptions import ImmediateHttpResponse
+import json
 from tastypie.constants import ALL
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
 from tastypie.bundle import Bundle
@@ -71,14 +73,21 @@ class ValidateToken(Resource):
             raise NotFound("Object not found") 
 
     def dehydrate(self, bundle):
+        pdb.set_trace()
         token = bundle.request.META["HTTP_TOKEN"]
-        tok = OAuth2ScopedAuthentication().verify_access_token(token,bundle.request)
-        valid = tok.is_valid()
-        expires = tok.expires
-        time_now = datetime.datetime.utcnow()
-        time_now = time_now.replace(tzinfo=pytz.utc)
-        time_remaining = expires - time_now
-        bundle.data ={"active":True,"expires":time_remaining.seconds}
+        try:
+            tok = OAuth2ScopedAuthentication().verify_access_token(token,bundle.request)
+            valid = tok.is_valid()
+            expires = tok.expires
+            time_now = datetime.datetime.utcnow()
+            time_now = time_now.replace(tzinfo=pytz.utc)
+            time_remaining = expires - time_now
+            bundle.data ={"active":True,"expires":time_remaining.seconds}
+        except:
+            response ={"active":False}
+            raise ImmediateHttpResponse(response=HttpResponse(json.dumps(response), status=401, content_type="application/json"))
+
+
         return bundle
 
     

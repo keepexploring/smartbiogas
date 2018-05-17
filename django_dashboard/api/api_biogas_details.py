@@ -180,6 +180,42 @@ class BiogasPlantResource(ModelResource):
             bundle.data = {"message":"error"}
 
         return self.create_response(request, bundle)
+
+    @action(allowed=['put'], require_loggedin=False, static=False)
+    def edit_biogas_plant(self, request, **kwargs):
+        self.is_authenticated(request)
+        #pdb.set_trace()
+        bundle = self.build_bundle(data={}, request=request)
+
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['biogas_plant_name','contact','funding_souce','funding_source_notes','country','region','district','ward','village','other_address_details','type_biogas','supplier','volume_biogas','location_estimated','QP_status','sensor_status','current_status','verfied','what3words'])
+        
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+
+        
+        try:
+            #uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            
+            if uob.is_superuser:
+                plant_to_edit = BiogasPlant.objects.get(id=pk)
+
+                for itm in data: # for simple text based changes this is very easy - no additional clauses needed
+                    setattr(plant_to_edit, itm, data[itm])
+                plant_to_edit.save()
+                bundle.data = { "message":"Biogas Plant Updated" }
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+    
     
 
     def dehydrate(self, bundle):

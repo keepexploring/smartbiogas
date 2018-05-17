@@ -4,7 +4,9 @@ from __future__ import unicode_literals
 from django.contrib import admin
 from django.db import models
 
-from .models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, TechnicianDetail, BiogasPlant, JobHistory, Dashboard, PendingJobs
+from .models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, TechnicianDetail, BiogasPlant, JobHistory, Dashboard, PendingJobs, \
+    CardTemplate, Card, CardOrder, PendingAction, UtilisationStatus, LowGasPressure, TrendChangeDetectionPDecrease, TrendChangeDetectionPIncrease, \
+    BiogasSensorStatus, AutoFault, DataConnection, IndictorJoinTable
 
 from django.contrib.admin import widgets
 from dynamic_raw_id.admin import DynamicRawIDMixin
@@ -146,6 +148,68 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ('first_name','surname','mobile','email','biogas_owner')
     search_fields = ('first_name','surname','mobile','email','biogas_owner')
 
+class CardAdmin(admin.TabularInline):
+    model = Card
+    list_display = ('card_template','value','template_id','created','updated')
+    list_filter = ('card_template','value','template_id','created','updated')
+    search_fields = ('card_template','value','template_id','created','updated')
+
+class CardTemplateAdmin(admin.ModelAdmin):
+    model = CardTemplate
+    inlines = [CardAdmin,]
+    list_display = ('id','company','name','title','description','card_type','entity_type','image','created','updated')
+    list_filter = ('id','company','name','title','description','card_type','entity_type','image','created','updated')
+    search_fields = ('id','company','name','title','description','card_type','entity_type','image','created','updated')
+
+class UtilisationStatusAdmin(admin.TabularInline):
+    model = UtilisationStatus
+    list_display = ('utilisation_status','utilisation_status_info','created')
+    list_filter = ('utilisation_status','utilisation_status_info','created')
+    search_fields = ('utilisation_status','utilisation_status_info','created')
+
+class LowGasPressureAdmin(admin.TabularInline):
+    model = LowGasPressure
+    list_display = ('low_gas_pressure_status','low_gas_pressure_info','created')
+    list_filter = ('low_gas_pressure_status','low_gas_pressure_info','created')
+    search_fields = ('low_gas_pressure_status','low_gas_pressure_info','created')
+
+class TrendChangeDetectionPDecreaseAdmin(admin.TabularInline):
+    model = TrendChangeDetectionPDecrease
+    list_display = ('trend_change_detection_pdecrease','trend_change_detection_pdecrease_info','created')
+    list_filter = ('trend_change_detection_pdecrease','trend_change_detection_pdecrease_info','created')
+    search_fields = ('trend_change_detection_pdecrease','trend_change_detection_pdecrease_info','created')
+
+class TrendChangeDetectionPIncreaseAdmin(admin.TabularInline):
+    model = TrendChangeDetectionPIncrease
+    list_display = ('trend_change_detection_pincrease','trend_change_detection_pincrease_info','created')
+    list_filter = ('trend_change_detection_pincrease','trend_change_detection_pincrease_info','created')
+    search_fields = ('trend_change_detection_pincrease','trend_change_detection_pincrease_info','created')
+
+class BiogasSensorStatusAdmin(admin.TabularInline):
+    model = BiogasSensorStatus
+    list_display = ('sensor_status','sensor_status_info','created')
+    list_filter = ('sensor_status','sensor_status_info','created')
+    search_fields = ('sensor_status','sensor_status_info','created')
+
+class AutoFaultAdmin(admin.TabularInline):
+    model = AutoFault
+    list_display = ('auto_fault_detection','auto_fault_detection_info','created')
+    list_filter = ('auto_fault_detection','auto_fault_detection_info','created')
+    search_fields = ('auto_fault_detection','auto_fault_detection_info','created')
+
+class DataConnectionAdmin(admin.TabularInline):
+    model = DataConnection
+    list_display = ('data_connection_with_plant','data_connection_with_plant_info','created')
+    list_filter = ('data_connection_with_plant','data_connection_with_plant_info','created')
+    search_fields = ('data_connection_with_plant','data_connection_with_plant_info','created')
+
+class IndicatorAdmin(admin.ModelAdmin):
+    model = IndictorJoinTable
+    inlines = [ UtilisationStatusAdmin, LowGasPressureAdmin, TrendChangeDetectionPDecreaseAdmin, TrendChangeDetectionPIncreaseAdmin, \
+        BiogasSensorStatusAdmin, AutoFaultAdmin, DataConnectionAdmin, DataConnectionAdmin ]
+    list_display = ('plant',)
+    list_filter = ('plant',)
+    search_fields = ('plant',)
 
 #admin.ModelAdmin.ordering = ()
 #admin_site = MyAdminSite()
@@ -158,5 +222,8 @@ admin.site.register(PendingJobs, PendingJobsAdmin)
 #admin.site.register(TechnicianDetail, TechnicianDetailAdmin)
 admin.site.register(BiogasPlant, BiogasPlantsAdmin)
 admin.site.register(BiogasPlantContact, BiogasPlantContactAdmin)
+#admin.site.register(CardTemplate, CardTemplateAdmin)
+admin.site.register(CardTemplate, CardTemplateAdmin)
+admin.site.register(IndictorJoinTable, IndicatorAdmin)
 #admin.site.register(Users, UserAdmin)
 

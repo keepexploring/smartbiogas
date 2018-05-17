@@ -5,6 +5,7 @@ from api.api import CompanyResource, UserDetailResource, TechnicianDetailResourc
 from api.api_biogas_contact import BiogasPlantContactResource
 from api.api_biogas_details import BiogasPlantResource
 from api.pending_jobs import PendingJobsResource
+from api.data import DataResource
 from api.validate import ValidateToken
 from api.password_management import PasswordManagementResource
 from django_dashboard.views import RegionAutocomplete, CountryAutocomplete, ContinentAutocomplete, DistrictAutocomplete, WardAutocomplete, VillageAutocomplete, SupplierAutocomplete, VolumeAutocomplete 
@@ -20,6 +21,7 @@ v1_api.register(DashboardResource())
 v1_api.register(PendingJobsResource())
 v1_api.register(ValidateToken())
 v1_api.register(PasswordManagementResource())
+v1_api.register(DataResource())
 
 urlpatterns = [
               # url(r'home/$', views.index_main.as_view(), name='home'),
@@ -36,5 +38,6 @@ urlpatterns = [
                url(r'^continent-autocomplete/$', ContinentAutocomplete.as_view(), name='continent-autocomplete'),
                url(r'^supplier-autocomplete/$', SupplierAutocomplete.as_view(), name='supplier-autocomplete'),
                url(r'^volume-autocomplete/$', VolumeAutocomplete.as_view(), name='volume-autocomplete'),
-      
+               
+
 ]

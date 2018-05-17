@@ -25,6 +25,7 @@ from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
 from django.contrib.gis.geos import Point
 import datetime
+from django.utils import timezone
 import pdb
 
 # monkey patch the Resource init method to remove a particularly cpu hungry deepcopy
@@ -252,6 +253,62 @@ class TechnicianDetailResource(ModelResource): # child
                 tech_detail.update(location=Point(data['longitude'],data['latitude']) )
             
             bundle.data = {"message":"Profile updated"}
+        except:
+            pass
+
+        return self.create_response(request, bundle)
+    
+
+    @action(allowed=['put'], require_loggedin=False, static=False) ## This is introduced here to avoid making a breaking change with the app - this function is for admin users to allow them to edit any plant in their company
+    def edit_technician(self, request, **kwargs):
+        self.is_authenticated(request)
+        
+        bundle = self.build_bundle(data={}, request=request)
+
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details','acredit_to_install','acredited_to_fix','specialist_skills','what3words','languages_spoken','longitude','latitude'])
+        
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+
+        
+        try:
+            #uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            
+            multiselect_fields = {"plumber":('PLUMBER', 'plumber'),"mason":('MASON', 'mason'),"manager":('MANAGER', 'manager'),"design":('DESIGN', 'design'),'calculations':('CALCULATIONS', 'calculations'),'tubular':('TUBULAR', "tubular"),'fixed_dome':('FIXED_DOME', "fixed_dome")}
+            if uob.is_superuser:
+                tech_to_edit = UserDetail.objects.get(id=pk)
+                tech_to_edit_additional_details = tech_to_edit.technician_details
+                
+                for itm in data: # for simple text based changes this is very easy - no additional clauses needed
+                    if itm == 'languages_spoken':
+                        try:
+                            tech_to_edit_additional_details.update(languages_spoken = data["languages_spoken"] )  # ArrayReplace("languages_spoken", 
+                        except:
+                            pass
+                    elif itm == "latitude":
+                        try:
+                            tech_to_edit_additional_details.technician_details.update(location=Point(data['longitude'],data['latitude']) )
+                        except:
+                            pass
+                    elif itm in ['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details']:
+                        setattr(tech_to_edit, itm, data[itm])
+                    elif itm == 'what3words':
+                        setattr(tech_to_edit_additional_details, itm, data[itm])
+                    elif itm in ['acredit_to_install','acredited_to_fix','specialist_skills']:
+                        pdb.set_trace()
+                        choices_to_save = tuple([multiselect_fields[ii] for ii in data[itm]])
+                        setattr(tech_to_edit_additional_details, itm, choices_to_save)
+
+                tech_to_edit.save()
+                bundle.data = { "message":"Tech Updated" }
         except:
             pass
 
@@ -767,6 +824,42 @@ class JobHistoryResource(ModelResource):
     @action(allowed=['put'], require_loggedin=False,static=False)
     def remove_technician_from_job(self, request, **kwargs):
         pass
+
+    @action(allowed=['put'], require_loggedin=False,static=False)
+    def edit_job(self, request, **kwargs):
+        self.is_authenticated(request)
+        
+        bundle = self.build_bundle(data={}, request=request)
+
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['due_date','completed','dispute_raised','fault_description','other','priority','fault_class'])
+        
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+
+        if 'due_date' in data.keys():
+            data['due_date'] = timezone.make_aware(datetime.datetime.utcfromtimestamp(data['due_date']), timezone = timezone.utc)
+        
+        try:
+            uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech()
+            
+            if uob.is_superuser:
+                job_to_edit = JobHistory.objects.filter(job_id=uid)[0]
+                
+                for itm in data: # for simple text based changes this is very easy - no additional clauses needed
+                    setattr(job_to_edit, itm, data[itm])
+                job_to_edit.save()
+        except:
+            pass
+
+        return self.create_response(request, bundle)
 
 
     @action(allowed=['get'], require_loggedin=False,static=True)
