@@ -47,3 +47,12 @@ class DataResource(ModelResource):
 
     def prepend_urls(self):
         return actionurls(self)
+
+
+    def dehydrate(self, bundle):
+
+        return bundle
+
+    
+    def get_template_cards(self, request, **kwargs):
+        pass

@@ -19,6 +19,8 @@ import datetime
 import pytz
 import uuid
 import traceback
+from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields
+from tastypie_actions.actions import actionurls, action
 import pdb
 
 class Active(object):
@@ -72,6 +74,9 @@ class ValidateToken(Resource):
         except KeyError:
             raise NotFound("Object not found") 
 
+    def prepend_urls(self):
+        return actionurls(self)
+
     def dehydrate(self, bundle):
         token = bundle.request.META["HTTP_TOKEN"]
         try:
@@ -90,6 +95,28 @@ class ValidateToken(Resource):
         return bundle
 
     
+    @action(allowed=['post'], require_loggedin=False, static=True)
+    def validate_code(self, request, **kwargs):
+        #pdb.set_trace()
+        data = json.loads( request.read() )
+        data = only_keep_fields(data, ['token'])
+
+        bundle = self.build_bundle(data={}, request=request)
+
+        try:
+            token = data['token']
+            tok = OAuth2ScopedAuthentication().verify_access_token(token,bundle.request)
+            valid = tok.is_valid()
+            expires = tok.expires
+            time_now = datetime.datetime.utcnow()
+            time_now = time_now.replace(tzinfo=pytz.utc)
+            time_remaining = expires - time_now
+            bundle.data = {"active":True,"expires":time_remaining.seconds}
+        except:
+            response = { "active":False }
+            raise ImmediateHttpResponse(response=HttpResponse(json.dumps(response), status=401, content_type="application/json"))
+        
+        return self.create_response(request, bundle)
     # def obj_create(self, bundle, request = None, **kwargs):
     #     # create a new row
     #     #bundle.obj = Row()

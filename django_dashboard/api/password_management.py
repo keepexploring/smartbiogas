@@ -126,7 +126,7 @@ class PasswordManagementResource(ModelResource):
             user = code[0].user
             user_name = user.username
             password_hash = user.password
-            payload = {'username':user_name, 'hash':password_hash,'expire_at': (time.time() + expire_in) }
+            payload = {'username':user_name, 'hash':password_hash,'expire_at': (time.time() + expire_in)}
             encoded_jwt = jwt.encode(payload, salt, algorithm='HS256')
             aes = pyaes.AESModeOfOperationCTR(encrypt_key)
             cipher_jwt = aes.encrypt(encoded_jwt)
