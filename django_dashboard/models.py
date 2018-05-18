@@ -82,7 +82,7 @@ class Company(models.Model):
 class UserDetail(models.Model):
     #uid = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True,primary_key=True)
     #id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, null=True, blank=True)
-    user = models.OneToOneField(User,on_delete=models.CASCADE) # a user
+    user = models.OneToOneField(User,on_delete=models.CASCADE,related_name='userdetail') # a user
     #admin_role_in_companies = models.ManyToManyField(Company, blank=True, related_name="admin_role_in",) # the companies the User has an admin role in
     #technican_role_in_companies = models.ManyToManyField(Company, blank=True,related_name="tech_role_in") # the companies the User has a technican role in
     
@@ -290,7 +290,7 @@ class BiogasPlant(models.Model):
     
     UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200) # Unique Identiifer Code (their is one of these on all biogas plants)
     biogas_plant_name = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    
+    thingboard_ref = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     associated_company = models.ManyToManyField(Company, blank=True, related_name='biogas_plant_company') 
     contact = models.ManyToManyField(BiogasPlantContact, related_name='biogas_plant_detail') # a biogas plant can have one or many users and a user can have one or many biogas plants
     constructing_technicians = models.ManyToManyField(UserDetail,blank=True, related_name = 'constructing_technicians')
@@ -678,7 +678,9 @@ class CardTemplate(models.Model):
 class Card(models.Model):
     id = models.AutoField(primary_key=True)
     card_template = models.ForeignKey(CardTemplate, on_delete=models.CASCADE, blank=True, null=True, related_name="cards" )
+    user = models.ForeignKey(UserDetail, on_delete=models.CASCADE, blank=True, null=True, related_name="card_user" )
     value = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    position = models.IntegerField( blank=True,null=True,default=0 )
     created = models.DateTimeField(editable=True, db_index=True,null=True,blank=True)
     updated = models.DateTimeField(null=True,blank=True,editable=False)
 
@@ -690,12 +692,6 @@ class Card(models.Model):
        
 
         return super(Card,self).save(*args,**kwargs)
-
-class CardOrder(models.Model):
-    id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(UserDetail,on_delete=models.CASCADE) # we link the order of the dashboard card to a given user
-    card_order = ArrayField( models.CharField(max_length=200), blank = True ) # an array of the template_id's that should be shown
-
     
 
 class PendingAction(models.Model):

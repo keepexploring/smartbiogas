@@ -2,6 +2,8 @@ import json
 
 from tastypie.exceptions import TastypieError
 from tastypie.http import HttpBadRequest
+from django.http import HttpResponse
+from tastypie.exceptions import ImmediateHttpResponse
 import attr
 import datetime
 from enumfields import Enum
@@ -167,6 +169,8 @@ def to_serializable(val):
     except:
         return (None,None)
 
+def raise_custom_error(dict_response,status_code):
+    raise ImmediateHttpResponse(response=HttpResponse(json.dumps(dict_response), status=status_code, content_type="application/json"))
 
 class AddressSerializer(serpy.Serializer):
     """The serializer schema definition."""
@@ -179,3 +183,33 @@ class AddressSerializer(serpy.Serializer):
     ward = serpy.Field()
     village = serpy.Field()
     population = serpy.Field()
+
+class CardTemplateSerializer(serpy.Serializer):
+    id = serpy.IntField()
+    name = serpy.Field()
+    title = serpy.Field()
+    description = serpy.Field()
+    card_type = serpy.Field()
+    entity_type = serpy.Field()
+    image = serpy.Field()
+
+class NestedUser(serpy.Serializer):
+    id = serpy.IntField()
+
+class NestedUserDetail(serpy.Serializer):
+    first_name = serpy.Field()
+    last_name = serpy.Field()
+    user = NestedUser()
+
+class NestedTemplate(serpy.Serializer):
+    id = serpy.IntField()
+    name = serpy.Field()
+
+class CardSerializer(serpy.Serializer):
+    id = serpy.IntField()
+    card_template = NestedTemplate()
+    user = NestedUserDetail()
+    value = serpy.Field()
+    position = serpy.Field()
+    created = serpy.Field()
+    updated = serpy.Field()

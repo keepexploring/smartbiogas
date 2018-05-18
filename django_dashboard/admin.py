@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.db import models
 
 from .models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, TechnicianDetail, BiogasPlant, JobHistory, Dashboard, PendingJobs, \
-    CardTemplate, Card, CardOrder, PendingAction, UtilisationStatus, LowGasPressure, TrendChangeDetectionPDecrease, TrendChangeDetectionPIncrease, \
+    CardTemplate, Card, PendingAction, UtilisationStatus, LowGasPressure, TrendChangeDetectionPDecrease, TrendChangeDetectionPIncrease, \
     BiogasSensorStatus, AutoFault, DataConnection, IndictorJoinTable
 
 from django.contrib.admin import widgets
@@ -150,9 +150,9 @@ class UserAdmin(admin.ModelAdmin):
 
 class CardAdmin(admin.TabularInline):
     model = Card
-    list_display = ('card_template','value','template_id','created','updated')
-    list_filter = ('card_template','value','template_id','created','updated')
-    search_fields = ('card_template','value','template_id','created','updated')
+    list_display = ('card_template','user','value','position','template_id','created','updated')
+    list_filter = ('card_template','user','value','position','template_id','created','updated')
+    search_fields = ('card_template','user','value','position','template_id','created','updated')
 
 class CardTemplateAdmin(admin.ModelAdmin):
     model = CardTemplate
