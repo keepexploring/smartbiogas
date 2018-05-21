@@ -18,6 +18,7 @@ class AlertTypes(Enum):
     DISPUTE = 5 # a customer has made a dispute, this needs to be dealt with
     LONGOUTSTANDING = 6 # there are some jobs which have been outstanding for far too long and need admin intervention
     POORFEEDBACK = 7 # a technician has received poor feedback - you might want to deal with this
-    OTHER = 8 # another action which we have not got a catagory for
+    NEEDTECHICIAN = 8
+    OTHER = 9 # another action which we have not got a catagory for
 
 

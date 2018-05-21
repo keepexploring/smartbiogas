@@ -211,6 +211,13 @@ class IndicatorAdmin(admin.ModelAdmin):
     list_filter = ('plant',)
     search_fields = ('plant',)
 
+class PendingActionsAdmin(admin.ModelAdmin):
+    model = PendingAction
+    list_display = ('id','card', 'is_complete', 'entity_type', 'message', 'alert_type','created','updated')
+    list_filter = ('id','card', 'is_complete', 'entity_type', 'message', 'alert_type','created','updated')
+    search_filter = ('id','card', 'is_complete', 'entity_type', 'message', 'alert_type','created','updated')
+
+
 #admin.ModelAdmin.ordering = ()
 #admin_site = MyAdminSite()
 admin.site.site_header = 'SmartBiogas Admin'
@@ -225,5 +232,6 @@ admin.site.register(BiogasPlantContact, BiogasPlantContactAdmin)
 #admin.site.register(CardTemplate, CardTemplateAdmin)
 admin.site.register(CardTemplate, CardTemplateAdmin)
 admin.site.register(IndictorJoinTable, IndicatorAdmin)
+admin.site.register(PendingAction, PendingActionsAdmin)
 #admin.site.register(Users, UserAdmin)
 

@@ -667,6 +667,9 @@ class CardTemplate(models.Model):
     created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
     updated = models.DateTimeField(null=True,blank=True,editable=False)
     
+    def __str__(self):
+        return '%s' % (self.name)
+
     def save(self, *args, **kwargs):
         
         self.updated = timezone.now()
@@ -684,6 +687,10 @@ class Card(models.Model):
     created = models.DateTimeField(editable=True, db_index=True,null=True,blank=True)
     updated = models.DateTimeField(null=True,blank=True,editable=False)
 
+
+    def __str__(self):
+        return '%s, %s, %s' % (self.id, self.card_template, self.user)
+
     def save(self, *args, **kwargs):
         
         self.updated = timezone.now()
@@ -692,6 +699,15 @@ class Card(models.Model):
        
 
         return super(Card,self).save(*args,**kwargs)
+
+
+
+    class Meta: # we can overide these in the search in the views
+       # if (self.priority is False):
+          # get_latest_by = ["due_date"] # newest first
+        #else:
+        verbose_name = "Card"
+        verbose_name_plural = "Cards"
     
 
 class PendingAction(models.Model):

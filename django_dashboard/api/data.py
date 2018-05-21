@@ -20,12 +20,13 @@ import serpy
 from django.db.models import Q
 import uuid
 import json
-from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, CardTemplateSerializer, CardSerializer, raise_custom_error
+from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, CardTemplateSerializer, CardSerializerNoPending, CardSerializerPending, raise_custom_error
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
 from django.contrib.gis.geos import Point
 import datetime
+import time
 import pdb
 
 
@@ -71,7 +72,8 @@ class DataResource(ModelResource):
             #card_templates = CardTemplate.objects.filter(company__in = part_of_companies)
             # for now we just show all card tempates as there are not many and we want to display something for development purposes
             card_templates = CardTemplate.objects.all()
-            card_templated_serialized = CardTemplateSerializer(card_templates, many=True).data
+            card_templated_serialized = CardSerializerNoPending(card_templates, many=True).data
+            
             bundle.data = { "data":card_templated_serialized }
         except:
             raise_custom_error({"error":"Cards not available at the moment"}, 500)
@@ -92,6 +94,7 @@ class DataResource(ModelResource):
     def get_cards(self, request, **kwargs):
         self.is_authenticated(request)
         bundle = self.build_bundle(data={}, request=request)
+        #pdb.set_trace()
         try:
             uob = bundle.request.user
             part_of_companies = UserDetail.objects.get(user=uob).company.all()
@@ -105,9 +108,13 @@ class DataResource(ModelResource):
             # use the commented out option below to filter by companies they are part of in the future - or better even filter by the comany they are logged in as
             #card_templates = CardTemplate.objects.filter(company__in = part_of_companies)
             # for now we just show all card tempates as there are not many and we want to display something for development purposes
-            cards = Card.objects.filter(user=uob.userdetail)
-            cards_serialized = CardSerializer(cards, many=True).data
-            bundle.data = { "data": cards_serialized }
+            
+            cards_with_pending_actions = Card.objects.filter(user=uob.userdetail).filter(pending_actions__isnull=False).filter(pending_actions__is_complete=False).all()
+            cards_with_no_pending_actions = Card.objects.filter(user=uob.userdetail).filter(pending_actions__isnull=True)
+            cards_no_pending_serialized = CardSerializerNoPending(cards_with_no_pending_actions, many=True).data
+            cards_pending_serialized = CardSerializerPending(cards_with_pending_actions, many=True).data
+            serialized = cards_pending_serialized + cards_no_pending_serialized
+            bundle.data = { "data": serialized }
         except:
             raise_custom_error({"error":"Cards not available at the moment"}, 500)
 

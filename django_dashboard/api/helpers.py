@@ -10,6 +10,7 @@ from enumfields import Enum
 from django.contrib.gis.geos import Point
 import uuid
 import serpy
+import pdb
 
 
 class CustomBadRequest(TastypieError):
@@ -205,11 +206,36 @@ class NestedTemplate(serpy.Serializer):
     id = serpy.IntField()
     name = serpy.Field()
 
-class CardSerializer(serpy.Serializer):
+class NestedPendingAction(serpy.Serializer):
     id = serpy.IntField()
-    card_template = NestedTemplate()
+    is_complete = serpy.Field()
+    entity_type = serpy.Field()
+    message = serpy.Field()
+    alert_type = serpy.Field()
+    created = serpy.Field()
+    updated = serpy.Field()
+
+class CardSerializerNoPending(serpy.Serializer):
+    id = serpy.IntField()
     user = NestedUserDetail()
     value = serpy.Field()
     position = serpy.Field()
     created = serpy.Field()
     updated = serpy.Field()
+
+class CardSerializerPending(serpy.Serializer):
+    id = serpy.IntField()
+    card_template = NestedTemplate()
+    user = NestedUserDetail()
+    value = serpy.Field()
+    pending_actions = serpy.MethodField()
+    position = serpy.Field()
+    created = serpy.Field()
+    updated = serpy.Field()
+
+    def get_pending_actions(self, obj):
+        return [{"is_complete":jj.is_complete, "message":jj.message , "alert_type":jj.alert_type.name ,"created":jj.created.strftime("%Y-%m-%dT%H:%M:%S") ,"updated":jj.updated.strftime("%Y-%m-%dT%H:%M:%S")} for jj in obj.pending_actions.all()]
+        #pending_actions = NestedPendingAction()
+
+
+    
