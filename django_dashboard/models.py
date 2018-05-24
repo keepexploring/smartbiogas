@@ -532,6 +532,12 @@ class JobHistory(models.Model):
 #     average_repair_time_major_faults
 #     datetime
 
+class UICtoDeviceID(models.Model):
+    UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    device_id = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    biogas_plant = models.OneToOneField(BiogasPlant,on_delete=models.CASCADE,related_name='userdetail')
+
+
 class Dashboard(models.Model):
     #company = models.OneToOneField(Company,on_delete=models.CASCADE, primary_key=True)
     #id = models.BigIntegerField(primary_key = True,default=1)
