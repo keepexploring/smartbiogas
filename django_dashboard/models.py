@@ -288,7 +288,7 @@ class BiogasPlant(models.Model):
     )
     plant_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
     
-    UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200) # Unique Identiifer Code (their is one of these on all biogas plants)
+    UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200) # Unique Identiifer Code (their is one of these on all biogas plants) - this field how becomes redundant as we now use a separate table for this. It will be removed in the next release.
     biogas_plant_name = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     thingboard_ref = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     associated_company = models.ManyToManyField(Company, blank=True, related_name='biogas_plant_company') 
@@ -533,9 +533,10 @@ class JobHistory(models.Model):
 #     datetime
 
 class UICtoDeviceID(models.Model):
+    """This table connects the sensors UIC with"""
     UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     device_id = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    biogas_plant = models.OneToOneField(BiogasPlant,on_delete=models.CASCADE,related_name='userdetail')
+    biogas_plant = models.OneToOneField(BiogasPlant,on_delete=models.CASCADE,related_name='UIC_to_Device_id')
 
 
 class Dashboard(models.Model):
@@ -744,9 +745,9 @@ class IndictorJoinTable(models.Model):
 
 class UtilisationStatus(models.Model):
     id = models.AutoField(primary_key=True)
-    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True )
-    utilisation_status = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
-    utilisation_status_info = JSONField()
+    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True, related_name='untilisation'  )
+    status = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
+    info = JSONField()
     created = models.DateTimeField(null=True,blank=True,editable=True)
     def clean(self):
         utilisation_status_validator = {
@@ -762,9 +763,9 @@ class UtilisationStatus(models.Model):
 
 class LowGasPressure(models.Model):
     id = models.AutoField(primary_key=True)
-    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True )
-    low_gas_pressure_status = models.IntegerField(editable=True, db_index=True,null=True,blank=True, help_text="If 0 gas pressure is low 10 means all is ok, in between is defined by internal logic")
-    low_gas_pressure_info = JSONField()
+    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True, related_name='low_gas_pressure')
+    status = models.IntegerField(editable=True, db_index=True,null=True,blank=True, help_text="If 0 gas pressure is low 10 means all is ok, in between is defined by internal logic")
+    info = JSONField()
     created = models.DateTimeField(null=True,blank=True,editable=False) # update this automatically
 
     def clean(self):
@@ -776,9 +777,9 @@ class LowGasPressure(models.Model):
                         
 class TrendChangeDetectionPDecrease(models.Model):
     id = models.AutoField(primary_key=True)
-    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True )
-    trend_change_detection_pdecrease = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
-    trend_change_detection_pdecrease_info = JSONField()
+    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True, related_name='trend_detection_p_decrease')
+    status = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
+    info = JSONField()
     created = models.DateTimeField(null=True,blank=True,editable=False)
     def clean(self):
         trend_change_detection_pdecrease_validator = {
@@ -787,9 +788,9 @@ class TrendChangeDetectionPDecrease(models.Model):
 
 class TrendChangeDetectionPIncrease(models.Model):
     id = models.AutoField(primary_key=True)
-    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True )
-    trend_change_detection_pincrease = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
-    trend_change_detection_pincrease_info = JSONField()
+    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True, related_name= 'trend_detection_p_increase' )
+    status = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
+    info = JSONField()
     created = models.DateTimeField(null=True,blank=True,editable=False)
     def clean(self):
         trend_change_detection_pincrease_validator = {
@@ -798,9 +799,9 @@ class TrendChangeDetectionPIncrease(models.Model):
 
 class BiogasSensorStatus(models.Model):
     id = models.AutoField(primary_key=True)
-    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True )
-    sensor_status = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
-    sensor_status_info = JSONField()
+    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True, related_name= 'biogas_sensor_status')
+    status = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
+    info = JSONField()
     created = models.DateTimeField(null=True,blank=True,editable=False)
 
     def clean(self):
@@ -810,9 +811,9 @@ class BiogasSensorStatus(models.Model):
 
 class AutoFault(models.Model):
     id = models.AutoField(primary_key=True)
-    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True )
-    auto_fault_detection = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
-    auto_fault_detection_info = JSONField()
+    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True, related_name='auto_fault' )
+    status = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
+    info = JSONField()
     created = models.DateTimeField(null=True,blank=True,editable=False)
 
     def clean(self):
@@ -822,9 +823,9 @@ class AutoFault(models.Model):
 
 class DataConnection(models.Model):
     id = models.AutoField(primary_key=True)
-    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True )
-    data_connection_with_plant = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
-    data_connection_with_plant_info = JSONField()
+    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True, related_name='data_connection' )
+    status = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
+    info = JSONField()
     created = models.DateTimeField(null=True,blank=True,editable=False)
 
     def clean(self):

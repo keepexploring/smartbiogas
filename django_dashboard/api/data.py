@@ -190,9 +190,41 @@ class DataResource(ModelResource):
 
         return self.create_response(request, bundle)
 
+    @action(allowed=['post'], require_loggedin=False,static=True)
     def get_latest_indictors(self, request, **kwargs): # for a particular biogas plant
+        """Returns the lastest indictors for a given biogas plant"""
         self.is_authenticated(request)
+        bundle = self.build_bundle(data={}, request=request)
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['plant_id'])
+        pdb.set_trace()
+        try:
+            uob = bundle.request.user
+            part_of_companies = UserDetail.objects.get(user=uob).company.all()
+            #indicators = IndictorJoinTable.objects.filter( plant__id = data['plant_id'] )
+            indicators = IndictorJoinTable.objects.all() # initially as we don't have this part working yet
+            indicator = indicators.first()
+            indicator_objects = {
+                "utlisation": indicator.untilisation.all().first(),
+                "low_pressure": indicator.low_gas_pressure.all().first(),
+                "trend_change_detection_pdecrease": indicator.trend_detection_p_decrease.all().first(),
+                "trend_change_detection_pincrease": indicator.trend_detection_p_increase.all().first(),
+                "biogas_sensor_status": indicator.biogas_sensor_status.all().first(),
+                "autofault": indicator.auto_fault.all().first(),
+                "data_connection": indicator.data_connection.all().first()
+            }
+            indictor_dict = {}
+            for i_key in indicator_objects.keys():
+                try:
+                    indictor_dict[i_key] = { "status":indicator_objects[i_key].status , "info":indicator_objects[i_key].info, "created":indicator_objects[i_key].created.strftime("%Y-%m-%dT%H:%M:%S") }
+                except:
+                    pass
+            bundle.data = { "data":indictor_dict , "plant_id": data["plant_id"] }
+                   
+        except:
+            raise_custom_error({"error":"Your request has not succeeded. Sorry not to be more helpful. Goodbye."}, 500)
 
+        return self.create_response(request, bundle)
 #login_body= {'username': 'smartbiogas', 'password': 'fGCEp9ZqEW5tsmYsRAGQiLD267Ae'}
 #login_url = 'http://localhost:8000/token_generation'
 #login_headers = {'Content-Type': 'application/json'}
