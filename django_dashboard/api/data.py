@@ -194,10 +194,10 @@ class DataResource(ModelResource):
     def get_latest_indictors(self, request, **kwargs): # for a particular biogas plant
         """Returns the lastest indictors for a given biogas plant"""
         self.is_authenticated(request)
+        
         bundle = self.build_bundle(data={}, request=request)
         data = json.loads( request.read() )
         data = only_keep_fields(data,['plant_id'])
-        pdb.set_trace()
         try:
             uob = bundle.request.user
             part_of_companies = UserDetail.objects.get(user=uob).company.all()
@@ -205,8 +205,8 @@ class DataResource(ModelResource):
             indicators = IndictorJoinTable.objects.all() # initially as we don't have this part working yet
             indicator = indicators.first()
             indicator_objects = {
-                "utlisation": indicator.untilisation.all().first(),
-                "low_pressure": indicator.low_gas_pressure.all().first(),
+                "utilisation": indicator.utilisation.all().first(),
+                "low_gas_pressure": indicator.low_gas_pressure.all().first(),
                 "trend_change_detection_pdecrease": indicator.trend_detection_p_decrease.all().first(),
                 "trend_change_detection_pincrease": indicator.trend_detection_p_increase.all().first(),
                 "biogas_sensor_status": indicator.biogas_sensor_status.all().first(),

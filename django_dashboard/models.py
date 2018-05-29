@@ -745,7 +745,7 @@ class IndictorJoinTable(models.Model):
 
 class UtilisationStatus(models.Model):
     id = models.AutoField(primary_key=True)
-    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True, related_name='untilisation'  )
+    join_table = models.ForeignKey(IndictorJoinTable, on_delete=models.CASCADE, blank=True, null=True, related_name='utilisation'  )
     status = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
     info = JSONField()
     created = models.DateTimeField(null=True,blank=True,editable=True)

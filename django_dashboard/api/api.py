@@ -26,6 +26,7 @@ from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplac
 from django.contrib.gis.geos import Point
 import datetime
 from django.utils import timezone
+from multiselectfield import MultiSelectField
 import pdb
 
 # monkey patch the Resource init method to remove a particularly cpu hungry deepcopy
@@ -282,7 +283,7 @@ class TechnicianDetailResource(ModelResource): # child
             list_of_company_ids_admin = perm.check_auth_admin()
             list_of_company_ids_tech = perm.check_auth_tech()
             
-            multiselect_fields = {"plumber":('PLUMBER', 'plumber'),"mason":('MASON', 'mason'),"manager":('MANAGER', 'manager'),"design":('DESIGN', 'design'),'calculations':('CALCULATIONS', 'calculations'),'tubular':('TUBULAR', "tubular"),'fixed_dome':('FIXED_DOME', "fixed_dome")}
+            multiselect_fields = { "plumber":'PLUMBER',"mason":'MASON',"manager":'MANAGER',"design":'DESIGN','calculations':'CALCULATIONS','tubular':'TUBULAR','fixed_dome':'FIXED_DOME' }
             if uob.is_superuser:
                 tech_to_edit = UserDetail.objects.get(id=pk)
                 tech_to_edit_additional_details = tech_to_edit.technician_details
@@ -303,11 +304,11 @@ class TechnicianDetailResource(ModelResource): # child
                     elif itm == 'what3words':
                         setattr(tech_to_edit_additional_details, itm, data[itm])
                     elif itm in ['acredit_to_install','acredited_to_fix','specialist_skills']:
-                        pdb.set_trace()
-                        choices_to_save = tuple([multiselect_fields[ii] for ii in data[itm]])
+                        choices_to_save = [ multiselect_fields[ii] for ii in data[itm] ]
                         setattr(tech_to_edit_additional_details, itm, choices_to_save)
 
                 tech_to_edit.save()
+                tech_to_edit_additional_details.save()
                 bundle.data = { "message":"Tech Updated" }
         except:
             pass
