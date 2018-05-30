@@ -5,7 +5,7 @@ from django_dashboard.models import Company, UserDetail, TechnicianDetail, Bioga
 from tastypie.authorization import DjangoAuthorization
 from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
-from helpers import Permissions, only_keep_fields, if_empty_fill_none
+from helpers import Permissions, only_keep_fields, if_empty_fill_none, to_serializable, raise_custom_error
 from django.db.models import Q
 from tastypie.constants import ALL
 from tastypie_actions.actions import actionurls, action
@@ -106,7 +106,9 @@ class BiogasPlantResource(ModelResource):
                             "sensor_status":bi.sensor_status,
                             "current_status":bi.current_status,
                             "verfied":bi.verfied,
-                            "uri":"/api/v1/biogasplant/"+str(bi.id)+"/"
+                            "uri":"/api/v1/biogasplant/"+str(bi.id)+"/",
+                            "location_estimated":bi.location_estimated,
+                            "location": to_serializable(bi.location),
                            }
                     data_list.append(data)
                 bundle.data['biogas_plants'] = data_list

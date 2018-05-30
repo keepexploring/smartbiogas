@@ -482,7 +482,7 @@ class UserDetailResource(ModelResource): # parent
 
             #if len(pending_jobs) == 0 and num_active_jobs<1: # the user can not get another job if they have not accepted this one!
             techs = UserDetail.objects.filter(technician_details__status=True, country='Tanzania', ) # technician_details__max_num_jobs_allowed__gt = num_active_jobs - for later at the moment we hardcode to allow only one job at a time
-            
+            # use the related_name to look up and filter to ensure they do not have any active or pending jobs
             #bundle = self.build_bundle(obj=techs, request=request)
             #bundle = self.alter_detail_data_to_serialize(request, bundle)
             #pdb.set_trace()
@@ -499,8 +499,9 @@ class UserDetailResource(ModelResource): # parent
                             'region':ii.region,
                             'mobile':ii.phone_number.as_international,
                             'uri':'/api/v1/users/' + str(ii.id) + '/',
-                            'longitude': ii.technician_details.location.get_x(),
-                            'latitude': ii.technician_details.location.get_y(),
+                            'location': to_serializable(ii.technician_details.location),
+                            # 'longitude': ii.technician_details.location.get_x(),
+                            # 'latitude': ii.technician_details.location.get_y(),
                             'acredited_to_fix':ii.technician_details.acredited_to_fix,
                             'specialist_skills':ii.technician_details.specialist_skills,
                             'number_jobs_active':ii.technician_details.number_jobs_active,

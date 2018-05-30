@@ -242,6 +242,15 @@ class TechnicianDetail(models.Model):
 
         )
 
+class Address(models.Model):
+    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    continent = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    lat_long = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
+
 class BiogasPlantContact(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, editable=False)
     #associated_company = models.ManyToManyField(Company)
@@ -251,6 +260,16 @@ class BiogasPlantContact(models.Model):
     surname = models.CharField(null=True,max_length=200)
     mobile = models.CharField(db_index=True,null=True,blank=True,max_length=15)
     email = models.CharField(validators=[EmailValidator],db_index=True,null=True,blank=True,max_length=200)
+    address = models.ForeignKey( Address, on_delete=models.CASCADE, blank=True, null=True, related_name = "biogasplantcontact" ) 
+
+# to be removed
+    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    continent = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    lat_long = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
     # biogas_owner = models.NullBooleanField(db_index=True,blank=True)
 
 

@@ -92,7 +92,7 @@ class BiogasPlantContactResource(ModelResource):
         #pdb.set_trace()
         self.is_authenticated(request)
         data = json.loads( request.read() )
-        fields = ["contact_type", "firstname", "surname","mobile","owner","village","region","district","wards","what3words","UIC"]
+        fields = ["contact_type", "firstname", "surname","mobile","owner","country","village","region","district","ward","latitude","longitude","what3words","UIC"]
         data = only_keep_fields(data, fields)
         data = if_empty_fill_none(data, fields)
         #pdb.set_trace()
@@ -109,7 +109,13 @@ class BiogasPlantContactResource(ModelResource):
             contact.surname = data['surname']
             contact.mobile = data['mobile']
             contact.contact_type = data['contact_type']
+            contact.region = data['region']
+            contact.district = data['district']
+            contact.ward = data['ward']
+            contact.village = data['village']
             bb=contact.save()
+            if "latitude" in data.keys() and "longitude" in data.keys():
+                contact.update(lat_long=Point(data['longitude'],data['latitude']) )
 
             uuid = contact.uid
 
@@ -123,11 +129,12 @@ class BiogasPlantContactResource(ModelResource):
 
     @action(allowed=['post'], require_loggedin=False, static=True)
     def find_biogas_owner(self, request, **kwargs):
+        #pdb.set_trace()
         self.is_authenticated(request)
         
         data = json.loads( request.read() )
         data = only_keep_fields(data, ["mobile"] )
-
+        
         try:
             bundle = self.build_bundle(data={}, request=request)
             uob = bundle.request.user
@@ -136,9 +143,8 @@ class BiogasPlantContactResource(ModelResource):
                 perm = Permissions(part_of_groups)
                 list_of_company_ids_admin = perm.check_auth_admin()
                 list_of_company_ids_tech = perm.check_auth_tech()
-                
+                pdb.set_trace()
                 contacts = BiogasPlantContact.objects.filter(mobile=data['mobile'])
-                
                 data_to_return = []
                 for cc in contacts:
                     biogas_owner = {}
@@ -148,6 +154,12 @@ class BiogasPlantContactResource(ModelResource):
                     biogas_owner['contact_type'] = cc.contact_type.name
                     biogas_owner['email'] = cc.email
                     biogas_owner['contact'] = to_serializable(cc.uid)[0]
+                    biogas_owner['location'] = to_serializable(cc.lat_long)
+                    biogas_owner['village'] = cc.village
+                    biogas_owner['ward'] = cc.ward
+                    biogas_owner['region'] = cc.region
+                    biogas_owner['district'] = cc.district
+                    biogas_owner['country'] = cc.country
                     biogas_plant_queryset = cc.biogas_plant_detail.get_queryset()
                     biogas_plants_owned_list = []
                     #pdb.set_trace()
@@ -164,8 +176,9 @@ class BiogasPlantContactResource(ModelResource):
                         biogas_plant_owned['type_biogas'] = to_serializable(bb.type_biogas)[0]
                         biogas_plant_owned['supplier'] = to_serializable(bb.supplier)[0]
                         biogas_plant_owned['volume_biogas'] = to_serializable(bb.volume_biogas)[0]
-                        biogas_plant_owned['latitude'] = to_serializable(bb.location)[1]
-                        biogas_plant_owned['longitude'] = to_serializable(bb.location)[0]
+                        biogas_plant_owned['location']=to_serializable(cc.lat_long)
+                        # biogas_plant_owned['latitude'] = to_serializable(bb.location)[1]
+                        # biogas_plant_owned['longitude'] = to_serializable(bb.location)[0]
                         biogas_plant_owned['sensor_status'] = to_serializable(bb.sensor_status)[0]
                         biogas_plant_owned['current_status'] = to_serializable(bb.current_status)[0]
                         biogas_plant_owned['verfied'] = to_serializable(bb.verfied)[0]
@@ -182,6 +195,18 @@ class BiogasPlantContactResource(ModelResource):
 
         return self.create_response(request, bundle)
 
+    @action(allowed=['delete'], require_loggedin=False, static=False)
+    def remove_owner_from_database():
+        self.is_authenticated(request)
+        data = json.loads( request.read() )
+        data = only_keep_fields(data, ["id"])
+        bundle = self.build_bundle(data={}, request=request)
+        try:
+            pass
+        except:
+            pass
+        
+        return self.create_response(request, bundle)
 
     @action(allowed=['put'], require_loggedin=False, static=False)
     def create_biogas_plant(self, request, **kwargs):
@@ -200,6 +225,8 @@ class BiogasPlantContactResource(ModelResource):
 
         except:
             pass
+
+        return self.create_response(request, bundle)
 
 
     def obj_create(self, bundle, **kwargs):
