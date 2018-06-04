@@ -738,7 +738,7 @@ class JobHistoryResource(ModelResource):
             perm = Permissions(part_of_groups)
             list_of_company_ids_admin = perm.check_auth_admin()
             list_of_company_ids_tech = perm.check_auth_tech()
-            pdb.set_trace()
+            #pdb.set_trace()
             if uob.is_superuser:
                 #abandoned_jobs = JobHistory.objects.exclude(rejected_job=None).filter(Q(fixers=None))
                 abandoned_jobs = JobHistory.objects.filter(Q(fixers=None)) # for now we include all jobs that do not have fixers
