@@ -143,7 +143,7 @@ class BiogasPlantContactResource(ModelResource):
                 perm = Permissions(part_of_groups)
                 list_of_company_ids_admin = perm.check_auth_admin()
                 list_of_company_ids_tech = perm.check_auth_tech()
-                pdb.set_trace()
+                #pdb.set_trace()
                 contacts = BiogasPlantContact.objects.filter(mobile=data['mobile'])
                 data_to_return = []
                 for cc in contacts:
