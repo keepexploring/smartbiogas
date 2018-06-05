@@ -31,6 +31,7 @@ import time
 import os
 import ConfigParser
 import json
+import pycountry
 import pdb
 
 #BASE_DIR = os.path.normpath(os.path.normpath(os.getcwd() + os.sep + os.pardir)+ os.sep + os.pardir)
@@ -41,6 +42,9 @@ BASE_DIR = os.path.normpath(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 Config = ConfigParser.ConfigParser() # we store security setting in another file
 Config.read(BASE_DIR+'/config/configs.ini')
 
+
+with open(os.path.join(os.path.dirname(__file__), 'country_data.json'),'r') as data_file:    
+    country_data = json.load(data_file)
 
 class DataResource(ModelResource):
     class Meta:
@@ -67,9 +71,26 @@ class DataResource(ModelResource):
         return bundle
 
     @action(allowed=['get'], require_loggedin=False,static=True)
+    def get_countries_and_mobile_shortcodes(self, request, **kwargs):
+        self.is_authenticated(request)
+        bundle = self.build_bundle(data={}, request=request)
+        #pdb.set_trace()
+        try:
+            list_of_countries = list(pycountry.countries)
+
+            countries_and_shortcodes = [{ "name":ii.name, "alpha_2":ii.alpha_2, "alpha_3":ii.alpha_3, "calling_code":country_data[ii.alpha_2]["callingCode"] } for ii in list_of_countries]
+            bundle.data = {"data": countries_and_shortcodes }
+        except:
+            raise_custom_error({"error":"Countries not available at the moment"}, 500)
+
+        return self.create_response(request, bundle)
+
+
+    @action(allowed=['get'], require_loggedin=False,static=True)
     def get_template_cards(self, request, **kwargs):
         self.is_authenticated(request)
         bundle = self.build_bundle(data={}, request=request)
+
         try:
             uob = bundle.request.user
             part_of_companies = UserDetail.objects.get(user=uob).company.all()
@@ -225,6 +246,8 @@ class DataResource(ModelResource):
             raise_custom_error({"error":"Your request has not succeeded. Sorry not to be more helpful. Goodbye."}, 500)
 
         return self.create_response(request, bundle)
+
+
 #login_body= {'username': 'smartbiogas', 'password': 'fGCEp9ZqEW5tsmYsRAGQiLD267Ae'}
 #login_url = 'http://localhost:8000/token_generation'
 #login_headers = {'Content-Type': 'application/json'}

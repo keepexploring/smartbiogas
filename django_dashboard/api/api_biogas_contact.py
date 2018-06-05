@@ -89,10 +89,10 @@ class BiogasPlantContactResource(ModelResource):
 
     @action(allowed=['post'], require_loggedin=False, static=True)
     def create_biogas_contact(self, request, **kwargs):
-        #pdb.set_trace()
+        
         self.is_authenticated(request)
         data = json.loads( request.read() )
-        fields = ["contact_type", "firstname", "surname","mobile","owner","country","village","region","district","ward","latitude","longitude","what3words","UIC"]
+        fields = ["contact_type", "firstname", "surname","mobile","country","village","region","district","ward","latitude","longitude","what3words","UIC"]
         data = only_keep_fields(data, fields)
         data = if_empty_fill_none(data, fields)
         #pdb.set_trace()
@@ -114,8 +114,11 @@ class BiogasPlantContactResource(ModelResource):
             contact.ward = data['ward']
             contact.village = data['village']
             bb=contact.save()
-            if "latitude" in data.keys() and "longitude" in data.keys():
-                contact.update(lat_long=Point(data['longitude'],data['latitude']) )
+            try:
+                if "latitude" in data.keys() and "longitude" in data.keys():
+                    contact.update(lat_long=Point(data['longitude'],data['latitude']) )
+            except:
+                pass
 
             uuid = contact.uid
 
