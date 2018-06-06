@@ -65,6 +65,23 @@ class PasswordManagementResource(ModelResource):
     def prepend_urls(self):
         return actionurls(self)
 
+    @staticmethod
+    def generate_reset_code(uob):
+        unique=False
+        while unique==False:
+            hash_obj  = hashids.Hashids(salt=uuid.uuid4().get_hex())
+            hid = hash_obj.encode(random.randint(0,99),random.randint(0,99))
+            objs=PasswordManagement.objects.filter(reset_code=hid) # just check the database to make sure
+            if len(objs)==0:
+                unique=True
+        pm=PasswordManagement()
+        pm.reset_code = hid
+        pm.expiry_datetime = datetime.datetime.now() + datetime.timedelta(seconds=20*60)
+        pm.user = uob
+        pm.save()
+
+        return hid
+
     @action(allowed=['post'], require_loggedin=False, static=True)
     def get_reset_code(self, request, **kwargs):
         #self.is_authenticated(request)
@@ -89,21 +106,10 @@ class PasswordManagementResource(ModelResource):
             uob = user_object[0].user
             #pdb.set_trace()
             # we need to just run a loop around this to make sure we never get a repeat
-            unique=False
-            while unique==False:
-                hash_obj  = hashids.Hashids(salt=uuid.uuid4().get_hex())
-                hid = hash_obj.encode(random.randint(0,99),random.randint(0,99))
-                objs=PasswordManagement.objects.filter(reset_code=hid) # just check the database to make sure
-                if len(objs)==0:
-                    unique=True
-            pm=PasswordManagement()
-            pm.reset_code = hid
-            pm.expiry_datetime = datetime.datetime.now() + datetime.timedelta(seconds=20*60)
-            pm.user = uob
-            pm.save()
+            hid = self.generate_reset_code(uob)
             bundle.data = {"message":"If your number exists in the system you will soon receive a message"}
             #pdb.set_trace()
-            send_mail('Smart Biogas Password Reset', 'Here is your reset code: '+ str(hid), 'hello@smartbiogas.net', ['diego@ecm.im','joel@creativenergie.co.uk'], fail_silently=False, )   
+            send_mail('Smart Biogas Password Reset', 'Here is your reset code: '+ str(hid), 'hello@smartbiogas.net', ['diego@ecm.im','joel@creativenergie.co.uk','daniel@ecm.im'], fail_silently=False, )   
         return self.create_response(request, bundle)
         
         

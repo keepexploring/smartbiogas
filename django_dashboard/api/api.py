@@ -28,6 +28,7 @@ import datetime
 from django.utils import timezone
 from multiselectfield import MultiSelectField
 from validate_email import validate_email
+from django_dashboard.api.password_management import PasswordManagementResource
 import pdb
 
 # monkey patch the Resource init method to remove a particularly cpu hungry deepcopy
@@ -663,13 +664,14 @@ class UserDetailResource(ModelResource): # parent
                         setattr(tech_additional_details, itm, choices_to_save)
                     elif itm in ['username']:
                         user = User()
-                        pdb.set_trace()
+                        #pdb.set_trace()
                         if User.objects.filter(username=data['username']).exists():
                             raise_custom_error({"error":"Username not unique someone else is using it. Do please try a different username"}, 500)
                         if (validate_email(data['username']) is False):
                             raise_custom_error({"error":"Username not an email. Do please try a different username - it must be an email address"}, 500)
                         
-                        user = User.objects.create_user(username=data['username'], email=data['username'], password=data['password'])   
+                        user = User.objects.create_user(username=data['username'], email=data['username'], password=data['password'])
+                        #reset_code = PasswordManagementResource.generate_reset_code(uob)
                 try:     
                     technician.logged_in_as = uob.userdetail.logged_in_as # we will create a technician assoicated with the logged in user  
                 except:
