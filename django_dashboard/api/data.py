@@ -78,7 +78,7 @@ class DataResource(ModelResource):
         try:
             list_of_countries = list(pycountry.countries)
 
-            countries_and_shortcodes = [{ "name":ii.name, "alpha_2":ii.alpha_2, "alpha_3":ii.alpha_3, "calling_code":country_data[ii.alpha_2]["callingCode"] } for ii in list_of_countries]
+            countries_and_shortcodes = [{ "name":ii.name, "alpha_2":ii.alpha_2, "alpha_3":ii.alpha_3, "calling_code":country_data[ii.alpha_2]["callingCode"], "languages":country_data[ii.alpha_2]["languages"], "latlong" :country_data[ii.alpha_2]["latlng"]} for ii in list_of_countries]
             bundle.data = {"data": countries_and_shortcodes }
         except:
             raise_custom_error({"error":"Countries not available at the moment"}, 500)

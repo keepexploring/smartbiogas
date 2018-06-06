@@ -32,6 +32,10 @@ class CustomBadRequest(TastypieError):
 
 
 
+def raise_custom_error(dict_response,status_code):
+    raise ImmediateHttpResponse(response=HttpResponse(json.dumps(dict_response), status=status_code, content_type="application/json"))
+
+
 def extract_company_id(group_name):
     split_string = group_name.split('__')
     slugified_name = split_string[0]
@@ -113,6 +117,15 @@ def only_keep_fields(data,fields):
             
     return datakeep
 
+def required_fields(data, fields):
+    fields_submitted = data.keys()
+    fields_required = fields
+    ok=all(ff in fields_submitted for ff in fields_required)
+    if ok is True:
+        return True
+    else:
+        raise_custom_error({"error":"You have not submitted the required fields"}, 500 )
+
 def if_empty_fill_none(data,fields):
     dataout = {}
     for ff in fields:
@@ -170,8 +183,6 @@ def to_serializable(val):
     except:
         return (None,None)
 
-def raise_custom_error(dict_response,status_code):
-    raise ImmediateHttpResponse(response=HttpResponse(json.dumps(dict_response), status=status_code, content_type="application/json"))
 
 class AddressSerializer(serpy.Serializer):
     """The serializer schema definition."""
