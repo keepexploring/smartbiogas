@@ -640,7 +640,6 @@ class UserDetailResource(ModelResource): # parent
         #list_of_company_ids_tech = perm.check_auth_tech()
 
         if uob.is_superuser:
-            pdb.set_trace()
             try: # validate the selected username
                 if User.objects.filter(username=data['username']).exists():
                     raise_custom_error({"error":"Username not unique someone else is using it. Do please try a different username"}, 500)
