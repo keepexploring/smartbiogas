@@ -29,6 +29,8 @@ from django.utils import timezone
 from multiselectfield import MultiSelectField
 from validate_email import validate_email
 from django_dashboard.api.password_management import PasswordManagementResource
+from phonenumbers import carrier
+from phonenumbers.phonenumberutil import number_type
 import pdb
 
 # monkey patch the Resource init method to remove a particularly cpu hungry deepcopy
@@ -625,24 +627,43 @@ class UserDetailResource(ModelResource): # parent
         self.is_authenticated(request)
         
         data = json.loads( request.read() )
-        data = only_keep_fields(data,['first_name','last_name ','mobile','phone_number','email','user_photo','country','region','district','ward','village','postcode','other_address_details','role','acredit_to_install','acredited_to_fix','specialist_skills','status','what3words','willing_to_travel','max_num_jobs_allowed','languages_spoken','username','password'])
-        #required_fields(data, )
+        data = only_keep_fields(data,['first_name','last_name','mobile','phone_number','email','user_photo','country','region','district','ward','village','postcode','other_address_details','role','acredit_to_install','acredited_to_fix','specialist_skills','status','what3words','willing_to_travel','max_num_jobs_allowed','languages_spoken','username','password'])
+        required_fields(data,['first_name','last_name','username','mobile'] )
         if 'phone_number' in data.keys():
             data['mobile'] = data['phone_number']
         bundle = self.build_bundle(data={}, request=request)
         uob = bundle.request.user
-        
+        #user_object = UserDetail.objects.filter(user=uob)
+        #part_of_groups = uob.groups.all()
+        #perm = Permissions(part_of_groups)
+        #list_of_company_ids_admin = perm.check_auth_admin()
+        #list_of_company_ids_tech = perm.check_auth_tech()
 
-        user_object = UserDetail.objects.filter(user=uob)
-        part_of_groups = uob.groups.all()
-        perm = Permissions(part_of_groups)
-        list_of_company_ids_admin = perm.check_auth_admin()
-        list_of_company_ids_tech = perm.check_auth_tech()
+        if uob.is_superuser:
+            pdb.set_trace()
+            try: # validate the selected username
+                if User.objects.filter(username=data['username']).exists():
+                    raise_custom_error({"error":"Username not unique someone else is using it. Do please try a different username"}, 500)
 
-        try:
-            if uob.is_superuser:
-                technician = UserDetail()
-                tech_additional_details = TechnicianDetail()
+                if validate_email(data['username']) is True:
+                    is_mobile_email = 'email'
+                elif carrier._is_mobile(number_type(phonenumbers.parse(data['username']))):
+                    is_mobile_email = 'mobile'
+                else:
+                    raise_custom_error({"error":"You need to provide a username and password. The username must be a valid email or mobile number (with international calling code)"}, 500)
+            except:
+                raise_custom_error({"error":"You need to provide a username and password. The username must be a valid email or mobile number (with international calling code)"}, 500)
+
+            try:
+                logged_in_as = uob.userdetail.logged_in_as
+                user = User.objects.create_user(username=data['username'], email=data['username'], password=data['password'], first_name=data['first_name'], last_name=data['last_name'] )    
+                userdetail = UserDetail.objects.create(user=user, logged_in_as = logged_in_as )
+                try: # include this for the time being as a lot of the old users don't have this field
+                    userdetail.company.add(logged_in_as)
+                except:
+                    pass
+                tech_additional_details=TechnicianDetail(technicians=userdetail)
+                tech_additional_details.save()
                 
                 for itm in data: # for simple text based changes this is very easy - no additional clauses needed
                     if itm == 'languages_spoken':
@@ -656,35 +677,23 @@ class UserDetailResource(ModelResource): # parent
                         except:
                             pass
                     elif itm in ['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details']:
-                        setattr(technician, itm, data[itm])
-                    elif itm == 'what3words':
+                        setattr(userdetail, itm, data[itm])
+                    elif itm in ['what3words', 'status','willing_to_travel']:
                         setattr(tech_additional_details, itm, data[itm])
                     elif itm in ['acredit_to_install','acredited_to_fix','specialist_skills']:
                         choices_to_save = [ multiselect_fields[ii] for ii in data[itm] ]
                         setattr(tech_additional_details, itm, choices_to_save)
-                    elif itm in ['username']:
-                        user = User()
-                        #pdb.set_trace()
-                        if User.objects.filter(username=data['username']).exists():
-                            raise_custom_error({"error":"Username not unique someone else is using it. Do please try a different username"}, 500)
-                        if (validate_email(data['username']) is False):
-                            raise_custom_error({"error":"Username not an email. Do please try a different username - it must be an email address"}, 500)
-                        
-                        user = User.objects.create_user(username=data['username'], email=data['username'], password=data['password'])
                         #reset_code = PasswordManagementResource.generate_reset_code(uob)
-                try:     
-                    technician.logged_in_as = uob.userdetail.logged_in_as # we will create a technician assoicated with the logged in user  
-                except:
-                    pass
-                #pdb.set_trace()
-                technician.user = user
-                technician.technician_details = tech_additional_details
-                technician.save()
-                bundle.data = {"message":"User created"}
-        except:
-            raise_custom_error({"error":"Your request has not succeeded. Sorry not to be more helpful. Goodbye."}, 500)
+                
+                userdetail.save()
+                tech_additional_details.save()
+                bundle.data = {"message":"User created", "user_id":userdetail.id }
+            except:
+                raise_custom_error({"error":"Your request has not succeeded. Sorry not to be more helpful. Goodbye."}, 500)
 
-        return self.create_response(request, bundle)
+            return self.create_response(request, bundle)
+        else:
+            raise_custom_error({"error":"You are not authorised"}, 403)
 
     def authorized_read_list(self, object_list, bundle):
         #return object_list.filter(user=bundle.request.user)

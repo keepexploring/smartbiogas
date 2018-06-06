@@ -87,7 +87,7 @@ class UserDetail(models.Model):
     #technican_role_in_companies = models.ManyToManyField(Company, blank=True,related_name="tech_role_in") # the companies the User has a technican role in
     
     company = models.ManyToManyField(Company)
-    logged_in_as = models.OneToOneField( # the user will need to choose (prob in a settings tab of some sort, who they are logged in as)
+    logged_in_as = models.ForeignKey( # the user will need to choose (prob in a settings tab of some sort, who they are logged in as)
         Company,
         on_delete=models.CASCADE,
         related_name="logged_in_as",
@@ -190,11 +190,10 @@ class TechnicianDetail(models.Model):
     technicians = models.OneToOneField(
         UserDetail,
         on_delete=models.CASCADE,
-        primary_key=True,
         related_name="technician_details",
     )
     #company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    technician_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
+    technician_id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False,db_index=True)
     #acredit_to_install = ArrayField(models.CharField(max_length=200, choices = ACCREDITED_TO_INSTALL), default=list,blank=True, db_index=True,null=True) # choices=ACCREDITED_TO_INSTALL e.g. different digesters they can construct
     #acredit_to_install = models.SelectMultiple(max_length=200, choices = ACCREDITED_TO_INSTALL)
     acredit_to_install = MultiSelectField(choices = ACCREDITED_TO_INSTALL,blank=True, db_index=True,null=True)

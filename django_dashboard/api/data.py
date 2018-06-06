@@ -32,6 +32,9 @@ import os
 import ConfigParser
 import json
 import pycountry
+from django_dashboard.api.file_uploadmixin.forms import UploadFileForm
+from django_dashboard.api.file_uploadmixin.mixins import MultipartResource
+from django_dashboard.api.file_uploadmixin.handlefileupload import handle_uploaded_file
 import pdb
 
 #BASE_DIR = os.path.normpath(os.path.normpath(os.getcwd() + os.sep + os.pardir)+ os.sep + os.pardir)
@@ -46,9 +49,10 @@ Config.read(BASE_DIR+'/config/configs.ini')
 with open(os.path.join(os.path.dirname(__file__), 'country_data.json'),'r') as data_file:    
     country_data = json.load(data_file)
 
-class DataResource(ModelResource):
+class DataResource(MultipartResource, ModelResource):
     class Meta:
         queryset = Card.objects.all() # everything in the Techicians database - or use Entry.objects.all().filter(pub_date__year=2006) to restrict what is returned
+        fields = ('title', 'body', 'image')
         resource_name = 'data' # when it is called its name will be called technicians
         excludes = []
         list_allowed_methods = ['get', 'post', 'put']
@@ -212,6 +216,15 @@ class DataResource(ModelResource):
         return self.create_response(request, bundle)
 
     @action(allowed=['post'], require_loggedin=False,static=True)
+    def upload_photo(self, request, **kwargs):
+        self.is_authenticated(request)
+
+        if request.method == 'POST':
+            form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            handle_uploaded_file(request.FILES['file'],file_type)
+
+    @action(allowed=['post'], require_loggedin=False,static=True)
     def get_latest_indictors(self, request, **kwargs): # for a particular biogas plant
         """Returns the lastest indictors for a given biogas plant"""
         self.is_authenticated(request)
@@ -246,6 +259,7 @@ class DataResource(ModelResource):
             raise_custom_error({"error":"Your request has not succeeded. Sorry not to be more helpful. Goodbye."}, 500)
 
         return self.create_response(request, bundle)
+
 
 
 #login_body= {'username': 'smartbiogas', 'password': 'fGCEp9ZqEW5tsmYsRAGQiLD267Ae'}
