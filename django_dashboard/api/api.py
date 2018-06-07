@@ -33,6 +33,7 @@ from phonenumbers import carrier
 from phonenumbers.phonenumberutil import number_type
 import pdb
 
+multiselect_fields = { "plumber":'PLUMBER',"mason":'MASON',"manager":'MANAGER',"design":'DESIGN','calculations':'CALCULATIONS','tubular':'TUBULAR','fixed_dome':'FIXED_DOME' }
 # monkey patch the Resource init method to remove a particularly cpu hungry deepcopy
 def patched_resource__init__(self, api_name=None):
     #self.fields = deepcopy(self.base_fields)
@@ -625,7 +626,7 @@ class UserDetailResource(ModelResource): # parent
     @action(allowed=['post'], require_loggedin=False,static=True)
     def create_technician(self, request, **kwargs):
         self.is_authenticated(request)
-        
+        #pdb.set_trace()
         data = json.loads( request.read() )
         data = only_keep_fields(data,['first_name','last_name','mobile','phone_number','email','user_photo','country','region','district','ward','village','postcode','other_address_details','role','acredit_to_install','acredited_to_fix','specialist_skills','status','what3words','willing_to_travel','max_num_jobs_allowed','languages_spoken','username','password'])
         required_fields(data,['first_name','last_name','username','mobile'] )
@@ -667,12 +668,12 @@ class UserDetailResource(ModelResource): # parent
                 for itm in data: # for simple text based changes this is very easy - no additional clauses needed
                     if itm == 'languages_spoken':
                         try:
-                            tech_additional_details.update(languages_spoken = data["languages_spoken"] )  # ArrayReplace("languages_spoken", 
+                            tech_additional_details.languages_spoken = data["languages_spoken"]   # ArrayReplace("languages_spoken", 
                         except:
                             pass
                     elif itm == "latitude":
                         try:
-                            tech_additional_details.technician_details.update(location=Point(data['longitude'],data['latitude']) )
+                            tech_additional_details.location = Point(data['longitude'],data['latitude']) 
                         except:
                             pass
                     elif itm in ['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details']:

@@ -132,6 +132,7 @@ class UserDetail(models.Model):
         self.datetime_modified = timezone.now()
         self.first_name = self.user.first_name
         self.last_name = self.user.last_name
+        
 
         return super(UserDetail,self).save(*args,**kwargs)
 
