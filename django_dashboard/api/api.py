@@ -451,6 +451,7 @@ class UserDetailResource(ModelResource): # parent
                     'phone_number':ALL,
                     'user': ALL_WITH_RELATIONS,
                     }
+        ordering = ['first_name','last_name','country','region','district','phone_number','user','logged_in_as','technician_details']
         #filtering = {'username':ALL} # can use the filtering options from django
         authorization = DjangoAuthorization()
         authentication = OAuth2ScopedAuthentication(
@@ -731,6 +732,7 @@ class JobHistoryResource(ModelResource):
                     'fixers':ALL_WITH_RELATIONS,
                     'plant':ALL_WITH_RELATIONS,
                     }
+        ordering = ['job_id','completed','job_status','verification_of_engagement','due_date','date_completed','fixers','plant','client_feedback_star','overdue_for_acceptance','priority','fault_class','assistance','description_help_need','reason_abandoning_job']
         authorization = DjangoAuthorization()
         authentication = OAuth2ScopedAuthentication(
             post=("read write",),

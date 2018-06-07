@@ -44,8 +44,11 @@ class BiogasPlantResource(ModelResource):
                     'district':ALL,
                     'ward':ALL,
                     'village':ALL,
-                    
+                    'verfied': ALL,
+                    'install_date':ALL,
                     }
+                    
+        ordering = ['funding_souce','supplier','QP_status','current_status','funding_souce','sensor_status','volume_biogas','type_biogas','size_biogas','country','region','district','ward','village','other_address_details','verfied','install_date']
         authorization = DjangoAuthorization()
         authentication = OAuth2ScopedAuthentication(
             post=("read write",),
