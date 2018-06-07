@@ -639,7 +639,7 @@ class UserDetailResource(ModelResource): # parent
         #perm = Permissions(part_of_groups)
         #list_of_company_ids_admin = perm.check_auth_admin()
         #list_of_company_ids_tech = perm.check_auth_tech()
-
+        
         if uob.is_superuser:
             try: # validate the selected username
                 if User.objects.filter(username=data['username']).exists():
@@ -676,7 +676,7 @@ class UserDetailResource(ModelResource): # parent
                             tech_additional_details.location = Point(data['longitude'],data['latitude']) 
                         except:
                             pass
-                    elif itm in ['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details']:
+                    elif itm in ['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details','country']:
                         setattr(userdetail, itm, data[itm])
                     elif itm in ['what3words', 'status','willing_to_travel']:
                         setattr(tech_additional_details, itm, data[itm])
@@ -685,6 +685,7 @@ class UserDetailResource(ModelResource): # parent
                         setattr(tech_additional_details, itm, choices_to_save)
                         #reset_code = PasswordManagementResource.generate_reset_code(uob)
                 
+                pdb.set_trace()
                 userdetail.save()
                 tech_additional_details.save()
                 bundle.data = {"message":"User created", "user_id":userdetail.id }
