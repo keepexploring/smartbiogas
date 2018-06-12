@@ -95,7 +95,7 @@ class BiogasPlantContactResource(ModelResource):
         self.is_authenticated(request)
         data = json.loads( request.read() )
         fields = ["contact_type", "firstname", "surname","mobile","country","village","region","district","ward","latitude","longitude","what3words","UIC"]
-        pdb.set_trace()
+        #pdb.set_trace()
         _schema_ = schema['create_biogas_contact']
         vv= Validator(_schema_)
         if not vv.validate(data):
