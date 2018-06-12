@@ -11,12 +11,13 @@ from tastypie.constants import ALL
 from tastypie_actions.actions import actionurls, action
 from django.contrib.gis.geos import Point
 from django.core import serializers
-from helpers import AddressSerializer
+from helpers import AddressSerializer, CustomBadRequest
+from cerberus import Validator
 import serpy
 import uuid
 import json
 #from django_dashboard.api.api_biogas_contact import BiogasPlantContactResource
-
+from django_dashboard.api.validators.validator_patterns import schema
 import pdb
 
 
@@ -127,8 +128,15 @@ class BiogasPlantResource(ModelResource):
         self.is_authenticated(request)
         data = json.loads( request.read() )
         fields = ["UIC", "biogas_plant_name", "associated_company","contact","funding_source","latitude","longitude","country","village","region","district","ward","what3words","type_biogas","volume_biogas","install_date","other_address_details","current_status","contruction_tech","location_estimated"]
+        _schema_ = schema['create_biogas_plant']
+        vv= Validator(_schema_)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+        
         data = only_keep_fields(data, fields)
         data = if_empty_fill_none(data, fields)
+
         fields = data.keys()
         
         bundle = self.build_bundle(data={}, request=request)
@@ -195,6 +203,12 @@ class BiogasPlantResource(ModelResource):
         data = json.loads( request.read() )
         data = only_keep_fields(data,['biogas_plant_name','contact','funding_souce','funding_source_notes','country','region','district','ward','village','other_address_details','type_biogas','supplier','volume_biogas','location_estimated','QP_status','sensor_status','current_status','verfied','what3words'])
         
+        _schema_ = schema['edit_biogas_plant']
+        vv= Validator(_schema_)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+
         try:
             pk = int(kwargs['pk'])
         except:

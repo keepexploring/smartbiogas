@@ -19,7 +19,7 @@ import serpy
 from django.db.models import Q
 import uuid
 import json
-from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, raise_custom_error, required_fields
+from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, raise_custom_error, required_fields, CustomBadRequest
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
@@ -29,8 +29,11 @@ from django.utils import timezone
 from multiselectfield import MultiSelectField
 from validate_email import validate_email
 from django_dashboard.api.password_management import PasswordManagementResource
+import phonenumbers
 from phonenumbers import carrier
 from phonenumbers.phonenumberutil import number_type
+from cerberus import Validator
+from django_dashboard.api.validators.validator_patterns import schema
 import pdb
 
 multiselect_fields = { "plumber":'PLUMBER',"mason":'MASON',"manager":'MANAGER',"design":'DESIGN','calculations':'CALCULATIONS','tubular':'TUBULAR','fixed_dome':'FIXED_DOME' }
@@ -274,6 +277,13 @@ class TechnicianDetailResource(ModelResource): # child
         data = json.loads( request.read() )
         data = only_keep_fields(data,['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details','acredit_to_install','acredited_to_fix','specialist_skills','what3words','languages_spoken','longitude','latitude'])
         
+        create_technician_schema = schema['edit_technician']
+        vv= Validator(create_technician_schema)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+
+
         try:
             pk = int(kwargs['pk'])
         except:
@@ -627,9 +637,16 @@ class UserDetailResource(ModelResource): # parent
     @action(allowed=['post'], require_loggedin=False,static=True)
     def create_technician(self, request, **kwargs):
         self.is_authenticated(request)
-        #pdb.set_trace()
+        
         data = json.loads( request.read() )
         data = only_keep_fields(data,['first_name','last_name','mobile','phone_number','email','user_photo','country','region','district','ward','village','postcode','other_address_details','role','acredit_to_install','acredited_to_fix','specialist_skills','status','what3words','willing_to_travel','max_num_jobs_allowed','languages_spoken','username','password'])
+        
+        create_technician_schema = schema['create_technician']
+        vv= Validator(create_technician_schema)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+
         required_fields(data,['first_name','last_name','username','mobile'] )
         if 'phone_number' in data.keys():
             data['mobile'] = data['phone_number']
@@ -642,18 +659,16 @@ class UserDetailResource(ModelResource): # parent
         #list_of_company_ids_tech = perm.check_auth_tech()
         
         if uob.is_superuser:
-            try: # validate the selected username
-                if User.objects.filter(username=data['username']).exists():
-                    raise_custom_error({"error":"Username not unique someone else is using it. Do please try a different username"}, 500)
-
-                if validate_email(data['username']) is True:
-                    is_mobile_email = 'email'
-                elif carrier._is_mobile(number_type(phonenumbers.parse(data['username']))):
-                    is_mobile_email = 'mobile'
-                else:
-                    raise_custom_error({"error":"You need to provide a username and password. The username must be a valid email or mobile number (with international calling code)"}, 500)
-            except:
+            
+            if User.objects.filter(username=data['username']).exists():
+                raise CustomBadRequest( code="field_error", message="Username not unique someone else is using it. Do please try a different username. It must be an email address or a mobile number." )
+            if validate_email(data['username']) is True:
+                is_mobile_email = 'email'
+            elif carrier._is_mobile(number_type(phonenumbers.parse(data['username']))):
+                is_mobile_email = 'mobile'
+            else:
                 raise_custom_error({"error":"You need to provide a username and password. The username must be a valid email or mobile number (with international calling code)"}, 500)
+           
 
             try:
                 logged_in_as = uob.userdetail.logged_in_as
@@ -686,7 +701,7 @@ class UserDetailResource(ModelResource): # parent
                         setattr(tech_additional_details, itm, choices_to_save)
                         #reset_code = PasswordManagementResource.generate_reset_code(uob)
                 
-                pdb.set_trace()
+                #pdb.set_trace()
                 userdetail.save()
                 tech_additional_details.save()
                 bundle.data = {"message":"User created", "user_id":userdetail.id }

@@ -12,12 +12,13 @@ from helpers import keep_fields
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
 from django_dashboard.api.api import TechnicianDetailResource, UserDetailResource
 from tastypie_actions.actions import actionurls, action
-from helpers import remove_fields, to_serializable
+from helpers import remove_fields, to_serializable, CustomBadRequest
+from cerberus import Validator
 from django.core import serializers
 import uuid
 import json
 #from django_dashboard.api.api_biogas_contact import BiogasPlantContactResource
-
+from django_dashboard.api.validators.validator_patterns import schema
 import pdb
 
 class PendingJobsResource(ModelResource):
@@ -303,6 +304,12 @@ class PendingJobsResource(ModelResource):
         #pdb.set_trace()
         uob = bundle.request.user
         user_object = UserDetail.objects.filter(user=uob)
+        data=bundle.data # do some pre-data validation
+        _schema_ = schema['create_pending_job']
+        vv= Validator(_schema_)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
 
         if uob.is_superuser:
             bundle = self.full_hydrate(bundle)

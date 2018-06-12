@@ -93,6 +93,12 @@ class BiogasPlantContactResource(ModelResource):
         self.is_authenticated(request)
         data = json.loads( request.read() )
         fields = ["contact_type", "firstname", "surname","mobile","country","village","region","district","ward","latitude","longitude","what3words","UIC"]
+        _schema_ = schema['create_biogas_contact']
+        vv= Validator(_schema_)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+        
         data = only_keep_fields(data, fields)
         data = if_empty_fill_none(data, fields)
         #pdb.set_trace()
@@ -211,25 +217,25 @@ class BiogasPlantContactResource(ModelResource):
         
         return self.create_response(request, bundle)
 
-    @action(allowed=['put'], require_loggedin=False, static=False)
-    def create_biogas_plant(self, request, **kwargs):
-        self.is_authenticated(request)
-        data = json.loads( request.read() )
-        data = only_keep_fields(data, ["firstname", "surname","mobile","owner","village","region","district","wards","what3words"])
-        bundle = self.build_bundle(data={}, request=request)
-        try:
-            uid = uuid.UUID(hex=pk)
-            uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
-            contact = BiogasPlantContact.objects.create(first_name,surname,mobile,contact_type)
+    # @action(allowed=['put'], require_loggedin=False, static=False)
+    # def create_biogas_plant(self, request, **kwargs):
+    #     self.is_authenticated(request)
+    #     data = json.loads( request.read() )
+    #     data = only_keep_fields(data, ["firstname", "surname","mobile","owner","village","region","district","wards","what3words"])
+    #     bundle = self.build_bundle(data={}, request=request)
+    #     try:
+    #         uid = uuid.UUID(hex=pk)
+    #         uob = bundle.request.user
+    #         part_of_groups = uob.groups.all()
+    #         perm = Permissions(part_of_groups)
+    #         list_of_company_ids_admin = perm.check_auth_admin()
+    #         list_of_company_ids_tech = perm.check_auth_tech()
+    #         contact = BiogasPlantContact.objects.create(first_name,surname,mobile,contact_type)
 
-        except:
-            pass
+    #     except:
+    #         pass
 
-        return self.create_response(request, bundle)
+    #     return self.create_response(request, bundle)
 
 
     def obj_create(self, bundle, **kwargs):
