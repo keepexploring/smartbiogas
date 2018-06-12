@@ -8,9 +8,11 @@ from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
 from tastypie.constants import ALL
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
 from django.db.models import Q
-from helpers import only_keep_fields, if_empty_fill_none, Permissions, map_fields, to_serializable
+from helpers import only_keep_fields, if_empty_fill_none, Permissions, map_fields, to_serializable, CustomBadRequest
 from tastypie_actions.actions import actionurls, action
 import json
+from django_dashboard.api.validators.validator_patterns import schema
+from cerberus import Validator
 
 import pdb
 
@@ -93,6 +95,7 @@ class BiogasPlantContactResource(ModelResource):
         self.is_authenticated(request)
         data = json.loads( request.read() )
         fields = ["contact_type", "firstname", "surname","mobile","country","village","region","district","ward","latitude","longitude","what3words","UIC"]
+        pdb.set_trace()
         _schema_ = schema['create_biogas_contact']
         vv= Validator(_schema_)
         if not vv.validate(data):
@@ -162,13 +165,15 @@ class BiogasPlantContactResource(ModelResource):
                     biogas_owner['first_name'] = cc.first_name
                     biogas_owner['contact_type'] = cc.contact_type.name
                     biogas_owner['email'] = cc.email
-                    biogas_owner['contact'] = to_serializable(cc.uid)[0]
+                    #biogas_owner['contact'] = to_serializable(cc.uid)[0]
+                    biogas_owner['contact']= cc.uid.hex
                     biogas_owner['location'] = to_serializable(cc.lat_long)
                     biogas_owner['village'] = cc.village
                     biogas_owner['ward'] = cc.ward
                     biogas_owner['region'] = cc.region
                     biogas_owner['district'] = cc.district
                     biogas_owner['country'] = cc.country
+                    biogas_owner['uid'] = cc.uid.hex
                     biogas_plant_queryset = cc.biogas_plant_detail.get_queryset()
                     biogas_plants_owned_list = []
                     #pdb.set_trace()

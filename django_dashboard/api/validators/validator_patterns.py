@@ -103,7 +103,7 @@ schema = {
                             "mobile":{'type': 'string','regex':'^\+[0-9]+$', 'required':True},
                             "country":{'type': 'string'},
                             "village":{'type': 'string'},
-                            "region":{'type': 'string','required':True},
+                            "region":{'type': 'string'},
                             "district":{'type': 'string'},
                             "ward":{'type': 'string'},
                             "latitude":{'type':'float'},
