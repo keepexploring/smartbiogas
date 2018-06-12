@@ -173,7 +173,6 @@ class BiogasPlantContactResource(ModelResource):
                     biogas_owner['region'] = cc.region
                     biogas_owner['district'] = cc.district
                     biogas_owner['country'] = cc.country
-                    biogas_owner['uid'] = cc.uid.hex
                     biogas_plant_queryset = cc.biogas_plant_detail.get_queryset()
                     biogas_plants_owned_list = []
                     #pdb.set_trace()
