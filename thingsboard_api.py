@@ -43,7 +43,7 @@ USER = Config.get("thingsboardapi", "user")
 HOST = Config.get("thingsboardapi", "host")
 TB_PASS = Config.get("thingsboardapi", "thingsboard_pass")
 
-db_connection_string = f"dbname='{DBNAME}' user='{USER}' host='{HOST}' password='{TB_PASS}'"
+db_connection_string = f"""dbname='{DBNAME}' user='{USER}' host='{HOST}' password='{TB_PASS}'"""
 try:
     # pdb.set_trace()
     # conn = psycopg2.connect("dbname='thingsboard' user='thingsboard@thingsboard' host='thingsboard.postgres.database.azure.com' password='gsHExnKT7MrejZE3nF3ZKnJhNFA9'")
