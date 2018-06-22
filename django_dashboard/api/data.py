@@ -249,7 +249,10 @@ class DataResource(MultipartResource, ModelResource):
             except:
                 device_id = '1e7e59ddc13c9c09e6a33a31860bc0d' # hardcode now for testing
             sensor_data = next(data_to_get.get_data_for_device(device_id = device_id, name='', startT = 1513987200000, endT = 1514160000000))
-            bundle.data = { "data":sensor_data , "UIC": data["UIC"] }
+            if 'UIC' in data:
+                bundle.data = { "data":sensor_data , "UIC": data["UIC"] }
+            elif 'plant_id' in data:
+                bundle.data = { "data":sensor_data , "plant_id": data["plant_id"] }
         except:
             raise_custom_error({"error":"You cannot get pressure data at this time or there is an error with your request. Sorry not to be more helpful. Goodbye."}, 500)
 
