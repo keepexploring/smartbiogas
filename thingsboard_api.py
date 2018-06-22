@@ -14,13 +14,14 @@ import pdb
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #BASE_DIR = os.path.normpath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+ os.sep + os.pardir)
 Config = configparser.ConfigParser() # we store security setting in another file
-Config.read(BASE_DIR+'/SmartBiogas6/config/configs.ini')
+# Config.read(BASE_DIR+'/SmartBiogas6/config/configs.ini') // local directory
+Config.read(BASE_DIR+'/smartbiogas/config/configs.ini')
 
 # to run in production:
-# gunicorn -w 4 -b 127.0.0.1:5000 thingsboard_api:__hug_wsgi__
+# gunicorn -w 4 -b 127.0.0.1:6000 thingsboard_api:__hug_wsgi__
 
 # to run for testing:
-# hug -f thingsboard_api.py
+# hug -f thingsboard_api.py -p 6000
 #config = configparser.ConfigParser()
 #config.read('init.ini')
 
