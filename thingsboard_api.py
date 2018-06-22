@@ -30,6 +30,7 @@ Config.read(BASE_DIR+'/SmartBiogas6/config/configs.ini')
 #JWT_ISSUER = params['AUTH']['JWT_ISSUER']
 #JWT_AUDIENCE = params['AUTH']['JWT_AUDIENCE']
 #JWT_OPTIONS_ALGORITHM = params['AUTH']['JWT_OPTIONS_ALGORITHM']
+
 JWT_OPTIONS = json.loads(Config.get("thingsboardapi","JWT_OPTIONS"))
 SECRET_KEY = Config.get("thingsboardapi","SECRET_KEY")
 JWT_ISSUER = Config.get("thingsboardapi","JWT_ISSUER")
@@ -97,12 +98,22 @@ def parse_header(authorization_header, exception_class=HTTPUnauthorized):
 
 token_key_authentication = hug.authentication.token(jwt_token_verify)
 
+def connect_to_database():
+    try:
+    # pdb.set_trace()
+    # conn = psycopg2.connect("dbname='thingsboard' user='thingsboard@thingsboard' host='thingsboard.postgres.database.azure.com' password='gsHExnKT7MrejZE3nF3ZKnJhNFA9'")
+        conn = psycopg2.connect(db_connection_string)
+        return conn
+    except:
+        return None
+
+
 @hug.get('/get_customers', requires=token_key_authentication)
 def get_customers(hug_user):
-    #pdb.set_trace()
-    cur = conn.cursor()
-    query = "SELECT * from customer;"
+    conn = connect_to_database()
     try:
+        cur = conn.cursor()
+        query = "SELECT * from customer;"
         cur.execute(query)
         rows = cur.fetchall()
         data_list = []
@@ -116,10 +127,11 @@ def get_customers(hug_user):
 @hug.post('/get_devices', requires=token_key_authentication)
 def get_devices(hug_user, customer_id):
     #pdb.set_trace()
-    cur = conn.cursor()
-    query = "SELECT * from device WHERE customer_id = " + "'"+str(customer_id)+"'" + ";"
-    data = {}
+    conn = connect_to_database()
     try:
+        data = {}
+        cur = conn.cursor()
+        query = "SELECT * from device WHERE customer_id = " + "'"+str(customer_id)+"'" + ";"
         cur.execute(query)
         rows = cur.fetchall()
         data_list = []
@@ -136,56 +148,61 @@ def get_devices(hug_user, customer_id):
 @hug.post('/get_data', requires=token_key_authentication)
 def get_data(hug_user,device_id, startT, endT,keys=['PR']):
     #pdb.set_trace()
-    cur = conn.cursor()
-    data = {}
-    if 'PR' in keys:
-        query_PR = "SELECT entity_id, ts, key, dbl_v from ts_kv WHERE entity_id = " + "'" + str(device_id) + "'" + " AND key = 'PR' AND ts >= " + str(int(startT)) +" AND ts < " + str(int(endT))+";"
-        try:
-            cur.execute(query_PR)
-            rows_PR = cur.fetchall()
-            data_list = []
-            for row in rows_PR:
-                data_list.append({"entity_id":row[0], "ts":row[1], "key":row[2], "value":row[3] })
-            data['PR'] = data_list
-        except:
-            print("error")
-    else:
-        rows_PR = None
-
-    if 'SD' in keys:
-        query_SD = "SELECT entity_id, ts, key, dbl_v from ts_kv WHERE entity_id = " + "'" + str(device_id) + "'" + " AND key = 'SD' AND ts >= " + str(int(startT)) +" AND ts < " + str(int(endT))+";"
-        try:
-            cur.execute(query_SD)
-            rows_SD = cur.fetchall()
-            data_list = []
-            for row in rows_SD:
-                data_list.append({"entity_id":row[0], "ts":row[1], "key":row[2], "value":row[3] })
-            data['SD'] = data_list
-        except:
-            print("error")
-    else:
-        rows_SD = None
-
-    if 'RSSI' in keys:
-        query_RSSI = "SELECT entity_id, ts, key, long_v from ts_kv WHERE entity_id = " + "'" + str(device_id) + "'" + " AND key = 'RSSI' AND ts >= " + str(int(startT)) +" AND ts < " + str(int(endT))+";"
-        try:
-            cur.execute(query_RSSI)
-            rows_RSSI = cur.fetchall()
-            data_list = []
-            for row in rows_RSSI:
-                data_list.append({"entity_id":row[0], "ts":row[1], "key":row[2], "value":row[3] })
-            data['RSSI'] = data_list
-        except:
-            print("error")
-    else:
-        rows_RSSI = None
+    conn = connect_to_database()
 
     try:
-        cur.execute(query_PR)
+        data = {}
+        cur = conn.cursor()
+        if 'PR' in keys:
+            query_PR = "SELECT entity_id, ts, key, dbl_v from ts_kv WHERE entity_id = " + "'" + str(device_id) + "'" + " AND key = 'PR' AND ts >= " + str(int(startT)) +" AND ts < " + str(int(endT))+";"
+            try:
+                cur.execute(query_PR)
+                rows_PR = cur.fetchall()
+                data_list = []
+                for row in rows_PR:
+                    data_list.append({"entity_id":row[0], "ts":row[1], "key":row[2], "value":row[3] })
+                data['PR'] = data_list
+            except:
+                print("error")
+        else:
+            rows_PR = None
+
+        if 'SD' in keys:
+            query_SD = "SELECT entity_id, ts, key, dbl_v from ts_kv WHERE entity_id = " + "'" + str(device_id) + "'" + " AND key = 'SD' AND ts >= " + str(int(startT)) +" AND ts < " + str(int(endT))+";"
+            try:
+                cur.execute(query_SD)
+                rows_SD = cur.fetchall()
+                data_list = []
+                for row in rows_SD:
+                    data_list.append({"entity_id":row[0], "ts":row[1], "key":row[2], "value":row[3] })
+                data['SD'] = data_list
+            except:
+                print("error")
+        else:
+            rows_SD = None
+
+        if 'RSSI' in keys:
+            query_RSSI = "SELECT entity_id, ts, key, long_v from ts_kv WHERE entity_id = " + "'" + str(device_id) + "'" + " AND key = 'RSSI' AND ts >= " + str(int(startT)) +" AND ts < " + str(int(endT))+";"
+            try:
+                cur.execute(query_RSSI)
+                rows_RSSI = cur.fetchall()
+                data_list = []
+                for row in rows_RSSI:
+                    data_list.append({"entity_id":row[0], "ts":row[1], "key":row[2], "value":row[3] })
+                data['RSSI'] = data_list
+            except:
+                print("error")
+        else:
+            rows_RSSI = None
+
+        try:
+            cur.execute(query_PR)
+        except:
+            print("error")
+        rows = cur.fetchall()
+        #data_list=[]
     except:
-        print("error")
-    rows = cur.fetchall()
-    #data_list=[]
+        pass
     
 
     return data
