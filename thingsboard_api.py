@@ -15,8 +15,8 @@ import pdb
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #BASE_DIR = os.path.normpath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+ os.sep + os.pardir)
 Config = configparser.ConfigParser() # we store security setting in another file
-#Config.read(BASE_DIR+'/SmartBiogas6/config/configs.ini')
-Config.read(BASE_DIR+'/smartbiogas/config/configs.ini')
+Config.read(BASE_DIR+'/SmartBiogas6/config/configs.ini')
+#Config.read(BASE_DIR+'/smartbiogas/config/configs.ini')
 
 # to run in production:
 # gunicorn -w 4 -b 127.0.0.1:6000 thingsboard_api:__hug_wsgi__
@@ -42,8 +42,7 @@ DBNAME = Config.get("thingsboardapi","dbname")
 USER = Config.get("thingsboardapi", "user")
 HOST = Config.get("thingsboardapi", "host")
 TB_PASS = Config.get("thingsboardapi", "thingsboard_pass")
-
-db_connection_string = f"""dbname='{DBNAME}' user='{USER}' host='{HOST}' password='{TB_PASS}'"""
+db_connection_string = "dbname='{0}' user='{1}' host='{2}' password='{3}'".format(DBNAME,USER,HOST,TB_PASS)
 try:
     # pdb.set_trace()
     # conn = psycopg2.connect("dbname='thingsboard' user='thingsboard@thingsboard' host='thingsboard.postgres.database.azure.com' password='gsHExnKT7MrejZE3nF3ZKnJhNFA9'")
