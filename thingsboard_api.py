@@ -27,6 +27,18 @@ Config.read(BASE_DIR+'/smartbiogas/config/configs.ini')
 #config = configparser.ConfigParser()
 #config.read('init.ini')
 
+### superviorctl config file
+"""
+[program:thingsboard_data_api]
+command = /home/connected/.virtualenvs/biogas3/bin/python /home/connected/.virtualenvs/biogas3/bin/gunicorn -w 4 -b 127.0.0.1:6000 thingsboard_api:__hug_wsgi__
+directory = /home/connected/smartbiogas/smartbiogas
+priority = 4
+autorestart = True
+autostart = True
+user = root
+
+"""
+
 #params = yaml.load(open('init.yaml', 'r') )
 #JWT_OPTIONS = params['AUTH']['JWT_OPTIONS']
 #SECRET_KEY = params['AUTH']['SECRET_KEY']

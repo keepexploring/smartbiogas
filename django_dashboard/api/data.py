@@ -228,7 +228,7 @@ class DataResource(MultipartResource, ModelResource):
         self.is_authenticated(request)
         bundle = self.build_bundle(data={}, request=request)
         data = json.loads( request.read() )
-        data = only_keep_fields(data,['startT', 'endT', 'UIC'])
+        data = only_keep_fields(data,['startT', 'endT', 'UIC','plant_id'])
         
         try:
             uob = bundle.request.user
@@ -242,7 +242,10 @@ class DataResource(MultipartResource, ModelResource):
             # we would now need to look up the device_id on thingsboard from the UIC (that is the number on the hardware)
             
             try:
-                device_id = UICtoDeviceID.objects.filter(UIC=data['UIC'])[0].device_id
+                if 'UIC' in data:
+                    device_id = UICtoDeviceID.objects.filter(biogas_plant__UIC=data['UIC'])[0].device_id
+                elif 'plant_id' in data:
+                    device_id = UICtoDeviceID.objects.filter(biogas_plant__id=data['device_id'])[0].device_id
             except:
                 device_id = '1e7e59ddc13c9c09e6a33a31860bc0d' # hardcode now for testing
             sensor_data = next(data_to_get.get_data_for_device(device_id = device_id, name='', startT = 1513987200000, endT = 1514160000000))
