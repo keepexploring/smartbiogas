@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import hug
 import os
 import jwt
@@ -14,11 +15,7 @@ import pdb
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #BASE_DIR = os.path.normpath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+ os.sep + os.pardir)
 Config = configparser.ConfigParser() # we store security setting in another file
-<<<<<<< Updated upstream
-# Config.read(BASE_DIR+'/SmartBiogas6/config/configs.ini') // local directory
-=======
 #Config.read(BASE_DIR+'/SmartBiogas6/config/configs.ini')
->>>>>>> Stashed changes
 Config.read(BASE_DIR+'/smartbiogas/config/configs.ini')
 
 # to run in production:
