@@ -35,9 +35,16 @@ SECRET_KEY = Config.get("thingsboardapi","SECRET_KEY")
 JWT_ISSUER = Config.get("thingsboardapi","JWT_ISSUER")
 JWT_AUDIENCE = Config.get("thingsboardapi","JWT_AUDIENCE")
 JWT_OPTIONS_ALGORITHM = Config.get("thingsboardapi","JWT_OPTIONS_ALGORITHM")
+DBNAME = Config.get("thingsboardapi","dbname")
+USER = Config.get("thingsboardapi", "user")
+HOST = Config.get("thingsboardapi", "host")
+TB_PASS = Config.get("thingsboardapi", "thingsboard_pass")
 
+db_connection_string = f"dbname='{DBNAME}' user='{USER}' host='{HOST}' password='{TB_PASS}'"
 try:
-    conn = psycopg2.connect("dbname='thingsboard' user='thingsboard@thingsboard' host='thingsboard.postgres.database.azure.com' password='gsHExnKT7MrejZE3nF3ZKnJhNFA9'")
+    # pdb.set_trace()
+    # conn = psycopg2.connect("dbname='thingsboard' user='thingsboard@thingsboard' host='thingsboard.postgres.database.azure.com' password='gsHExnKT7MrejZE3nF3ZKnJhNFA9'")
+    conn = psycopg2.connect(db_connection_string)
 except:
     print("I am unable to connect to the database")
 

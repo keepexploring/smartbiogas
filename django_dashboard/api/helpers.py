@@ -229,8 +229,20 @@ class NestedPendingAction(serpy.Serializer):
 class CardSerializerNoPending(serpy.Serializer):
     id = serpy.IntField()
     user = NestedUserDetail()
+    card_template = NestedTemplate()
     value = serpy.Field()
     position = serpy.Field()
+    created = serpy.Field()
+    updated = serpy.Field()
+
+class TemplateCardSerializer(serpy.Serializer):
+    id = serpy.IntField()
+    name = serpy.Field()
+    title = serpy.Field()
+    description = serpy.Field()
+    card_type = serpy.Field()
+    entity_type = serpy.Field()
+    image = serpy.Field()
     created = serpy.Field()
     updated = serpy.Field()
 

@@ -50,7 +50,7 @@ schema = {
                             'email':{'type':'string', 'regex': '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'},
                             'country':{'type': 'string','required':True},
                             'region':{'type': 'string','required':True},
-                            'postcode':{'type': 'string','required':True},
+                            'postcode':{'type': 'string'},
                             'district':{'type': 'string'},
                             'ward':{'type': 'string'},
                             'village':{'type': 'string'},

@@ -20,7 +20,7 @@ import serpy
 from django.db.models import Q
 import uuid
 import json
-from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, CardTemplateSerializer, CardSerializerNoPending, CardSerializerPending, raise_custom_error
+from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, CardTemplateSerializer, CardSerializerNoPending, CardSerializerPending, TemplateCardSerializer,  raise_custom_error
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
@@ -94,7 +94,6 @@ class DataResource(MultipartResource, ModelResource):
     def get_template_cards(self, request, **kwargs):
         self.is_authenticated(request)
         bundle = self.build_bundle(data={}, request=request)
-
         try:
             uob = bundle.request.user
             part_of_companies = UserDetail.objects.get(user=uob).company.all()
@@ -109,7 +108,7 @@ class DataResource(MultipartResource, ModelResource):
             #card_templates = CardTemplate.objects.filter(company__in = part_of_companies)
             # for now we just show all card tempates as there are not many and we want to display something for development purposes
             card_templates = CardTemplate.objects.all()
-            card_templated_serialized = CardSerializerNoPending(card_templates, many=True).data
+            card_templated_serialized = TemplateCardSerializer(card_templates, many=True).data
             
             bundle.data = { "data":card_templated_serialized }
         except:
@@ -157,6 +156,41 @@ class DataResource(MultipartResource, ModelResource):
 
         return self.create_response(request, bundle)
 
+    @action(allowed=['post'], require_loggedin=False,static=True)
+    def add_card_to_dashboard(self, request, **kwargs):
+        self.is_authenticated(request)
+        bundle = self.build_bundle(data={}, request=request)
+        data = json.loads( request.read() )
+        data = only_keep_fields( data,['position', 'template_id'] )
+        
+        try:
+            uob = bundle.request.user
+            cards = Card.objects.filter(user=uob.userdetail)
+            currently_occupied_positions = []
+            for card in cards:
+                currently_occupied_positions.append(card.position)
+
+            
+            try:
+                template = CardTemplate.objects.get(id = data['template_id'])
+            except:
+                raise LookupError('Could not find that id. Are you sure you have the card id correct?')
+            
+            
+            if data['position'] not in currently_occupied_positions:
+                new_card = Card()
+                new_card.position = data['position']
+                new_card.card_template = template
+                new_card.user = uob.userdetail
+                new_card.save()
+                bundle.data = { "message":"Card Added", "position":data['position'], "id":data['template_id'] }
+            else:
+                raise ValueError('The position you have given is currently occupied')
+        except Exception as err:
+            raise_custom_error({"error":str(err.__str__())}, 500)
+        
+        return self.create_response(request, bundle)
+
     @action(allowed=['put'], require_loggedin=False,static=True)
     def modify_card_order(self, request, **kwargs):
         self.is_authenticated(request)
@@ -170,11 +204,14 @@ class DataResource(MultipartResource, ModelResource):
             cards = Card.objects.filter(user=uob.userdetail)
             # check that the client does not try and put 2 cards in the same position
             positions_occupied = set()
-            unique_check = any(pos in positions_occupied or positions_occupied.add(pos) for id_, pos in data['card_order'])
+            unique_check = any(item['position'] in positions_occupied or positions_occupied.add(item['position']) for item in data['card_order'])
             if unique_check is True:
-                raise_custom_error({"error":"You must a list with unique positions [[[id1,pos2],[id2,pos2]...etc]"}, 500)
+                raise_custom_error({"error":"You must provide a list with unique positions [[[id1,pos2],[id2,pos2]...etc]"}, 500)
+            for item in data['card_order']:
+                
+                id_ = item['id']
+                pos = item['position']
 
-            for id_, pos in data['card_order']:
                 for cd in cards:
                     if (cd.id == id_):
                         cd.position = pos
@@ -182,7 +219,7 @@ class DataResource(MultipartResource, ModelResource):
             bundle.data = { "message":"Card Positions updated" }
             # now update the correct cards       
         except:
-            raise_custom_error({"error":"You cannot modify the order at this time"}, 500)
+            raise_custom_error({"error":"You cannot modify the order at this time - You must provide a list with unique positions [[[id1,pos2],[id2,pos2]...etc]"}, 500)
 
         return self.create_response(request, bundle)
 
