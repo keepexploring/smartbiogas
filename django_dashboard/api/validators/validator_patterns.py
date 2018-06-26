@@ -154,7 +154,7 @@ schema = {
                             "install_date":{'type': 'integer'},
                             "current_status":{'type': 'integer', 'allowed': [1, 2, 3, 4, 5]},
                             "construction_tech":{'type': 'string','allowed':['me','none']},
-                            "location_estimated":{ 'type':'boolean', 'required':True },
+                            "location_estimated":{ 'type':'boolean', 'required':False },
                             "biogas_plant_name":{'type': 'string'},
                             "funding_source_notes":{'type': 'string'},
                             "country":{'type': 'string','required':False},

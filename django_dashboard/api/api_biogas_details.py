@@ -5,7 +5,7 @@ from django_dashboard.models import Company, UserDetail, TechnicianDetail, Bioga
 from tastypie.authorization import DjangoAuthorization
 from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
-from helpers import Permissions, only_keep_fields, if_empty_fill_none, to_serializable, raise_custom_error
+from helpers import Permissions, only_keep_fields, if_empty_fill_none, to_serializable, raise_custom_error, BiogasPlantSerialiser
 from django.db.models import Q
 from tastypie.constants import ALL
 from tastypie_actions.actions import actionurls, action
@@ -121,10 +121,30 @@ class BiogasPlantResource(ModelResource):
 
         return self.create_response(request, bundle)
 
+    @action(allowed=['post'], require_loggedin=False, static=True)
+    def search_for_biogas_plant(self, request, **kwargs):
+        self.is_authenticated(request)
+        data = json.loads( request.read() )
+        fields = ['UIC']
+        data = only_keep_fields(data, fields)
+        bundle = self.build_bundle(data={}, request=request)
+        try:
+            data_to_send =['biogas_plant_name','contact','funding_souce','funding_source_notes','country','region','district','ward','village','other_address_details','type_biogas','supplier','volume_biogas','location_estimated','QP_status','sensor_status','current_status','verfied','what3words']
+            biogas_plant = BiogasPlant.objects.get(UIC=data['UIC'], many=True)
+            # contacts = biogas_plant.contact
+            biogas_plant_serialised = BiogasPlantSerialiser(biogas_plant)
+            bundle.data = biogas_plant_serialised.data
+
+        except:
+            raise CustomBadRequest(
+                    code="404",
+                    message="UIC submitted does not exist")
+
+        return self.create_response(request, bundle)
+
 
     @action(allowed=['post'], require_loggedin=False, static=True)
     def create_biogas_plant(self, request, **kwargs):
-        
         self.is_authenticated(request)
         data = json.loads( request.read() )
         fields = ["UIC", "biogas_plant_name", "associated_company","contact","funding_source","latitude","longitude","country","village","region","district","ward","what3words","type_biogas","volume_biogas","install_date","other_address_details","current_status","contruction_tech","location_estimated"]

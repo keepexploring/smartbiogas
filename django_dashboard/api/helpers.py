@@ -260,5 +260,30 @@ class CardSerializerPending(serpy.Serializer):
         return [{"is_complete":jj.is_complete, "message":jj.message , "alert_type":jj.alert_type.name ,"created":jj.created.strftime("%Y-%m-%dT%H:%M:%S") ,"updated":jj.updated.strftime("%Y-%m-%dT%H:%M:%S")} for jj in obj.pending_actions.all()]
         #pending_actions = NestedPendingAction()
 
+class NestedContactSerializer(serpy.Serializer):
+    id = serpy.IntField()
+    first_name = serpy.Field()
+    surname = serpy.Field()
+    mobile  = serpy.Field()
+    email = serpy.Field()
 
+class BiogasPlantSerialiser(serpy.Serializer):
+    plant_id = serpy.Field()
+    biogas_plant_name = serpy.Field()
+    constructing_technicians = serpy.Field()
+    contact = NestedContactSerializer(many=True)
+    UIC = serpy.Field()
+    funding_source_notes = serpy.Field()
+    other_address_details = serpy.Field()
+    type_biogas = serpy.Field()
+    supplier = serpy.Field()
+    volume_biogas = serpy.Field()
+    location_estimated = serpy.Field()
+    location = serpy.MethodField()
+    QP_status = serpy.Field()
+    current_status = serpy.Field()
+    notes = serpy.Field()
+
+    def get_location(self, obj):
+        return to_serializable(obj.location)
     

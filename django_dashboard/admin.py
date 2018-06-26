@@ -12,7 +12,7 @@ from django.contrib.admin import widgets
 from dynamic_raw_id.admin import DynamicRawIDMixin
 
 from bootstrap_datepicker.widgets import DatePicker
-from datetimepicker.widgets import DateTimePicker
+#from datetimepicker.widgets import DateTimePicker
 from django_dashboard.forms import UserForm, BiogasForm, CompanyForm, UserDetailForm
 from django import forms
 from django.contrib.admin import AdminSite
@@ -84,9 +84,9 @@ class DashboardAdmin(admin.ModelAdmin):
 
 
 class JobForm(forms.ModelForm):
-    date_flagged = forms.DateTimeField(
-        widget=DateTimePicker(options = {'format': '%Y-%m-%d %H:%M'}),
-    )
+    # date_flagged = forms.DateTimeField(
+    #     widget=DateTimePicker(options = {'format': '%Y-%m-%d %H:%M'}),
+    # )
     class Meta:
         model = JobHistory
         exlude = ()
@@ -100,18 +100,18 @@ class JobHistoryInline(admin.TabularInline):
    form = JobForm
    filter_horizontal = ('fixers',)
 
-   formfield_overrides = {
-        models.DateField: {'widget': DatePicker(
-            options={
-                "format": "mm/dd/yyyy",
-                "autoclose": True
-            }
-        )
-        }
-        #models.DateTimeField: {'widget':DateTimePicker(
-        #    options = {'format': '%Y-%m-%d %H:%M'}
-        #)}
-    }
+#    formfield_overrides = {
+#         models.DateField: {'widget': DatePicker(
+#             options={
+#                 "format": "mm/dd/yyyy",
+#                 "autoclose": True
+#             }
+#         )
+#         }
+#         #models.DateTimeField: {'widget':DateTimePicker(
+#         #    options = {'format': '%Y-%m-%d %H:%M'}
+#         #)}
+#     }
 
 class JobsAdmin(admin.ModelAdmin):
     model = JobHistory 

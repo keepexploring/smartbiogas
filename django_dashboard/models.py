@@ -340,6 +340,7 @@ class BiogasPlant(models.Model):
     verfied = models.NullBooleanField(db_index=True,blank=True,default=False)
     install_date = models.DateField(null=True,blank=True)
     what3words =  models.CharField(max_length=200,null=True,blank=True)
+    notes = models.TextField(null=True,blank=True) 
 
     def __str__(self):
         return '%s, %s, %s, %s' % (str(self.type_biogas), str(self.supplier), str(self.volume_biogas), str(self.plant_id) )
@@ -553,10 +554,10 @@ class JobHistory(models.Model):
 
 class UICtoDeviceID(models.Model):
     """This table connects the sensors UIC with"""
-    UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200) # this is from the thingsboard side - we use to match with the biogas plant field - it is not a dublicated field
     device_id = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     biogas_plant = models.OneToOneField(BiogasPlant,on_delete=models.CASCADE,related_name='UIC_to_Device_id')
-
+    
 
 class Dashboard(models.Model):
     #company = models.OneToOneField(Company,on_delete=models.CASCADE, primary_key=True)

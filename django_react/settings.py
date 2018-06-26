@@ -42,7 +42,6 @@ ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1','localhost','api.smartbiogas.org']
 MEDIA_ROOT = os.path.join(BASE_DIR, 'Images')
 MEDIA_URL ='/media/'
 
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -71,7 +70,7 @@ INSTALLED_APPS = (
     'django_seed',
     'dynamic_raw_id',
     'searchableselect',
-    'datetimepicker',
+    #'datetimepicker',
     'phonenumber_field',
     'autofixture',
     #'tastypie_swagger',
@@ -183,9 +182,9 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
 #STATIC_ROOT 
 
-#STATICFILES_DIRS = (
-#    os.path.join(BASE_DIR, 'assets'),
-#)
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, 'assets'),
+# )
 
 WEBPACK_LOADER = {
     'DEFAULT': {
@@ -264,3 +263,5 @@ EMAIL_PORT = Config.get("email", "port")
 EMAIL_HOST_USER = Config.get("email", "user")
 EMAIL_HOST_PASSWORD = Config.get("email", "password")
 EMAIL_USE_TLS = True
+SERVER_EMAIL = 'django@connectedenergy.net'
+ADMINS=( ('Joel', 'joel@connectedenergy.net'),)

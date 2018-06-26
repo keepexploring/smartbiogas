@@ -92,7 +92,7 @@ class VillageAutocomplete(autocomplete.Select2ListView):
         return data
 
 class SupplierAutocomplete(autocomplete.Select2ListView):
-    suppliers = ['creativenergie', 'Camartec', 'Simgas', 'Biobalsa','Local technician']
+    suppliers = ['CREATIVENERGY', 'CAMARTEC', 'SIMGAS', 'SISTEMABIO','SNV','OTHER']
     def get_list(self):
         if not self.request.user.is_authenticated():
              return []

@@ -36,7 +36,7 @@ class BiogasForm(forms.ModelForm):
             'continent': autocomplete.ListSelect2(url='continent-autocomplete'),
             'ward': autocomplete.ListSelect2(url='ward-autocomplete'),
             'village': autocomplete.ListSelect2(url='village-autocomplete'),
-            'supplier': autocomplete.ListSelect2(url='supplier-autocomplete'),
+            #'supplier': autocomplete.ListSelect2(url='supplier-autocomplete'),
             'volume_biogas': autocomplete.ListSelect2(url='volume-autocomplete'),
 
         }
