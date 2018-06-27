@@ -124,14 +124,13 @@ class BiogasPlantResource(ModelResource):
     @action(allowed=['post'], require_loggedin=False, static=True)
     def search_for_biogas_plant(self, request, **kwargs):
         self.is_authenticated(request)
+        
         data = json.loads( request.read() )
         fields = ['UIC']
         data = only_keep_fields(data, fields)
         bundle = self.build_bundle(data={}, request=request)
         try:
-            data_to_send =['biogas_plant_name','contact','funding_souce','funding_source_notes','country','region','district','ward','village','other_address_details','type_biogas','supplier','volume_biogas','location_estimated','QP_status','sensor_status','current_status','verfied','what3words']
-            biogas_plant = BiogasPlant.objects.get(UIC=data['UIC'], many=True)
-            # contacts = biogas_plant.contact
+            biogas_plant = BiogasPlant.objects.get(UIC=data['UIC'])
             biogas_plant_serialised = BiogasPlantSerialiser(biogas_plant)
             bundle.data = biogas_plant_serialised.data
 

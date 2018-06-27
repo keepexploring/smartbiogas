@@ -270,8 +270,8 @@ class NestedContactSerializer(serpy.Serializer):
 class BiogasPlantSerialiser(serpy.Serializer):
     plant_id = serpy.Field()
     biogas_plant_name = serpy.Field()
-    constructing_technicians = serpy.Field()
-    contact = NestedContactSerializer(many=True)
+    #constructing_technicians = serpy.Field()
+    contact = serpy.MethodField()
     UIC = serpy.Field()
     funding_source_notes = serpy.Field()
     other_address_details = serpy.Field()
@@ -286,4 +286,7 @@ class BiogasPlantSerialiser(serpy.Serializer):
 
     def get_location(self, obj):
         return to_serializable(obj.location)
+
+    def get_contact(self, obj):
+        return [ {"first_name": ii.first_name, "surname": ii.surname, "mobile": ii.mobile } for ii in obj.contact.all() ]
     
