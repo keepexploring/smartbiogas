@@ -22,7 +22,7 @@ def actionurls(self):
             else:
                 if not method.auto_action_static:
                     urls.append(
-                        url(r"^(?P<resource_name>%s)/(?P<%s>[A-Za-z0-9]+)/%s%s$" % (
+                        url(r"^(?P<resource_name>%s)/(?P<%s>[A-Za-z0-9_=&]+)/%s%s$" % (
                             self._meta.resource_name,
                             self._meta.detail_uri_name,
                             actionName,

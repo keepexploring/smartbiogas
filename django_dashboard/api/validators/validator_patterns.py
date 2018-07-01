@@ -13,10 +13,13 @@ import re
             
 
 def what3words_validator(field, value, error):
-    pattern = re.compile("^[a-zA-Z]+\.[a-zA-Z]+\.[a-zA-Z]+$")
-    valid = bool(pattern.match(value))
-    if not valid:
-        error(field, "what3wowrds needs to be 3 strings separated by a '.' e.g. 'apple.french.lovely' ")
+    if value is None:
+        valid = True
+    else:
+        pattern = re.compile("^[a-zA-Z]+\.[a-zA-Z]+\.[a-zA-Z]+$")
+        valid = bool(pattern.match(value))
+        if not valid:
+            error(field, "what3wowrds needs to be 3 strings separated by a '.' e.g. 'apple.french.lovely' ")
 
 def biogas_plant_uri_validator(field, value, error):
     pattern = re.compile("^\/api\/v1\/biogasplants\/[0-9]+\/$")
@@ -61,7 +64,7 @@ schema = {
                             'status':{'type':'boolean','required':True},
                             'willing_to_travel':{'type': 'integer','min': 0 },
                             'max_num_jobs_allowed':{'type': 'integer', 'max':10},
-                            'languages_spoken': {'type': 'list', 'items': [ {'type': 'string'} ] },
+                            'languages_spoken': {'type': 'list', 'schema': {'type': 'string'} },
                             'user_photo':{'type':'string'},
                             'what3words':{'type': 'string','validator': what3words_validator},
                             'username':{'type':'string', 'required':True, 'required':True},
@@ -89,7 +92,7 @@ schema = {
                             'status':{'type':'boolean'},
                             'willing_to_travel':{'type': 'integer','min': 0 },
                             'max_num_jobs_allowed':{'type': 'integer', 'max':10},
-                            'languages_spoken': {'type': 'list', 'items': [ {'type': 'string'} ] },
+                            'languages_spoken': {'type': 'list', 'schema': {'type': 'string'} },
                             'user_photo':{'type':'string'},
                             'what3words':{'type': 'string','validator': what3words_validator},
                             'username':{'type':'string', 'required':True },
@@ -119,7 +122,7 @@ schema = {
                             "funding_source":{'type': 'integer', 'allowed': [1, 2, 3]},
                             "latitude":{'type':'float'},
                             "longitude":{'type':'float'},
-                            "what3words":{'validator': 'what3wordsVal'},
+                            "what3words":{'type': 'string','validator': what3words_validator},
                             "type_biogas":{'type': 'integer', 'allowed': [1, 2, 3, 4, 5]},
                             "volume_biogas":{'type': 'string', 'allowed': ['<3m3','3m3','4m3','5m3','6m3','7m3','8m3','9m3','10m3','11m3','12m3','>12m3']},
                             "install_date":{'type': 'integer'},
@@ -174,6 +177,15 @@ schema = {
                             "technician": { 'type': 'string', 'validator': technician_uri_validator },
                             "job_details": {'type': 'string'},
                             "biogas_plant":{ 'type': 'string', 'validator': biogas_plant_uri_validator }
-                        }
+                        },
+
+    "register_node": {
+                        "UIC": { 'type': 'string', 'required':True},
+                        "channel": {'type': 'integer', 'required':True},
+                        "band": {'type': 'integer', 'required':True},
+                        "mode": {'type': 'integer', 'required':True},
+                        "nw_key": {'type': 'string', 'required':True}
+
+                    },
 
 }

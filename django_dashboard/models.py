@@ -553,12 +553,21 @@ class JobHistory(models.Model):
 #     datetime
 
 class UICtoDeviceID(models.Model):
-    """This table connects the sensors UIC with"""
+    """This table connects the sensors UIC. It is all the sensors that currently exist on thingsboard - it is updated as soon as a new sensor is added to thingsboard"""
     UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200) # this is from the thingsboard side - we use to match with the biogas plant field - it is not a dublicated field
     device_id = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     biogas_plant = models.OneToOneField(BiogasPlant,on_delete=models.CASCADE,related_name='UIC_to_Device_id')
     
+class RegisteredNode(models.Model):
+    UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    channel = models.IntegerField(db_index=True, null=True,blank=True)
+    band = models.IntegerField(db_index=True, null=True,blank=True)
+    mode = models.IntegerField(db_index=True, null=True,blank=True)
+    nw_key = models.CharField(db_index=True,null=True,blank=True,max_length=255)
 
+    class Meta:
+        permissions = ( ('can_register_node', 'has permission to register a new node on the system'), )
+# CYNKHXCvGYQWghELxeQnPtsRX6hv
 class Dashboard(models.Model):
     #company = models.OneToOneField(Company,on_delete=models.CASCADE, primary_key=True)
     #id = models.BigIntegerField(primary_key = True,default=1)

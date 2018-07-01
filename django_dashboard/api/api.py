@@ -19,7 +19,8 @@ import serpy
 from django.db.models import Q
 import uuid
 import json
-from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, raise_custom_error, required_fields, CustomBadRequest
+from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, raise_custom_error, required_fields, CustomBadRequest, JobHistorySerialiser
+from helpers import parse_string_extract_filter
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
@@ -34,6 +35,8 @@ from phonenumbers import carrier
 from phonenumbers.phonenumberutil import number_type
 from cerberus import Validator
 from django_dashboard.api.validators.validator_patterns import schema
+from django.core.paginator import Paginator
+import math
 import pdb
 
 multiselect_fields = { "plumber":'PLUMBER',"mason":'MASON',"manager":'MANAGER',"design":'DESIGN','calculations':'CALCULATIONS','tubular':'TUBULAR','fixed_dome':'FIXED_DOME' }
@@ -637,7 +640,6 @@ class UserDetailResource(ModelResource): # parent
     @action(allowed=['post'], require_loggedin=False,static=True)
     def create_technician(self, request, **kwargs):
         self.is_authenticated(request)
-        
         data = json.loads( request.read() )
         data = only_keep_fields(data,['first_name','last_name','mobile','phone_number','email','user_photo','country','region','district','ward','village','postcode','other_address_details','role','acredit_to_install','acredited_to_fix','specialist_skills','status','what3words','willing_to_travel','max_num_jobs_allowed','languages_spoken','username','password'])
         
@@ -731,7 +733,7 @@ class UserDetailResource(ModelResource): # parent
 
 class JobHistoryResource(ModelResource):
     #plant = fields.ToManyField(BiogasPlantResource, 'plant', null=True, blank=True, full=True)
-    #fixers = fields.ManyToManyField(UserDetailResource, 'fixerss', related_name="fixerss", null=True, blank=True, full=True)
+    fixers = fields.ManyToManyField(UserDetailResource, 'fixers', full=True)
     
     class Meta:
         queryset = JobHistory.objects.all()
@@ -761,7 +763,7 @@ class JobHistoryResource(ModelResource):
     @action(allowed=['get'], require_loggedin=False,static=False) #static=True if you don't want to include an id in the url
     def find_new_tech(self, request, **kwargs):
         """Find a new technician when they accepted but did not take"""
-        pdb.set_trace()
+        #pdb.set_trace()
         self.is_authenticated(request)
         #objs = JobHistoryResource.get_list(self, request, **kwargs)
         pdb.set_trace()
@@ -1018,6 +1020,53 @@ class JobHistoryResource(ModelResource):
 
         return self.create_response(request, bundle)
 
+    @action(allowed=['get'], require_loggedin=False,static=False)
+    def get_jobs(self, request, **kwargs):
+        self.is_authenticated(request)
+        bundle = self.build_bundle(data={}, request=request)
+        sort_string = kwargs['pk']
+        
+        key_words = {'actions':['order_by','limit','page'], 'fields':['fixers'], 'nestedfields':['user','id'],'search':['job_status']}
+        paginate = False
+        
+        filter_dict = parse_string_extract_filter(sort_string=sort_string, key_words=key_words)
+        
+        page = filter_dict["page"]
+        limit = filter_dict["limit"]
+        order_by = filter_dict["order_by"]
+        to_filter = filter_dict["filter"]
+
+        if ( (page is not None) and (limit is not None) ):
+            paginate = True
+        
+        try:
+            jobs = JobHistory.objects.filter(**to_filter).order_by(*order_by)
+            
+            if paginate is True:
+                paginate_meta = {}
+                jobs_paginator = Paginator(jobs, limit)
+                jobs = jobs_paginator.page(page)
+                paginate_meta['has_next'] = jobs.has_next()
+                paginate_meta['has_previous'] = jobs.has_previous()
+                paginate_meta['total_count'] = jobs_paginator.count
+                paginate_meta['limit'] = limit
+                paginate_meta['page'] = page
+                paginate_meta['page_count'] = jobs_paginator.num_pages
+                
+                pdb.set_trace()
+                jobs_serialised = JobHistorySerialiser(jobs, many=True).data
+                
+                
+                bundle.data = { "meta":paginate_meta, "data":jobs_serialised }
+
+
+        except:
+            pass
+    
+
+
+        return self.create_response(request, bundle)
+
     
     @action(allowed=['post'], require_loggedin=False,static=True)
     def get_historical_jobs(self, request, **kwargs):
@@ -1181,13 +1230,12 @@ class JobHistoryResource(ModelResource):
     @action(allowed=['post'], require_loggedin=True)
     def get_admins(self, request, **kwargs):
         self.is_authenticated(request)
-        pdb.set_trace()
+        #pdb.set_trace()
         pass
 
 
     def dehydrate(self, bundle):
 
-        #pdb.set_trace()
         
         plant_info = bundle.obj.plant.__dict__ # one biogas plant associated with one job
         contact_info = bundle.obj.plant.contact.values()
@@ -1296,7 +1344,6 @@ class JobHistoryResource(ModelResource):
 
     def authorized_read_list(self, object_list, bundle):
         #return object_list.filter(user=bundle.request.user)
-        #pdb.set_trace()
         try:
             uob = bundle.request.user
             user_object = UserDetail.objects.filter(user=uob)

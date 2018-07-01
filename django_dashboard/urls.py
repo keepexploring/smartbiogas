@@ -5,6 +5,7 @@ from api.api import CompanyResource, UserDetailResource, TechnicianDetailResourc
 from api.api_biogas_contact import BiogasPlantContactResource
 from api.api_biogas_details import BiogasPlantResource
 from api.pending_jobs import PendingJobsResource
+from api.register_node import RegisterResource
 from api.data import DataResource
 from api.validate import ValidateToken
 from api.password_management import PasswordManagementResource
@@ -22,6 +23,7 @@ v1_api.register(PendingJobsResource())
 v1_api.register(ValidateToken())
 v1_api.register(PasswordManagementResource())
 v1_api.register(DataResource())
+v1_api.register(RegisterResource())
 
 urlpatterns = [
               # url(r'home/$', views.index_main.as_view(), name='home'),

@@ -184,6 +184,46 @@ def to_serializable(val):
         return (None,None)
 
 
+def parse_string_extract_filter(sort_string, key_words):
+
+    order_by = []
+    to_filter = {}
+    limit_value = None
+    page_value = None
+    tokens = sort_string.split('&')
+    for token in tokens:
+        for field in key_words['fields']:
+            if field in token:
+                split_token = token.split("=")
+                value_raw = split_token[1]
+                keyword = split_token[0]
+                try:
+                    value = float(value_raw)
+                    if value.is_integer():
+                        value = int(value)
+                except:
+                    value = str(raw_value)
+            
+                to_filter[keyword] = value
+                
+        for action in key_words['actions']:
+            if 'order_by' in token:
+                pdb.set_trace()
+                split_token = token.split("=")
+                order_by.append(split_token[1])
+
+            if 'limit' in token:
+                paginate = True
+                split_token = token.split("=")
+                limit_value = int(split_token[1])
+
+            if 'page' in token:
+                split_token = token.split("=")
+                page_value = int(split_token[1])
+
+    return { "order_by":order_by, "limit":limit_value, "page":page_value, "filter":to_filter }
+
+
 class AddressSerializer(serpy.Serializer):
     """The serializer schema definition."""
     # Use a Field subclass like IntField if you need more validation.
@@ -290,3 +330,38 @@ class BiogasPlantSerialiser(serpy.Serializer):
     def get_contact(self, obj):
         return [ {"first_name": ii.first_name, "surname": ii.surname, "mobile": ii.mobile } for ii in obj.contact.all() ]
     
+
+
+
+class JobHistorySerialiser(serpy.Serializer):
+    plant = BiogasPlantSerialiser()
+    fixers = serpy.MethodField()
+    accepted_but_did_not_visit = serpy.MethodField()
+    rejected_job = serpy.MethodField()
+    job_id = serpy.Field()
+    date_flagged = serpy.Field()
+    date_accepted = serpy.Field()
+    date_completed = serpy.Field()
+    completed = serpy.Field()
+    dispute_raised = serpy.Field()
+    job_status = serpy.Field() # Enum field
+    verification_of_engagement = serpy.Field()
+    fault_description = serpy.Field()
+    other = serpy.Field()
+    client_feedback_star = serpy.Field()
+    client_feedback_additional = serpy.Field()
+    overdue_for_acceptance = serpy.Field()
+    priority = serpy.Field()
+    fault_class = serpy.Field()
+    assistance = serpy.Field()
+    description_help_need = serpy.Field()
+    reason_abandoning_job = serpy.Field()
+
+    def get_fixers(self, obj):
+        return [ {"id":ii.id} for ii in obj.fixers.all() ]
+
+    def get_rejected_job(self, obj):
+        return [ {"id": ii.id} for ii in obj.rejected_job.all() ]
+    
+    def get_accepted_but_did_not_visit(self, obj):
+        return [ {"id": ii.id} for ii in obj.accepted_but_did_not_visit.all() ]

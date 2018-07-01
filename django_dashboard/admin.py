@@ -6,7 +6,7 @@ from django.db import models
 
 from .models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, TechnicianDetail, BiogasPlant, JobHistory, Dashboard, PendingJobs, \
     CardTemplate, Card, PendingAction, UtilisationStatus, LowGasPressure, TrendChangeDetectionPDecrease, TrendChangeDetectionPIncrease, \
-    BiogasSensorStatus, AutoFault, DataConnection, IndictorJoinTable
+    BiogasSensorStatus, AutoFault, DataConnection, IndictorJoinTable, RegisteredNode
 
 from django.contrib.admin import widgets
 from dynamic_raw_id.admin import DynamicRawIDMixin
@@ -217,7 +217,11 @@ class PendingActionsAdmin(admin.ModelAdmin):
     list_filter = ('id','card', 'is_complete', 'entity_type', 'message', 'alert_type','created','updated')
     search_filter = ('id','card', 'is_complete', 'entity_type', 'message', 'alert_type','created','updated')
 
-
+class RegisteredNodeAdmin(admin.ModelAdmin):
+    model = RegisteredNode
+    list_display = ('UIC', 'channel', 'band', 'mode', 'nw_key')
+    list_filter = ('UIC', 'channel', 'band', 'mode', 'nw_key')
+    search_filter = ('UIC', 'channel', 'band', 'mode', 'nw_key')
 #admin.ModelAdmin.ordering = ()
 #admin_site = MyAdminSite()
 admin.site.site_header = 'SmartBiogas Admin'
