@@ -1053,7 +1053,6 @@ class JobHistoryResource(ModelResource):
                 paginate_meta['page'] = page
                 paginate_meta['page_count'] = jobs_paginator.num_pages
                 
-                pdb.set_trace()
                 jobs_serialised = JobHistorySerialiser(jobs, many=True).data
                 
                 
