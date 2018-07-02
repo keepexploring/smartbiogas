@@ -96,13 +96,13 @@ class PasswordManagementResource(ModelResource):
             raise_custom_error({"error":"You need to provide either a mobile number or email address"}, 422)
 
         if (len(data)>=2):
-            raise_custom_error({"error":"You should only send email or mobile, not both"}, 422)
+            raise_custom_error({"error":"You should only send email or mobile, not both"}, 400)
         
         if 'email' in data.keys():
             match = re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', data['email'] )
 
             if match == None:
-                raise_custom_error({"error":"Please send an email address"}, 422)
+                raise_custom_error({"error":"Please send an email address"}, 400)
 
         try:
             if 'mobile' in data.keys():
@@ -116,7 +116,7 @@ class PasswordManagementResource(ModelResource):
                     send_mail('Smart Biogas Password Reset', 'Here is your reset code: '+ str(hid), 'hello@smartbiogas.net', ['diego@ecm.im','joel@creativenergie.co.uk','daniel@ecm.im'], fail_silently=False, )
                 bundle.data = {"message":"If your number exists in the system you will soon receive a message"}
         except:
-            raise_custom_error({"error":"mobile number needs to be in international format"}, 422)
+            raise_custom_error({"error":"mobile number needs to be in international format"}, 400)
         
         
         if 'email' in data.keys():
@@ -162,7 +162,7 @@ class PasswordManagementResource(ModelResource):
             bundle.data['token'] = base64.b64encode(cipher_jwt)
             code[0].delete()
         else:
-            bundle.data['message'] = "Invalid Code"
+            raise_custom_error({"error":"Invalid Code"}, 400)
             
         return self.create_response(request, bundle)
 
