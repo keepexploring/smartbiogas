@@ -19,7 +19,7 @@ import serpy
 from django.db.models import Q
 import uuid
 import json
-from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields
+from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, raise_custom_error
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
@@ -37,6 +37,7 @@ import random
 import urllib2
 import base64
 import ConfigParser
+import re
 
 BASE_DIR = settings.BASE_DIR
 
@@ -85,31 +86,51 @@ class PasswordManagementResource(ModelResource):
     @action(allowed=['post'], require_loggedin=False, static=True)
     def get_reset_code(self, request, **kwargs):
         #self.is_authenticated(request)
-        
         data = json.loads( request.read() )
         fields = ["mobile","email"]
         data = only_keep_fields(data, fields)
 
         bundle = self.build_bundle(data={}, request=request)
-        flag = 0
+
+        if (len(data)==0):
+            raise_custom_error({"error":"You need to provide either a mobile number or email address"}, 422)
+
+        if (len(data)>=2):
+            raise_custom_error({"error":"You should only send email or mobile, not both"}, 422)
+        
+        if 'email' in data.keys():
+            match = re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', data['email'] )
+
+            if match == None:
+                raise_custom_error({"error":"Please send an email address"}, 422)
+
         try:
-            number_object = phonenumbers.parse(data['mobile'], None)
-            mobile_sent = phonenumbers.format_number(number_object, phonenumbers.PhoneNumberFormat.INTERNATIONAL).replace(" ", "")
-            flag = 0
+            if 'mobile' in data.keys():
+                number_object = phonenumbers.parse(data['mobile'], None)
+                mobile_sent = phonenumbers.format_number(number_object, phonenumbers.PhoneNumberFormat.INTERNATIONAL).replace(" ", "")
+                user_object = UserDetail.objects.filter(phone_number=mobile_sent)
+
+                if (len(user_object)>0): # if this is true the user exist in the database
+                    uob = user_object[0].user
+                    hid = self.generate_reset_code(uob)
+                    send_mail('Smart Biogas Password Reset', 'Here is your reset code: '+ str(hid), 'hello@smartbiogas.net', ['diego@ecm.im','joel@creativenergie.co.uk','daniel@ecm.im'], fail_silently=False, )
+                bundle.data = {"message":"If your number exists in the system you will soon receive a message"}
         except:
-            flag = 1
-            bundle.data = { "error":"mobile number needs to be in international format" }
-            
-        #uob = bundle.request.user
-        user_object = UserDetail.objects.filter(phone_number=mobile_sent)
-        if (flag==0 and (len(user_object)>0) ): # if this is true the user exist in the database
+            raise_custom_error({"error":"mobile number needs to be in international format"}, 422)
+        
+        
+        if 'email' in data.keys():
+            user_object = UserDetail.objects.filter(email=data['email'])
+
+        if (len(user_object)>0):
             uob = user_object[0].user
-            #pdb.set_trace()
-            # we need to just run a loop around this to make sure we never get a repeat
             hid = self.generate_reset_code(uob)
-            bundle.data = {"message":"If your number exists in the system you will soon receive a message"}
-            #pdb.set_trace()
-            send_mail('Smart Biogas Password Reset', 'Here is your reset code: '+ str(hid), 'hello@smartbiogas.net', ['diego@ecm.im','joel@creativenergie.co.uk','daniel@ecm.im'], fail_silently=False, )   
+            send_mail('Smart Biogas Password Reset', 'Here is your reset code: '+ str(hid), 'hello@smartbiogas.net', ['diego@ecm.im','joel@creativenergie.co.uk','daniel@ecm.im'], fail_silently=False, )
+        bundle.data = {"message":"If your email exists in the system you will soon receive a message"}
+        
+        #uob = bundle.request.user
+        
+         
         return self.create_response(request, bundle)
         
         
