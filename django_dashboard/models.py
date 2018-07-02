@@ -449,7 +449,6 @@ class JobHistory(models.Model):
         
     @_completed.setter
     def set_completed(self,value):
-        pdb.set_trace()
         self._complete_signal = True
         self.completed = value
         if (self.completed == True and self.date_completed == None):

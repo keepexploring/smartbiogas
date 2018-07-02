@@ -191,6 +191,7 @@ def parse_string_extract_filter(sort_string, key_words):
     limit_value = None
     page_value = None
     tokens = sort_string.split('&')
+    #pdb.set_trace()
     for token in tokens:
         for field in key_words['fields']:
             if field in token:
@@ -202,24 +203,30 @@ def parse_string_extract_filter(sort_string, key_words):
                     if value.is_integer():
                         value = int(value)
                 except:
-                    value = str(raw_value)
-            
-                to_filter[keyword] = value
+                    if (value_raw == 'false'):
+                        value = False
+                    elif (value_raw == 'true'):
+                        value = True
+                    else:
+                        value = str(value_raw)
+
+                if keyword not in key_words['actions']:
+                    to_filter[keyword] = value
                 
-        for action in key_words['actions']:
-            if 'order_by' in token:
-                pdb.set_trace()
-                split_token = token.split("=")
-                order_by.append(split_token[1])
+        
+        if 'order_by' in token:
+            #pdb.set_trace()
+            split_token = token.split("=")
+            order_by.append(split_token[1])
 
-            if 'limit' in token:
-                paginate = True
-                split_token = token.split("=")
-                limit_value = int(split_token[1])
+        if 'limit' in token:
+            paginate = True
+            split_token = token.split("=")
+            limit_value = int(split_token[1])
 
-            if 'page' in token:
-                split_token = token.split("=")
-                page_value = int(split_token[1])
+        if 'page' in token:
+            split_token = token.split("=")
+            page_value = int(split_token[1])
 
     return { "order_by":order_by, "limit":limit_value, "page":page_value, "filter":to_filter }
 
@@ -308,6 +315,7 @@ class NestedContactSerializer(serpy.Serializer):
     email = serpy.Field()
 
 class BiogasPlantSerialiser(serpy.Serializer):
+    id = serpy.Field()
     plant_id = serpy.Field()
     biogas_plant_name = serpy.Field()
     #constructing_technicians = serpy.Field()
@@ -330,11 +338,12 @@ class BiogasPlantSerialiser(serpy.Serializer):
     def get_contact(self, obj):
         return [ {"first_name": ii.first_name, "surname": ii.surname, "mobile": ii.mobile } for ii in obj.contact.all() ]
     
-
+class BiogasPlantIDSerialiser(serpy.Serializer):
+    id = serpy.Field()
 
 
 class JobHistorySerialiser(serpy.Serializer):
-    plant = BiogasPlantSerialiser()
+    plant = BiogasPlantIDSerialiser()
     fixers = serpy.MethodField()
     accepted_but_did_not_visit = serpy.MethodField()
     rejected_job = serpy.MethodField()

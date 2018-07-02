@@ -1026,9 +1026,11 @@ class JobHistoryResource(ModelResource):
         bundle = self.build_bundle(data={}, request=request)
         sort_string = kwargs['pk']
         
-        key_words = {'actions':['order_by','limit','page'], 'fields':['fixers'], 'nestedfields':['user','id'],'search':['job_status']}
+        
+        key_words = {'actions':['order_by','limit','page'], 'fields':['fixers', 'completed','job_status', 'dispute_raised','fault_class','job_status','assistance'], 'nestedfields':['user','id'],'search':['job_status']}
         paginate = False
         
+        #pdb.set_trace()
         filter_dict = parse_string_extract_filter(sort_string=sort_string, key_words=key_words)
         
         page = filter_dict["page"]
@@ -1052,16 +1054,19 @@ class JobHistoryResource(ModelResource):
                 paginate_meta['limit'] = limit
                 paginate_meta['page'] = page
                 paginate_meta['page_count'] = jobs_paginator.num_pages
-                
-                jobs_serialised = JobHistorySerialiser(jobs, many=True).data
-                
-                
-                bundle.data = { "meta":paginate_meta, "data":jobs_serialised }
-
 
         except:
-            pass
-    
+            raise CustomBadRequest(
+                        code="500",
+                        message="Filtering error, please contact Admin")
+
+        try:
+            jobs_serialised = JobHistorySerialiser(jobs, many=True).data
+            bundle.data = { "meta":paginate_meta, "data":jobs_serialised }
+        except:
+            raise CustomBadRequest(
+                        code="500",
+                        message="Serialisation Error, please contact Admin")
 
 
         return self.create_response(request, bundle)
