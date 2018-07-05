@@ -187,9 +187,28 @@ class DataResource(MultipartResource, ModelResource):
             else:
                 raise ValueError('The position you have given is currently occupied')
         except Exception as err:
-            raise_custom_error({"error":str(err.__str__())}, 500)
+            raise_custom_error({"error":str(err.__str__())}, 400)
         
         return self.create_response(request, bundle)
+
+    @action(allowed=['put'], require_loggedin=False,static=True)
+    def remove_card_from_dashboard(self, request, **kwargs):
+        self.is_authenticated(request)
+        bundle = self.build_bundle(data={}, request=request)
+        data = json.loads( request.read() )
+        data = only_keep_fields( data,['card_id'] )
+
+        uob = bundle.request.user
+        cards = Card.objects.filter(id=data['card_id'])
+        if (len(cards) >=1):
+            cards.delete()
+            bundle.data = { "message":"Card Deleted", "card_id":data['card_id'] }
+        else:
+            raise_custom_error({"error":" There is not a card of that id on the dashboard" }, 400)
+
+        return self.create_response(request, bundle)
+
+
 
     @action(allowed=['put'], require_loggedin=False,static=True)
     def modify_card_order(self, request, **kwargs):
@@ -206,7 +225,7 @@ class DataResource(MultipartResource, ModelResource):
             positions_occupied = set()
             unique_check = any(item['position'] in positions_occupied or positions_occupied.add(item['position']) for item in data['card_order'])
             if unique_check is True:
-                raise_custom_error({"error":"You must provide a list with unique positions [[[id1,pos2],[id2,pos2]...etc]"}, 500)
+                raise_custom_error({"error":"You must provide a list with unique positions e.g. { 'card_order':[{'position':1,'id':7}, 'position':2,'id':5}, ...]}"}, 400)
             for item in data['card_order']:
                 
                 id_ = item['id']
