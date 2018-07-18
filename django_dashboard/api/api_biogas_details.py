@@ -83,39 +83,39 @@ class BiogasPlantResource(ModelResource):
         try:
              # we specify the type of bundle in order to help us filter the action we take before we return
             uob = bundle.request.user
-            if uob.is_superuser:
-                part_of_groups = uob.groups.all()
-                perm = Permissions(part_of_groups)
-                list_of_company_ids_admin = perm.check_auth_admin()
-                list_of_company_ids_tech = perm.check_auth_tech
-                #bundle.data['technicians'] = data_list
-                biogas_plants = BiogasPlant.objects.filter(contact__mobile=mobile)
-                #bundle.data['biogas_plants'] = [i for i in biogas_plants]
+            #if uob.is_superuser:
+            part_of_groups = uob.groups.all()
+            perm = Permissions(part_of_groups)
+            list_of_company_ids_admin = perm.check_auth_admin()
+            list_of_company_ids_tech = perm.check_auth_tech
+            #bundle.data['technicians'] = data_list
+            biogas_plants = BiogasPlant.objects.filter(contact__mobile=mobile)
+            #bundle.data['biogas_plants'] = [i for i in biogas_plants]
 
-                data_list = []
-                for bi in biogas_plants:
-                    data = { 
-                            "owner": [{"first_name":ii.first_name, "surname":ii.surname, "mobile":ii.mobile, "contact_type":ii.contact_type.name} for ii in bi.contact.all()],
-                            "biogas_plant_name": bi.biogas_plant_name,
-                             "associated_company": bi.associated_company,
-                            "country":bi.country,
-                            "region": bi.region,
-                            "district":bi.district,
-                            "ward": bi.ward,
-                            "village":bi.village,
-                            "type_biogas":bi.type_biogas,
-                            "supplier":bi.supplier,
-                            "volume_biogas":bi.volume_biogas,
-                            "QP_status":bi.QP_status,
-                            "sensor_status":bi.sensor_status,
-                            "current_status":bi.current_status,
-                            "verfied":bi.verfied,
-                            "uri":"/api/v1/biogasplant/"+str(bi.id)+"/",
-                            "location_estimated":bi.location_estimated,
-                            "location": to_serializable(bi.location),
-                           }
-                    data_list.append(data)
-                bundle.data['biogas_plants'] = data_list
+            data_list = []
+            for bi in biogas_plants:
+                data = { 
+                        "owner": [{"first_name":ii.first_name, "surname":ii.surname, "mobile":ii.mobile, "contact_type":ii.contact_type.name} for ii in bi.contact.all()],
+                        "biogas_plant_name": bi.biogas_plant_name,
+                            "associated_company": bi.associated_company,
+                        "country":bi.country,
+                        "region": bi.region,
+                        "district":bi.district,
+                        "ward": bi.ward,
+                        "village":bi.village,
+                        "type_biogas":bi.type_biogas,
+                        "supplier":bi.supplier,
+                        "volume_biogas":bi.volume_biogas,
+                        "QP_status":bi.QP_status,
+                        "sensor_status":bi.sensor_status,
+                        "current_status":bi.current_status,
+                        "verfied":bi.verfied,
+                        "uri":"/api/v1/biogasplant/"+str(bi.id)+"/",
+                        "location_estimated":bi.location_estimated,
+                        "location": to_serializable(bi.location),
+                        }
+                data_list.append(data)
+            bundle.data['biogas_plants'] = data_list
         except:
             pass
 
