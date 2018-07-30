@@ -1,0 +1,9 @@
+{
+    "dev": {
+        "django_settings": "django_react.settings", 
+        "profile_name": null, 
+        "project_name": "smartbiogas6", 
+        "runtime": "python2.7", 
+        "s3_bucket": "zappa-pmxymy7wr"
+    }
+}

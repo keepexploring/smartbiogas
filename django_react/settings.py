@@ -73,6 +73,7 @@ INSTALLED_APPS = (
     #'datetimepicker',
     'phonenumber_field',
     'autofixture',
+    'zappa_django_utils',
     #'guardian',
     #'tastypie_swagger',
     
