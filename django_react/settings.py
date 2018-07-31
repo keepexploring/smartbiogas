@@ -60,8 +60,8 @@ INSTALLED_APPS = (
     'django_dashboard',
     'django_react',
     'django_elasticsearch_dsl',
-    'channels',
-    'django_realtime',
+    #'channels',
+    #'django_realtime',
     'huey.contrib.djhuey',
     'tastypie',
     'oauth2_provider',
@@ -74,6 +74,7 @@ INSTALLED_APPS = (
     'phonenumber_field',
     'autofixture',
     'zappa_django_utils',
+    'axe',
     #'guardian',
     #'tastypie_swagger',
     
@@ -160,7 +161,18 @@ DATABASES = {
             'HOST': Config.get("postgres_azure", "host"),
             'PORT': Config.get("postgres_azure", "port"),
 
-        }
+        },
+
+        # 'default': {
+        #     #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        #     'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        #     'NAME': Config.get("postgres_zappa", "database_name"),
+        #     'USER': Config.get("postgres_zappa", "username"),
+        #     'PASSWORD': Config.get("postgres_zappa", "password"),
+        #     'HOST': Config.get("postgres_zappa", "host"),
+        #     'PORT': Config.get("postgres_zappa", "port"),
+
+        # }
 }
 
 DATABASE_CONNECTION_POOLING = True
