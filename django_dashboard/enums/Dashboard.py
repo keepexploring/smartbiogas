@@ -19,6 +19,8 @@ class AlertTypes(Enum):
     LONGOUTSTANDING = 6 # there are some jobs which have been outstanding for far too long and need admin intervention
     POORFEEDBACK = 7 # a technician has received poor feedback - you might want to deal with this
     NEEDTECHICIAN = 8
-    OTHER = 9 # another action which we have not got a catagory for
+    ACCEPT = 9 # a user has made a change that needs accepting by an admin
+    INFO = 10
+    OTHER = 11 # another action which we have not got a catagory for
 
 

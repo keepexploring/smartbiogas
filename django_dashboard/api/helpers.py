@@ -10,6 +10,8 @@ from enumfields import Enum
 from django.contrib.gis.geos import Point
 import uuid
 import serpy
+from cerberus import Validator
+from django_dashboard.api.validators.validator_patterns import schema
 import pdb
 
 
@@ -152,6 +154,11 @@ def remove_fields(bundle,fields):
         bundle.data.pop(ff, None)
     return bundle
 
+def remove_fields_from_dict(data,fields):
+    for ff in fields:
+        data.pop(ff, None)
+    return data
+
 def datetime_to_string(date_obj):
     try:
         return date_obj.strftime("%Y-%m-%d %H:%M:%S")
@@ -230,6 +237,23 @@ def parse_string_extract_filter(sort_string, key_words):
 
     return { "order_by":order_by, "limit":limit_value, "page":page_value, "filter":to_filter }
 
+def get_enum_id(enum, object_id):
+    try:
+        dict_list = enum.__members__
+        return dict_list[object_id].value
+    except:
+        return None
+
+def validate_data(validation_schema, data, error_handler = None ):
+    if error_handler is None:
+        vv= Validator(validation_schema)
+    else:
+        vv= Validator(validation_schema, error_handler=error_handler )
+
+    if not vv.validate(data):
+        errors_to_report = vv.errors
+        raise CustomBadRequest( code="field_error", message=errors_to_report )
+    
 
 class AddressSerializer(serpy.Serializer):
     """The serializer schema definition."""
@@ -242,6 +266,12 @@ class AddressSerializer(serpy.Serializer):
     ward = serpy.Field()
     village = serpy.Field()
     population = serpy.Field()
+
+class NestedCompany(serpy.Serializer):
+    company_id= serpy.Field()
+    company_name = serpy.Field()
+    country = serpy.Field()
+    region = serpy.Field()
 
 class CardTemplateSerializer(serpy.Serializer):
     id = serpy.IntField()
@@ -284,8 +314,10 @@ class CardSerializerNoPending(serpy.Serializer):
 
 class TemplateCardSerializer(serpy.Serializer):
     id = serpy.IntField()
+    company = NestedCompany()
     name = serpy.Field()
     title = serpy.Field()
+    template_id = serpy.Field()
     description = serpy.Field()
     card_type = serpy.Field()
     entity_type = serpy.Field()
@@ -374,3 +406,25 @@ class JobHistorySerialiser(serpy.Serializer):
     
     def get_accepted_but_did_not_visit(self, obj):
         return [ {"id": ii.id} for ii in obj.accepted_but_did_not_visit.all() ]
+
+class IndicatorsTemplateSerialiser(serpy.Serializer):
+    id = serpy.Field()
+    template_id = serpy.Field()
+    type_indicator = serpy.Field()
+    title = serpy.Field()
+    description = serpy.Field()
+    units = serpy.Field()
+    image = serpy.Field()
+    created = serpy.Field()
+    updated = serpy.Field()
+
+
+class IndicatorObjectsSerialiser(serpy.Serializer):
+    id = serpy.Field()
+    indicator_template = IndicatorsTemplateSerialiser()
+    biogas_plant = serpy.Field()
+    value = serpy.Field()
+    info = serpy.Field()
+    status = serpy.Field()
+    created = serpy.Field()
+    updated = serpy.Field()

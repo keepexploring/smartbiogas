@@ -1,6 +1,6 @@
 {
     "dev": {
-        "aws_region": "us-east-2",
+        "aws_region": "us-east-1",
         "django_settings": "django_react.settings", 
         "profile_name": null, 
         "project_name": "smartbiogas6", 
@@ -8,7 +8,7 @@
         "s3_bucket": "zappa-pmxymy7wr",
         "vpc_config" : {
             "SubnetIds": [ "subnet-a4af3ade","subnet-f3b844bf","subnet-935b04fb" ], // use the private subnet
-            "SecurityGroupIds": [ "sg-090a40764e087c24d" ]
+            "SecurityGroupIds": [ "sg-090a40764e087c24d", "sg-3a665f50" ]
         },
         "slim_handler": true,
         "debug": true,

@@ -343,7 +343,7 @@ class BiogasPlant(models.Model):
     notes = models.TextField(null=True,blank=True) 
 
     def __str__(self):
-        return '%s, %s, %s, %s' % (str(self.type_biogas), str(self.supplier), str(self.volume_biogas), str(self.plant_id) )
+        return '%s, %s, %s, %s, %s' % (str(self.id), str(self.type_biogas), str(self.supplier), str(self.volume_biogas), str(self.plant_id) )
 
     def get_contact(self):
         #pdb.set_trace()
@@ -749,11 +749,14 @@ class PendingAction(models.Model):
     id = models.AutoField(primary_key=True)
     card = models.ForeignKey(Card, on_delete=models.CASCADE, blank=True, null=True, related_name="pending_actions" )
     is_complete = models.BooleanField(db_index=True,default=False)
-    entity_type = EnumField(EntityTypes, max_length=1,null=True)
+    entity_type = EnumField(EntityTypes, max_length=2,null=True)
     message = models.TextField(null=True,blank=True)
-    alert_type = EnumField(AlertTypes, max_length=1,null=True)
+    alert_type = EnumField(AlertTypes, max_length=2,null=True)
     created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
     updated = models.DateTimeField(null=True,blank=True,editable=False)
+    entity_id = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    action_url = models.CharField(db_index=True,null=True,blank=True,max_length=600) # if we need to link to a specific url to perform the action we can add that here
+    action_object = models.CharField(db_index=True,null=True,blank=True,max_length=200) # this is the object id that needs to be updated (e.g. could be address, name etc). This allows that field to be highlighted as requiring the update
 
     def save(self, *args, **kwargs):
        
@@ -767,9 +770,54 @@ class PendingAction(models.Model):
 ###########################################################################
 # Indicator tables
 
+class IndicatorsTemplate(models.Model):
+    id = models.AutoField(primary_key=True)
+    template_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
+    type_indicator = models.CharField(db_index=True,null=True,blank=True,max_length=200) # This is an internal name for reference e.g.
+    title = models.CharField(null=True,blank=True, max_length=400)
+    description = models.TextField(db_index=True,null=True,blank=True)
+    units = models.CharField(null=True,blank=True,max_length=200)
+    image = models.ImageField(upload_to = 'WidgetCards',null=True,blank=True)
+    created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
+    updated = models.DateTimeField(null=True,blank=True,editable=False)
+    
+    def __str__(self):
+        return '%s' % (self.title)
+
+    def save(self, *args, **kwargs):
+        self.updated = timezone.now()
+        if not self.created:
+            self.created = timezone.now()
+       
+        return super(IndicatorsTemplate,self).save(*args,**kwargs)
+
+class IndicatorObjects(models.Model):
+    id = models.AutoField(primary_key=True)
+    indicator_template = models.ForeignKey(IndicatorsTemplate, on_delete=models.CASCADE, blank=True, null=True, related_name="indicator_objects" )
+    biogas_plant = models.ForeignKey(BiogasPlant, on_delete=models.CASCADE, related_name='indicators')
+    value = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    info = JSONField(null=True, blank=True)
+    status = models.IntegerField(editable=True, db_index=True,null=True,blank=True)
+    created = models.DateTimeField(editable=True, db_index=True,null=True,blank=True)
+    updated = models.DateTimeField(null=True,blank=True,editable=False)
+
+    def __str__(self):
+        return '%s' % (self.biogas_plant)
+
+    def save(self, *args, **kwargs):
+        
+        self.updated = timezone.now()
+        if not self.created:
+            self.created = timezone.now()
+       
+
+        return super(IndicatorObjects,self).save(*args,**kwargs)
+
+
 class IndictorJoinTable(models.Model):
     id = models.AutoField(primary_key=True)
     plant = models.OneToOneField(BiogasPlant,on_delete=models.CASCADE)
+
 
 class UtilisationStatus(models.Model):
     id = models.AutoField(primary_key=True)

@@ -6,7 +6,7 @@ from django.db import models
 
 from .models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, TechnicianDetail, BiogasPlant, JobHistory, Dashboard, PendingJobs, \
     CardTemplate, Card, PendingAction, UtilisationStatus, LowGasPressure, TrendChangeDetectionPDecrease, TrendChangeDetectionPIncrease, \
-    BiogasSensorStatus, AutoFault, DataConnection, IndictorJoinTable, RegisteredNode
+    BiogasSensorStatus, AutoFault, DataConnection, IndictorJoinTable, RegisteredNode, IndicatorsTemplate, IndicatorObjects
 
 from django.contrib.admin import widgets
 from dynamic_raw_id.admin import DynamicRawIDMixin
@@ -141,7 +141,21 @@ class BiogasPlantContactAdmin(admin.ModelAdmin):
     search_fields = ('uid','associated_company','contact_type','first_name','surname','mobile','email')
     dynamic_raw_id_fields = ('associated_company',)
     #form = UserForm
-    
+
+
+class IndicatorObjectsAdmin(admin.ModelAdmin):
+    model = IndicatorObjects
+    list_display = ('biogas_plant','value','info','status','created','updated')
+    list_filter = ('biogas_plant','value','info','status','created','updated')
+    search_fields = ('biogas_plant','value','info','status','created','updated')
+
+
+class IndicatorsTemplateAdmin(admin.ModelAdmin):
+    model = IndicatorsTemplate
+    #inlines = [IndicatorObjectsAdmin,]
+    list_display = ('template_id','type_indicator','title','description','units','image','created','updated')
+    list_filter = ('template_id','type_indicator','title','description','units','image','created','updated')
+    search_fields = ('template_id','type_indicator','title','description','units','image','created','updated')
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('first_name','surname','mobile','email','biogas_owner')
@@ -237,5 +251,8 @@ admin.site.register(BiogasPlantContact, BiogasPlantContactAdmin)
 admin.site.register(CardTemplate, CardTemplateAdmin)
 admin.site.register(IndictorJoinTable, IndicatorAdmin)
 admin.site.register(PendingAction, PendingActionsAdmin)
+admin.site.register(IndicatorsTemplate, IndicatorsTemplateAdmin)
+admin.site.register(IndicatorObjects, IndicatorObjectsAdmin)
+
 #admin.site.register(Users, UserAdmin)
 

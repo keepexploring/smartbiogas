@@ -188,4 +188,25 @@ schema = {
 
                     },
 
+    "update_card_value": {
+                            "template_id": { 'type': 'string', 'required':True },
+                            "value": { 'type': 'string', 'required':True }
+                        },
+
+    "update_or_add_pending_action": {
+                            "template_id": { 'type': 'string', 'required':True },
+                            "message": { 'type': 'string', 'required':False },
+                            "alert_type":{ 'type': 'string','allowed':['CONTACT', 'EDIT', 'REASSIGN', 'FINDSUPPORT', 'DISPUTE', 'LONGOUTSTANDING', 'POORFEEDBACK', 'NEEDTECHICIAN', 'OTHER', 'INFO'] , 'required':False },
+                            "entity_id": { 'type': 'string', 'required':False },
+                            "action_url": { 'type': 'string', 'required':False },
+                            "action_object": { 'type': 'string', 'required':False }
+                                },
+    "update_indicators" : {
+                        "plant_id": { 'type': 'integer', 'required':True },
+                        "type_indicator": { 'type': 'string', 'required':True },
+                        "info": { 'type': 'dict', 'required': False },
+                        "status": { 'type': 'integer', 'required': True },
+                        "value": { 'type': 'string', 'required': False }
+                           },               
+
 }
