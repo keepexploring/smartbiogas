@@ -75,6 +75,7 @@ INSTALLED_APPS = (
     'autofixture',
     'zappa_django_utils',
     'axe',
+    'cachalot',
     #'guardian',
     #'tastypie_swagger',
     

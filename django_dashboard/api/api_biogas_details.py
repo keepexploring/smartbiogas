@@ -84,10 +84,8 @@ class BiogasPlantResource(ModelResource):
              # we specify the type of bundle in order to help us filter the action we take before we return
             uob = bundle.request.user
             #if uob.is_superuser:
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
             #bundle.data['technicians'] = data_list
             biogas_plants = BiogasPlant.objects.filter(contact__mobile=mobile)
             #bundle.data['biogas_plants'] = [i for i in biogas_plants]
@@ -161,10 +159,9 @@ class BiogasPlantResource(ModelResource):
         bundle = self.build_bundle(data={}, request=request)
         try:
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+
             biogasplant = BiogasPlant() # if plant_id is a field we need to add it to the plant that has been specified
             field_relations = {'UIC': biogasplant.UIC, 'biogas_plant_name':biogasplant.biogas_plant_name, 'funding_souce':biogasplant.funding_souce,
                 'country':biogasplant.country, 'region':biogasplant.region, 'district':biogasplant.district,
@@ -237,12 +234,10 @@ class BiogasPlantResource(ModelResource):
         try:
             #uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
             
-            if uob.is_superuser:
+            if (uob.is_superuser or perm.is_global_admin() ):
                 plant_to_edit = BiogasPlant.objects.get(id=pk)
 
                 for itm in data: # for simple text based changes this is very easy - no additional clauses needed
@@ -270,12 +265,10 @@ class BiogasPlantResource(ModelResource):
             pk = kwargs['pk']
 
         uob = bundle.request.user
-        part_of_groups = uob.groups.all()
-        perm = Permissions(part_of_groups)
-        list_of_company_ids_admin = perm.check_auth_admin()
-        list_of_company_ids_tech = perm.check_auth_tech()
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
 
-        if uob.is_superuser:
+        if ( uob.is_superuser or perm.is_global_admin() ):
             try:
                 bundle.obj = BiogasPlant.objects.get(pk=pk) # a superuser can edit any technican's record
             except:     
@@ -284,7 +277,7 @@ class BiogasPlantResource(ModelResource):
                         message="Object not found")
         else:
             flag = 0
-            if list_of_company_ids_admin[0] is True: # pk=pk,,
+            if perm.is_admin() is True: # pk=pk,,
                 try:
                     
                     bundle.obj = BiogasPlant.objects.get(Q(pk=pk),Q(associated_company__company_id__in = list_of_company_ids_admin[1]) | Q(constructing_technicians__company__company_id__in = list_of_company_ids_admin[1]) ) # a superuser can edit any technican's record
@@ -294,7 +287,7 @@ class BiogasPlantResource(ModelResource):
                 except:
                     flag = 1
                 
-            elif ( (flag == 1 or flag==0) and list_of_company_ids_tech[0] is True ):
+            elif ( (flag == 1 or flag==0) and perm.is_technician() is True ):
                 try:
                     bundle.obj = BiogasPlant.objects.get(Q(pk=pk),Q(associated_company__company_id__in = list_of_company_ids_admin[1]) | Q(constructing_technicians__company__company_id__in = list_of_company_ids_admin[1]))
                     #bundle.obj = UserDetail.objects.get(pk=pk,company__company_id__in = list_of_company_ids_tech[1]) # a superuser can edit any technican's record
@@ -326,17 +319,21 @@ class BiogasPlantResource(ModelResource):
         #return object_list.filter(user=bundle.request.user)
         #pdb.set_trace()
         uob = bundle.request.user
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
+
         user_object = UserDetail.objects.filter(user=uob)
-        if uob.is_superuser:
+        if ( uob.is_superuser or perm.is_global_admin() ):
             return object_list
 
-        if user_object[0].role.label == 'Company Admin': # return all the people associated with this company
+        if perm.is_admin(): # return all the people associated with this company
             #pdb.set_trace()
-            company_object = user_object[0].company.all()
-            company_names = [co.company_name for co in company_object]
-            return object_list.filter(Q(contact__associated_company__company_name__in=company_names) | Q(associated_company__company_name__in=company_names))
+            #company_object = user_object[0].company.all()
+            #company_names = [co.company_name for co in company_object]
+            #return object_list.filter(Q(contact__associated_company__company_name__in=company_names) | Q(associated_company__company_name__in=company_names))
+            return object_list.filter(Q(contact__associated_company = company) | Q(associated_company = company))
 
-        if user_object[0].role.label == 'Technician': # only return the user info of the logged in technican
+        if perm.is_technician(): # only return the user info of the logged in technican
             # a technician cannot get the user details associated with a company
             #pdb.set_trace()
             # we want to filter and return only the biogas plants associated with that technican

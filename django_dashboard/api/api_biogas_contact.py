@@ -12,6 +12,7 @@ from helpers import only_keep_fields, if_empty_fill_none, Permissions, map_field
 from tastypie_actions.actions import actionurls, action
 import json
 from django_dashboard.api.validators.validator_patterns import schema
+from helpers import Permissions
 from cerberus import Validator
 
 import pdb
@@ -46,10 +47,8 @@ class BiogasPlantContactResource(ModelResource):
             pk = kwargs['pk']
 
         uob = bundle.request.user
-        part_of_groups = uob.groups.all()
-        perm = Permissions(part_of_groups)
-        list_of_company_ids_admin = perm.check_auth_admin()
-        list_of_company_ids_tech = perm.check_auth_tech()
+        perm = Permissions(uob)
+        logged_in_as_company = perm.get_company_scope()
 
         if uob.is_superuser:
             try:
@@ -60,18 +59,18 @@ class BiogasPlantContactResource(ModelResource):
                         message="Object not found")
         else:
             flag = 0
-            if list_of_company_ids_admin[0] is True:
+            if perm.is_admin():
                 try:
-                    bundle.obj = BiogasPlantContact.objects.get( pk=pk,associated_company__company_id__in = list_of_company_ids_admin[1] ) # a superuser can edit any technican's record
+                    bundle.obj = BiogasPlantContact.objects.get( pk=pk,associated_company =  logged_in_as_company) # a superuser can edit any technican's record
                     fields_to_allow_update_on = ['contact_type','first_name','surname','mobile','email','associated_company']
                     bundle = keep_fields(bundle, fields_to_allow_update_on)
                     flag = 2
                 except:
                     flag = 1
                 
-            elif ( (flag == 1 or flag==0) and list_of_company_ids_tech[0] is True ):
+            elif ( (flag == 1 or flag==0) and perm.is_technician() is True ):
                 try:
-                    bundle.obj = BiogasPlantContact.objects.get( pk=pk,associated_company__company_id__in = list_of_company_ids_admin[1])
+                    bundle.obj = BiogasPlantContact.objects.get( pk=pk,associated_company = logged_in_as_company)
                     #bundle.obj = UserDetail.objects.get(pk=pk,company__company_id__in = list_of_company_ids_tech[1]) # a superuser can edit any technican's record
                     fields_to_allow_update_on = ['contact_type','first_name','surname','mobile','email','associated_company']
                     bundle = keep_fields(bundle, fields_to_allow_update_on)
@@ -108,33 +107,32 @@ class BiogasPlantContactResource(ModelResource):
         bundle = self.build_bundle(data={}, request=request)
         try:
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
 
-            contact = BiogasPlantContact() # if plant_id is a field we need to add it to the plant that has been specified
-            contact.first_name = data['firstname']
-            contact.surname = data['surname']
-            contact.mobile = data['mobile']
-            contact.contact_type = data['contact_type']
-            contact.region = data['region']
-            contact.district = data['district']
-            contact.ward = data['ward']
-            contact.village = data['village']
-            bb=contact.save()
-            try:
-                if "latitude" in data.keys() and "longitude" in data.keys():
-                    contact.update(lat_long=Point(data['longitude'],data['latitude']) )
-            except:
-                pass
+            if ( uob.is_superuser or perm.is_technician() or perm.is_admin() or perm.is_global_admin() ):
 
-            uuid = contact.uid
+                contact = BiogasPlantContact() # if plant_id is a field we need to add it to the plant that has been specified
+                contact.first_name = data['firstname']
+                contact.surname = data['surname']
+                contact.mobile = data['mobile']
+                contact.contact_type = data['contact_type']
+                contact.region = data['region']
+                contact.district = data['district']
+                contact.ward = data['ward']
+                contact.village = data['village']
+                bb=contact.save()
+                try:
+                    if "latitude" in data.keys() and "longitude" in data.keys():
+                        contact.update(lat_long=Point(data['longitude'],data['latitude']) )
+                except:
+                    pass
 
-            #create(first_name=data['firstname'],surname=surname,mobile,contact_type=contact_type, mobile=mobile, email=email)
-            bundle.data = {"message":"contact created","uid":uuid.hex}
+                uuid = contact.uid
+
+                #create(first_name=data['firstname'],surname=surname,mobile,contact_type=contact_type, mobile=mobile, email=email)
+                bundle.data = {"message":"contact created","uid":uuid.hex}
         except:
-             bundle.data = {"message":"error"}
+            bundle.data = {"message":"error"}
 
         return self.create_response(request, bundle)
 
@@ -150,11 +148,9 @@ class BiogasPlantContactResource(ModelResource):
         try:
             bundle = self.build_bundle(data={}, request=request)
             uob = bundle.request.user
-            if uob.is_superuser:
-                part_of_groups = uob.groups.all()
-                perm = Permissions(part_of_groups)
-                list_of_company_ids_admin = perm.check_auth_admin()
-                list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            if (uob.is_superuser or perm.is_global_admin()):
+                
                 #pdb.set_trace()
                 contacts = BiogasPlantContact.objects.filter(mobile=data['mobile'])
                 data_to_return = []
@@ -245,9 +241,12 @@ class BiogasPlantContactResource(ModelResource):
     def obj_create(self, bundle, **kwargs):
         #pdb.set_trace()
         uob = bundle.request.user
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
+
         user_object = UserDetail.objects.filter(user=uob)
         
-        if uob.is_superuser:
+        if ( uob.is_superuser or perm.is_global_admin() ):
             pass
 
         else:
@@ -259,16 +258,20 @@ class BiogasPlantContactResource(ModelResource):
         #return object_list.filter(user=bundle.request.user)
         #pdb.set_trace()
         uob = bundle.request.user
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
+
         user_object = UserDetail.objects.filter(user=uob)
-        if uob.is_superuser:
+        if ( uob.is_superuser or perm.is_global_admin() ):
             return object_list
 
-        if user_object[0].role.label == 'Company Admin': # return all the people associated with this company
+        if perm.is_admin(): # return all the people associated with this company
             #pdb.set_trace()
-            company_object = user_object[0].company.all()
-            company_names = [co.company_name for co in company_object]
-            return object_list.filter(associated_company__company_name__in=company_names)
+            #company_object = user_object[0].company.all()
+            #company_names = [co.company_name for co in company_object]
+            #return object_list.filter(associated_company__company_name__in=company_names)
+            return object_list.filter(associated_company__company = company)
 
-        if user_object[0].role.label == 'Technician': # only return the user info of the logged in technican
+        if perm.is_technician(): # only return the user info of the logged in technican
             # a technician cannot get the user details associated with a company
             return []

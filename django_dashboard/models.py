@@ -20,15 +20,30 @@ from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User, Group, Permission
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.text import slugify
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
+from django.db import transaction
+from django.db.models import signals
 
 import pdb
 
 #class UserE(models.Model):
 #    user = models.OneToOneField(User, related_name='user')
+def on_transaction_commit(func):
+    def inner(*args, **kwargs):
+        transaction.on_commit(lambda: func(*args, **kwargs))
 
+    return inner
 
+def skip_signal():
+    def _skip_signal(signal_func):
+        @wraps(signal_func)
+        def _decorator(sender, instance, **kwargs):
+            if hasattr(instance, 'skip_signal'):
+                return None
+            return signal_func(sender, instance, **kwargs)  
+        return _decorator
+    return _skip_signal
 
 
 class Company(models.Model):
@@ -68,6 +83,15 @@ class Company(models.Model):
         new_group1, created1 = Group.objects.get_or_create(name=tech_group_name)
         new_group2, created2 = Group.objects.get_or_create(name=admin_group_name)
         new_group3, created3 = Group.objects.get_or_create(name=superadmin_group_name)
+
+        # generic groups for each company - this is probably a simpler way to manage going forward
+        new_group4a, created4a = Group.objects.get_or_create( name='biogas_owner' )
+        new_group4, created4 = Group.objects.get_or_create( name='technician_sb' )
+        new_group5, created5 = Group.objects.get_or_create( name='admin_sb' )
+        new_group6, created6 = Group.objects.get_or_create( name='superadmin_sb' )
+        new_group7, created7 = Group.objects.get_or_create( name='globaladmin_sb' )
+        new_group9, created9 = Group.objects.get_or_create( name='sysadmin' )
+        new_group8, created8 = Group.objects.get_or_create( name="company_"+slugify(company_name)+"_"+str(self.company_id) )
         # now when a new user is created, we
         #ct = ContentType.objects.get_for_model(User)
 
@@ -92,7 +116,8 @@ class UserDetail(models.Model):
         on_delete=models.CASCADE,
         related_name="logged_in_as",
         blank=True,
-        null=True
+        null=True,
+        editable = True
     )
     #models.ManyTo.ManyField(Company)
     # maybe add choices here:
@@ -123,7 +148,6 @@ class UserDetail(models.Model):
         return '%s, %s %s' % (self.last_name,self.first_name,self.phone_number)
 
     def save(self, *args, **kwargs):
-        #pdb.set_trace()
         #if self.id is None:
             #self.id = uuid.uuid4()
         #self.add_new_users_to_groups()
@@ -132,8 +156,6 @@ class UserDetail(models.Model):
         self.datetime_modified = timezone.now()
         self.first_name = self.user.first_name
         self.last_name = self.user.last_name
-        
-
         return super(UserDetail,self).save(*args,**kwargs)
 
 
@@ -162,14 +184,26 @@ class UserDetail(models.Model):
 
         )
 
-@receiver(post_save, sender=UserDetail, dispatch_uid="update_user_groups")
-def add_new_users_to_groups(sender, instance, **kwargs):
-    companies = instance.company.all()
+def add_companies_to_groups(companies, user):
+
     for cy in companies:
         tech_group_name = slugify(cy.company_name)+"__tech__"+str(cy.company_id)
         _group_, created = Group.objects.get_or_create(name=tech_group_name)
-        _group_.user_set.add(instance.user)
-    
+        _group_.user_set.add(user)
+        _group_stardard_, created = Group.objects.get_or_create(name='technician_sb')
+        _group_stardard_.user_set.add(user)
+
+@receiver(m2m_changed, sender=UserDetail.company.through, dispatch_uid="update_user")
+def add_new_users(sender, instance, action, **kwargs):
+    if action=="post_add":
+        companies = instance.company.all()
+
+        if ( instance.logged_in_as == None and len(companies)!=0 ):
+            instance.logged_in_as = companies[0] 
+            instance.save(update_fields=['logged_in_as'])
+
+        add_companies_to_groups(companies, instance.user)
+
 
 class TechnicianDetail(models.Model):
     BOOL_CHOICES = ((True, 'Active'), (False, 'Inactive'))
@@ -206,7 +240,7 @@ class TechnicianDetail(models.Model):
     number_of_jobs_completed = models.IntegerField(blank=True,null=True)
     #seconds_active = models.IntegerField(blank=True,null=True)
     status = models.NullBooleanField(db_index=True,blank=True,null=True,choices=BOOL_CHOICES)
-    what3words = models.CharField(max_length=200,null=True)
+    what3words = models.CharField(max_length=200,null=True,blank=True)
     location = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
     willing_to_travel = models.IntegerField(blank=True,null=True) # distance that a technician is willing to travel
     #rating = ArrayField(JSONField(blank=True, null=True),blank=True, null=True )
@@ -229,7 +263,10 @@ class TechnicianDetail(models.Model):
     def save(self, *args, **kwargs):
         if  (self.what3words != None): # want to change this so it is only saved when the coordinate has changed, not every time
             _location_ = find_coordinates(self.what3words)
-            self.location = Point( _location_['lng'], _location_['lat'] )
+            if _location_ is not None:
+                self.location = Point( _location_['lng'], _location_['lat'] )
+            else:
+                self.location = Point( None, None )
         return super(TechnicianDetail,self).save(*args,**kwargs)
 
     class Meta:
@@ -241,6 +278,8 @@ class TechnicianDetail(models.Model):
                         ("edit_technician", "Edit a technican's profile"),
 
         )
+    
+    
 
 class Address(models.Model):
     country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
@@ -286,6 +325,14 @@ class BiogasPlantContact(models.Model):
                         ("edit_mobile_number","Able to Edit a users mobile number")
 
         )
+
+# @receiver(post_save, sender=BiogasPlantContact, dispatch_uid="update_client_groups")
+# def add_new_clients_to_groups(sender, instance, **kwargs):
+#     company = instance.associated_company
+#     company_group, created = Group.objects.get_or_create( name=slugify(company.company_name)+"_"+str(company.company_id) )
+#     company_group.user_set.add(instance)
+#     _group_stardard_, created = Group.objects.get_or_create( name='biogas_owner' ) # this is what we are moving to - a simplified method
+#     _group_stardard_.user_set.add(instance.user)
     
 class BiogasPlant(models.Model):
     TYPE_BIOGAS_CHOICES = (

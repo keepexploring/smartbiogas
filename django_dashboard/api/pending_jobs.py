@@ -53,10 +53,8 @@ class PendingJobsResource(ModelResource):
             bundle = self.build_bundle(data={'job_id': kwargs['pk']}, request=request)
              # we specify the type of bundle in order to help us filter the action we take before we return
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
             #obj = self.cached_obj_get(bundle=bundle, **self.remove_api_resource_names(kwargs))
             pending_job = PendingJobs.objects.get(job_id=uid) # job_id is the primary key
 
@@ -101,10 +99,8 @@ class PendingJobsResource(ModelResource):
             bundle = self.build_bundle(data={'job_id': kwargs['pk']}, request=request)
              # we specify the type of bundle in order to help us filter the action we take before we return
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
             #obj = self.cached_obj_get(bundle=bundle, **self.remove_api_resource_names(kwargs))
             pending_job = PendingJobs.objects.get(job_id=uid) # job_id is the primary key
 
@@ -125,10 +121,8 @@ class PendingJobsResource(ModelResource):
         
         bundle = self.build_bundle(data={}, request=request)
         uob = bundle.request.user
-        part_of_groups = uob.groups.all()
-        perm = Permissions(part_of_groups)
-        list_of_company_ids_admin = perm.check_auth_admin()
-        list_of_company_ids_tech = perm.check_auth_tech()
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
 
         if uob.is_superuser:
             try:
@@ -171,10 +165,8 @@ class PendingJobsResource(ModelResource):
         try:
             #bundle = self.build_bundle(data={}, request=request) # we specify the type of bundle in order to help us filter the action we take before we return
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
 
             pending_jobs = PendingJobs.objects.filter(technician__user=uob)
             #pdb.set_trace()
@@ -213,7 +205,6 @@ class PendingJobsResource(ModelResource):
     @action(allowed=['put'], require_loggedin=True)
     def remove_pending_job(self, request, **kwargs):
         self.is_authenticated(request)
-        pdb.set_trace()
         pass
 
 
@@ -252,12 +243,10 @@ class PendingJobsResource(ModelResource):
             pk = kwargs['pk']
 
         uob = bundle.request.user
-        part_of_groups = uob.groups.all()
-        perm = Permissions(part_of_groups)
-        list_of_company_ids_admin = perm.check_auth_admin()
-        list_of_company_ids_tech = perm.check_auth_tech()
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
 
-        if uob.is_superuser:
+        if ( uob.is_superuser or perm.is_global_admin() ):
             try:
                 bundle.obj = PendingJobs.objects.get(pk=pk) # a superuser can edit any technican's record
             except:     
@@ -266,7 +255,7 @@ class PendingJobsResource(ModelResource):
                         message="Object not found")
         else:
             flag = 0
-            if list_of_company_ids_admin[0] is True: # pk=pk,,
+            if perm.is_admin() is True: # pk=pk,,
                 try:
                     
                     bundle.obj = PendingJobs.objects.get(Q(pk=pk),Q(associated_company__company_id__in = list_of_company_ids_admin[1]) | Q(constructing_technicians__company__company_id__in = list_of_company_ids_admin[1]) ) # a superuser can edit any technican's record
@@ -276,7 +265,7 @@ class PendingJobsResource(ModelResource):
                 except:
                     flag = 1
                 
-            elif ( (flag == 1 or flag==0) and list_of_company_ids_tech[0] is True ):
+            elif ( (flag == 1 or flag==0) and perm.is_technician() is True ):
                 try:
                     bundle.obj = PendingJobs.objects.get(Q(pk=pk),Q(associated_company__company_id__in = list_of_company_ids_admin[1]) | Q(constructing_technicians__company__company_id__in = list_of_company_ids_admin[1]))
                     #bundle.obj = UserDetail.objects.get(pk=pk,company__company_id__in = list_of_company_ids_tech[1]) # a superuser can edit any technican's record
@@ -303,6 +292,9 @@ class PendingJobsResource(ModelResource):
         # only superusers and create and delete pending jobs
         #pdb.set_trace()
         uob = bundle.request.user
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
+
         user_object = UserDetail.objects.filter(user=uob)
         data=bundle.data # do some pre-data validation
         _schema_ = schema['create_pending_job']
@@ -311,7 +303,7 @@ class PendingJobsResource(ModelResource):
             errors_to_report = vv.errors
             raise CustomBadRequest( code="field_error", message=errors_to_report )
 
-        if uob.is_superuser:
+        if (uob.is_superuser or perm.is_global_admin()):
             bundle = self.full_hydrate(bundle)
         else:
             bundle.obj = PendingJobs.objects.none()
@@ -342,17 +334,20 @@ class PendingJobsResource(ModelResource):
         #return object_list.filter(user=bundle.request.user)
         #pdb.set_trace()
         uob = bundle.request.user
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
         user_object = UserDetail.objects.filter(user=uob)
         if uob.is_superuser:
             return object_list
 
-        if user_object[0].role.label == 'Company Admin': # return all the people associated with this company
+        if perm.is_admin(): # return all the people associated with this company
             #pdb.set_trace()
-            company_object = user_object[0].company.all()
-            company_names = [co.company_name for co in company_object]
-            return object_list.filter(Q(contact__associated_company__company_name__in=company_names) | Q(associated_company__company_name__in=company_names))
+            #company_object = user_object[0].company.all()
+            #company_names = [co.company_name for co in company_object]
+            #return object_list.filter(Q(contact__associated_company__company_name__in=company_names) | Q(associated_company__company_name__in=company_names))
+            return object_list.filter(Q(contact__associated_company = company) | Q(associated_company = company))
 
-        if user_object[0].role.label == 'Technician': # only return the user info of the logged in technican
+        if perm.is_technician(): # only return the user info of the logged in technican
             # a technician cannot get the user details associated with a company
             #pdb.set_trace()
             # we want to filter and return only the biogas plants associated with that technican

@@ -116,3 +116,25 @@ https://simpleisbetterthancomplex.com/tutorial/2016/07/26/how-to-reset-migration
 find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
 find . -path "*/migrations/*.pyc"  -delete
 
+Endpoint currently used in frontend app:
+
+technicians: users/?format=json&limit=
+             users/
+             users/create_technician/
+
+dashboard: dashboard/?format=json&limit=
+            data/get_cards/
+            data/get_template_cards/
+            data/add_card_to_dashboard/
+            data/modify_card_order/
+
+plants: biogasplants/?format=json&limit=
+        biogasplants/
+
+jobs: jobs/?format=json&limit=
+      jobs/?limit=${environment.apiPageLimit}&fixers__user__id=
+      jobs/?limit=${environment.apiPageLimit}&plant__id=
+      jobs/
+
+other:  data/get_countries_and_mobile_shortcodes/
+        validate/validate_code/

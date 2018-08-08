@@ -61,7 +61,9 @@ class RegisterResource(ModelResource):
             raise CustomBadRequest( code="field_error", message=errors_to_report )
 
         uob = bundle.request.user
-        if (uob.has_perm('django_dashboard.can_register_node')):
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
+        if (uob.has_perm('django_dashboard.can_register_node') or perm.is_global_admin() or uob.is_superuser):
             if ( RegisteredNode.objects.filter( UIC = data['UIC'] ).exists() is False ):
                 new_node = RegisteredNode.objects.create(UIC=data['UIC'], channel=data['channel'], band=data['band'], mode=data['mode'], nw_key=data['nw_key'])
                 bundle.data = { "message":"Node Created" }

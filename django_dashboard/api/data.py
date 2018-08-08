@@ -22,7 +22,8 @@ import uuid
 import json
 from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields,remove_fields_from_dict, map_fields, \
                     to_serializable, AddressSerializer, CardTemplateSerializer, CardSerializerNoPending, \
-                    CardSerializerPending, TemplateCardSerializer,  raise_custom_error, get_enum_id, IndicatorObjectsSerialiser
+                    CardSerializerPending, TemplateCardSerializer,  raise_custom_error, get_enum_id, IndicatorObjectsSerialiser, \
+                    Permissions
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
@@ -298,11 +299,13 @@ class DataResource(MultipartResource, ModelResource):
         self.is_authenticated(request)
         
         bundle = self.build_bundle(data={}, request=request)
+        uob = bundle.request.user
         data = json.loads( request.read() )
         data = only_keep_fields(data,['plant_id'])
         try:
-            uob = bundle.request.user
-            part_of_companies = UserDetail.objects.get(user=uob).company.all()
+            perm = Permissions(uob)
+
+            #part_of_companies = UserDetail.objects.get(user=uob).company.all()
             #indicators = IndictorJoinTable.objects.filter( plant__id = data['plant_id'] )
             indicators = IndicatorObjects.objects.filter(biogas_plant__id = data['plant_id'])
             

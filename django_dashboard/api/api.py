@@ -21,6 +21,7 @@ import uuid
 import json
 from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, raise_custom_error, required_fields, CustomBadRequest, JobHistorySerialiser
 from helpers import parse_string_extract_filter
+from helpers import Permissions
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
@@ -90,8 +91,8 @@ class CompanyResource(ModelResource):
         #pdb.set_trace()
         uob = bundle.request.user
         user_object = UserDetail.objects.filter(user=uob)
-        
-        if uob.is_superuser: # only superusers are able to create companies (basically only admins of the whole system not of individual companies)
+        perm = Permissions(uob)
+        if (uob.is_superuser or perm.is_global_admin()): # only superusers are able to create companies (basically only admins of the whole system not of individual companies)
             if bundle.data['company_name'] is None:
                 bundle.data={}
             else:
@@ -149,18 +150,22 @@ class CompanyResource(ModelResource):
         # need to put an if in here so superusers can see everything
         uob = bundle.request.user
         user_object = UserDetail.objects.filter(user=uob)
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
         if uob.is_superuser:
             return object_list
 
-        if user_object[0].role.label == 'Company Admin':
-            company_object = user_object[0].company.all()
-            company_names = [co.company_name for co in company_object]
-            return object_list.filter(company_name__in=company_names)
+        if perm.is_admin():
+            #company_object = user_object[0].company.all()
+            #company_names = [co.company_name for co in company_object]
+            #return object_list.filter(company_name__in=company_names)
+            return object_list.filter( company = company )
 
-        if user_object[0].role.label == 'Technician':
-            company_object = user_object[0].company.all()
-            company_names = [co.company_name for co in company_object]
-            return object_list.filter(company_name__in=company_names.defer("company_id") )
+        if perm.is_technician():
+            # company_object = user_object[0].company.all()
+            # company_names = [co.company_name for co in company_object]
+            # return object_list.filter(company_name__in=company_names.defer("company_id") )
+            return object_list.filter( company = company ).defer("company_id")
             
     #def get_object_list(self, request):
         #return super(MyModelResource, self).get_object_list(request).filter(start_date__gte=timezone.now())
@@ -195,35 +200,35 @@ class TechnicianDetailResource(ModelResource): # child
             bundle = self.build_bundle(data={}, request=request)
              # we specify the type of bundle in order to help us filter the action we take before we return
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
 
-            tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
-            user_detail = UserDetail.objects.get(user = uob)
 
-            detail = {}
-            detail['technician_id'] = tech_detail.technician_id
-            detail['acredit_to_install'] = tech_detail.acredit_to_install
-            detail['acredited_to_fix'] = tech_detail.acredited_to_fix
-            detail['specialist_skills'] = tech_detail.specialist_skills
-            detail['number_jobs_active'] = tech_detail.number_jobs_active
-            detail['number_of_jobs_completed'] = tech_detail.number_of_jobs_completed
-            detail['status'] = tech_detail.status
-            #detail['what3words'] = tech_detail.what3words
-            detail['location'] = tech_detail.location
-            detail['latitude'] = tech_detail.location.get_y()
-            detail['longitude'] = tech_detail.location.get_x() 
-            detail['willing_to_travel'] = tech_detail.willing_to_travel
-            detail['languages_spoken'] = tech_detail.languages_spoken
-            #detail['company'] = user_detail.company.values() # this can be added later
-            detail['first_name'] = user_detail.first_name
-            detail['last_name'] = user_detail.last_name
-            detail['mobile'] = user_detail.phone_number
-            detail["email"] = user_detail.email
+            if ( uob.is_superuser or perm.is_global_admin() or perm.is_technician() or perm.is_admin() ):
+                tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
+                user_detail = UserDetail.objects.get(user = uob)
 
-            bundle.data = detail
+                detail = {}
+                detail['technician_id'] = tech_detail.technician_id
+                detail['acredit_to_install'] = tech_detail.acredit_to_install
+                detail['acredited_to_fix'] = tech_detail.acredited_to_fix
+                detail['specialist_skills'] = tech_detail.specialist_skills
+                detail['number_jobs_active'] = tech_detail.number_jobs_active
+                detail['number_of_jobs_completed'] = tech_detail.number_of_jobs_completed
+                detail['status'] = tech_detail.status
+                #detail['what3words'] = tech_detail.what3words
+                detail['location'] = tech_detail.location
+                detail['latitude'] = tech_detail.location.get_y()
+                detail['longitude'] = tech_detail.location.get_x() 
+                detail['willing_to_travel'] = tech_detail.willing_to_travel
+                detail['languages_spoken'] = tech_detail.languages_spoken
+                #detail['company'] = user_detail.company.values() # this can be added later
+                detail['first_name'] = user_detail.first_name
+                detail['last_name'] = user_detail.last_name
+                detail['mobile'] = user_detail.phone_number
+                detail["email"] = user_detail.email
+
+                bundle.data = detail
 
         except:
             pass
@@ -240,17 +245,15 @@ class TechnicianDetailResource(ModelResource): # child
         ud_fields = ["phone_number","email"]
         td_fields = ["specialist_skills","willing_to_travel"]
         data = map_fields( data, [ ("mobile","phone_number") ] )
+        bundle = self.build_bundle(data={}, request=request)  
+        uob = bundle.request.user
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
         
         try:
             td = { key:item for key, item in data.iteritems() if key in td_fields}
             ud = { key:item for key, item in data.iteritems() if key in ud_fields}
-            bundle = self.build_bundle(data={}, request=request)
-             # we specify the type of bundle in order to help us filter the action we take before we return
-            uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            
             tech_detail = TechnicianDetail.objects.filter(technicians__user = uob)
             user_detail = UserDetail.objects.filter(user = uob)
             tech_detail.update(**td)
@@ -297,9 +300,8 @@ class TechnicianDetailResource(ModelResource): # child
             #uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
             uob = bundle.request.user
             part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
             
             multiselect_fields = { "plumber":'PLUMBER',"mason":'MASON',"manager":'MANAGER',"design":'DESIGN','calculations':'CALCULATIONS','tubular':'TUBULAR','fixed_dome':'FIXED_DOME' }
             if uob.is_superuser:
@@ -344,9 +346,8 @@ class TechnicianDetailResource(ModelResource): # child
              # we specify the type of bundle in order to help us filter the action we take before we return
             uob = bundle.request.user
             part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
 
             tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
 
@@ -372,10 +373,9 @@ class TechnicianDetailResource(ModelResource): # child
             bundle = self.build_bundle(data={}, request=request)
              # we specify the type of bundle in order to help us filter the action we take before we return
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+
             tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
             if (st is 1):
                 tech_detail.status = True
@@ -398,8 +398,8 @@ class TechnicianDetailResource(ModelResource): # child
     def obj_update(self, bundle, **kwargs):
         #pdb.set_trace()
         uob = bundle.request.user
-        part_of_groups = uob.groups.all()
-        perm = Permissions(part_of_groups)
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
 
         try:
             pk = int(kwargs['pk'])
@@ -407,7 +407,7 @@ class TechnicianDetailResource(ModelResource): # child
             pk = kwargs['pk']
 
 
-        if uob.is_superuser:
+        if (uob.is_superuser or perm.is_global_admin()):
             try:
                 bundle.obj = TechnicianDetail.objects.get(pk=pk) # a superuser can edit any technican's record
             except:     
@@ -416,12 +416,10 @@ class TechnicianDetailResource(ModelResource): # child
                         message="Object not found")
         # an admin can only edit technican's in their company that they are admin for
         else:
-            list_of_company_ids = perm.check_auth_admin()
-            list_of_company_ids = []
-
-            if list_of_company_ids[0] is True:
+            
+            if (perm.is_admin() is True):
                 try:
-                    bundle.obj = TechnicianDetail.objects.get(pk=pk,technicians__company__company_id__in = list_of_company_ids[1]) # a superuser can edit any technican's record
+                    bundle.obj = TechnicianDetail.objects.get( pk=pk,technicians__company = company ) # a superuser can edit any technican's record
                 except:     
                     raise CustomBadRequest(
                             code="403",
@@ -489,10 +487,8 @@ class UserDetailResource(ModelResource): # parent
              # we specify the type of bundle in order to help us filter the action we take before we return
             bundle = self.build_bundle(data={}, request=request)
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
 
             users_details = UserDetail.objects.filter(user = uob)[0] # we can use this to get the country of the superuser/admin and then only return relevant techs.
             pending_jobs = PendingJobs.objects.filter(technician__user=uob)
@@ -573,12 +569,10 @@ class UserDetailResource(ModelResource): # parent
             pk = kwargs['pk']
 
         uob = bundle.request.user
-        part_of_groups = uob.groups.all()
-        perm = Permissions(part_of_groups)
-        list_of_company_ids_admin = perm.check_auth_admin()
-        list_of_company_ids_tech = perm.check_auth_tech()
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
 
-        if uob.is_superuser:
+        if (uob.is_superuser or perm.is_global_admin()):
             try:
                 bundle.obj = UserDetail.objects.get(pk=pk) # a superuser can edit any technican's record
             except:     
@@ -587,16 +581,16 @@ class UserDetailResource(ModelResource): # parent
                         message="Object not found")
         else:
             flag = 0
-            if list_of_company_ids_admin[0] is True:
+            if (perm.is_admin() is True):
                 try:
-                    bundle.obj = UserDetail.objects.get(pk=pk,company__company_id__in = list_of_company_ids_admin[1]) # a superuser can edit any technican's record
+                    bundle.obj = UserDetail.objects.get(pk=pk,company__company_id= company.company_id) # a superuser can edit any technican's record
                 except:
                     flag = 1
                 fields_to_allow_update_on = ['first_name','last_name ','user_photo','phone_number','country','region','district','ward','village','postcode','other_address_details']
                 bundle = keep_fields(bundle, fields_to_allow_update_on)
             
             # A technician can only update their own details
-            if (flag == 1 and list_of_company_ids_tech[0] is True):
+            if (flag == 1 and perm.is_technician() is True):
                 try:
                     bundle.obj = TechnicianDetail.objects.get(pk=pk, technicians__user = uob)
                     #bundle.obj = UserDetail.objects.get(pk=pk,company__company_id__in = list_of_company_ids_tech[1]) # a superuser can edit any technican's record
@@ -616,13 +610,11 @@ class UserDetailResource(ModelResource): # parent
         #pdb.set_trace()
         uob = bundle.request.user
         user_object = UserDetail.objects.filter(user=uob)
-        part_of_groups = uob.groups.all()
-        perm = Permissions(part_of_groups)
-        list_of_company_ids_admin = perm.check_auth_admin()
-        list_of_company_ids_tech = perm.check_auth_tech()
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
 
         
-        if uob.is_superuser:
+        if (uob.is_superuser or perm.is_global_admin() ):
             pass
         else:
             flag = 0
@@ -632,7 +624,6 @@ class UserDetailResource(ModelResource): # parent
             else:
                 bundle.obj = UserDetail.objects.none()
                 bundle.data = {}
-        pdb.set_trace()
         bundle = self.full_hydrate(bundle)
         
         return super(UserDetailResource, self).obj_create(bundle, user=uob)
@@ -654,13 +645,10 @@ class UserDetailResource(ModelResource): # parent
             data['mobile'] = data['phone_number']
         bundle = self.build_bundle(data={}, request=request)
         uob = bundle.request.user
-        #user_object = UserDetail.objects.filter(user=uob)
-        #part_of_groups = uob.groups.all()
-        #perm = Permissions(part_of_groups)
-        #list_of_company_ids_admin = perm.check_auth_admin()
-        #list_of_company_ids_tech = perm.check_auth_tech()
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
         
-        if uob.is_superuser:
+        if ( uob.is_superuser or perm.is_global_admin() ):
             
             if User.objects.filter(username=data['username']).exists():
                 raise CustomBadRequest( code="field_error", message="Username not unique someone else is using it. Do please try a different username. It must be an email address or a mobile number." )
@@ -718,16 +706,19 @@ class UserDetailResource(ModelResource): # parent
         #return object_list.filter(user=bundle.request.user)
         #pdb.set_trace()
         uob = bundle.request.user
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
+
         user_object = UserDetail.objects.filter(user=uob)
         if uob.is_superuser:
             return object_list
 
-        if user_object[0].role.label == 'Company Admin': # return all the people associated with this company
+        if perm.is_admin(): # return all the people associated with this company
             company_object = user_object[0].company.all()
             company_names = [co.company_name for co in company_object]
             return object_list.filter(company__company_name__in=company_names)
 
-        if user_object[0].role.label == 'Technician': # only return the user info of the logged in technican
+        if perm.is_technician(): # only return the user info of the logged in technican
             return object_list.filter(user__username=uob.username)
           
 
@@ -773,7 +764,6 @@ class JobHistoryResource(ModelResource):
     def tech_request_help(self, request, **kwargs):
         """Find a new technician when they accepted but did not take"""
         self.is_authenticated(request)
-        pdb.set_trace()
         pass
 
     @action(allowed=['post'], require_loggedin=False, static=False)
@@ -794,10 +784,9 @@ class JobHistoryResource(ModelResource):
         try:
             uid = uuid.UUID(hex=pk)
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+
             current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))[0]
             user_detail = UserDetail.objects.get(user=uob)
             current_job.rejected_job.add(user_detail) # this is
@@ -831,12 +820,10 @@ class JobHistoryResource(ModelResource):
 
         try:
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
             #pdb.set_trace()
-            if uob.is_superuser:
+            if ( uob.is_superuser or perm.is_global_admin() ):
                 #abandoned_jobs = JobHistory.objects.exclude(rejected_job=None).filter(Q(fixers=None))
                 abandoned_jobs = JobHistory.objects.filter(Q(fixers=None)) # for now we include all jobs that do not have fixers
                 #serialized_jobs = json.loads( serializers.serialize('json', abandoned_jobs) )
@@ -897,11 +884,10 @@ class JobHistoryResource(ModelResource):
         try:
             uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
-            if uob.is_superuser:
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+
+            if ( uob.is_superuser or perm.is_global_admin() ):
                 job_to_reassign = JobHistory.objects.filter(job_id=uid)[0]
                 fixer_id = int(data['technician'].split("/")[-2])
                 user_to_reassign_to = UserDetail.objects.get(user__id=fixer_id) # the user id of the fixer is used to look up the user object
@@ -944,12 +930,10 @@ class JobHistoryResource(ModelResource):
         try:
             uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
             
-            if uob.is_superuser:
+            if uob.is_superuser or perm.is_global_admin():
                 job_to_edit = JobHistory.objects.filter(job_id=uid)[0]
                 
                 for itm in data: # for simple text based changes this is very easy - no additional clauses needed
@@ -971,9 +955,8 @@ class JobHistoryResource(ModelResource):
             
             uob = bundle.request.user
             part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
             #pdb.set_trace()
             current_jobs = JobHistory.objects.filter(fixers__user=uob, completed=False).order_by('-date_flagged')
 
@@ -1084,10 +1067,9 @@ class JobHistoryResource(ModelResource):
 
         try:
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+
             historical_jobs = JobHistory.objects.filter(fixers__user=uob, completed=True)
             pag = Paginator(historical_jobs, per_page)
             historical_jobs=pag.page(page)
@@ -1148,10 +1130,9 @@ class JobHistoryResource(ModelResource):
 
         try:
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+
             current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))[0]
             current_job.job_status = 5
             current_job.priority = True
@@ -1187,10 +1168,9 @@ class JobHistoryResource(ModelResource):
             uid = uuid.UUID(hex=pk)
             bundle = self.build_bundle(data={}, request=request)
             uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(part_of_groups)
-            list_of_company_ids_admin = perm.check_auth_admin()
-            list_of_company_ids_tech = perm.check_auth_tech()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+
             current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))[0]
             if "issue" in data.keys():
                 current_job.fault_description = str(current_job.fault_description) + "\n \n" + datetime_to_string(datetime.datetime.now()) + "\n" + data['issue']
@@ -1210,44 +1190,36 @@ class JobHistoryResource(ModelResource):
     @action(allowed=['get'], require_loggedin=True)
     def get_excluded_technicians(self, request, **kwargs):
         self.is_authenticated(request)
-        pdb.set_trace()
         pass
 
     @action(allowed=['get'], require_loggedin=True)
     def adjust_rating(self, request, **kwargs):
         self.is_authenticated(request)
-        pdb.set_trace()
         pass
         
     @action(allowed=['get'], require_loggedin=True)
     def raise_dispute(self, request, **kwargs):
         self.is_authenticated(request)
-        pdb.set_trace()
         pass
 
     @action(allowed=['get'], require_loggedin=True)
     def raise_service_complaint(self, request, **kwargs):
         self.is_authenticated(request)
-        pdb.set_trace()
         pass
 
     @action(allowed=['post'], require_loggedin=True)
     def get_admins(self, request, **kwargs):
         self.is_authenticated(request)
-        #pdb.set_trace()
         pass
 
 
     def dehydrate(self, bundle):
-
-        
         plant_info = bundle.obj.plant.__dict__ # one biogas plant associated with one job
         contact_info = bundle.obj.plant.contact.values()
         constructing_tech = []
         constructing_tech_obj = bundle.obj.plant.constructing_technicians.all()
         for ii in constructing_tech_obj:
             ct = ii.__dict__
-            #pdb.set_trace()
             ct["company_name"] = [k['company_name'] for k in ii.company.values()] 
             #ct["company_names"] = ii.company.get().company_name  # include company name
             constructing_tech.append(ct)
@@ -1281,8 +1253,6 @@ class JobHistoryResource(ModelResource):
         bundle.data['contact_info'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_contact_info} for i in contact_info]
         bundle.data['constructing_tech'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_constructing_tech} for i in constructing_tech]
         bundle.data['fixers'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_fixers} for i in fixers_list]
-
-        
         return bundle
 
     def obj_update(self, bundle, **kwargs):
@@ -1294,12 +1264,10 @@ class JobHistoryResource(ModelResource):
             pk = kwargs['pk']
 
         uob = bundle.request.user
-        part_of_groups = uob.groups.all()
-        perm = Permissions(part_of_groups)
-        list_of_company_ids_admin = perm.check_auth_admin()
-        list_of_company_ids_tech = perm.check_auth_tech()
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
 
-        if uob.is_superuser:
+        if ( uob.is_superuser or perm.is_global_admin() ):
             try:
                 bundle.obj = JobHistory.objects.get(pk=pk) # a superuser can edit any technican's record
             except:     
@@ -1308,16 +1276,16 @@ class JobHistoryResource(ModelResource):
                         message="Object not found")
         else:
             flag = 0
-            if list_of_company_ids_admin[0] is True:
+            if perm.is_admin() is True:
                 try:
-                    bundle.obj = JobHistory.objects.get(pk=pk,fixers__company__company_id__in = list_of_company_ids_admin[1]) # a superuser can edit any technican's record
+                    bundle.obj = JobHistory.objects.get(pk=pk,fixers__company__company_id = company.company_id) # a superuser can edit any technican's record
                     fields_to_allow_update_on = ['due_date','completed','job_status','verification_of_engagement','fault_description','other','overdue_for_acceptance','priority','fault_class']
                     bundle = keep_fields(bundle, fields_to_allow_update_on)
                     flag = 2
                 except:
                     flag = 1
                 
-            elif ( (flag == 1 or flag==0) and list_of_company_ids_tech[0] is True ):
+            elif ( (flag == 1 or flag==0) and perm.is_technician() is True ):
                 try:
                     bundle.obj = JobHistory.objects.get(pk=pk, fixers__user = uob)
                     #bundle.obj = UserDetail.objects.get(pk=pk,company__company_id__in = list_of_company_ids_tech[1]) # a superuser can edit any technican's record
@@ -1350,17 +1318,21 @@ class JobHistoryResource(ModelResource):
         #return object_list.filter(user=bundle.request.user)
         try:
             uob = bundle.request.user
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+
             user_object = UserDetail.objects.filter(user=uob)
-            if uob.is_superuser:
+            if ( uob.is_superuser or perm.is_global_admin() ):
                 return object_list
 
-            if user_object[0].role.label == 'Company Admin': # return all the people associated with this company
+            if perm.is_admin(): # return all the people associated with this company
                 #pdb.set_trace()
-                company_object = user_object[0].company.all()
-                company_names = [co.company_name for co in company_object]
-                return object_list.filter(plant__contact__associated_company__company_name__in=company_names)
+                # company_object = user_object[0].company.all()
+                # company_names = [co.company_name for co in company_object]
+                #return object_list.filter(plant__contact__associated_company__company_name__in=company_names)
+                return  object_list.filter( plant__contact__associated_company = company )
 
-            if user_object[0].role.label == 'Technician': # only return the user info of the logged in technican
+            if perm.is_technician(): # only return the user info of the logged in technican
                 #pdb.set_trace()
                 pass
                 return object_list.filter(fixers__user=uob)

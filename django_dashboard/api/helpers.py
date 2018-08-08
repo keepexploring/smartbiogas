@@ -12,6 +12,8 @@ import uuid
 import serpy
 from cerberus import Validator
 from django_dashboard.api.validators.validator_patterns import schema
+from django.core.exceptions import ObjectDoesNotExist
+import uuid
 import pdb
 
 
@@ -50,11 +52,13 @@ def check_if_exists(data_list,id_):
         if kk["company_id"] == id_:
             return [True, kk["company_id"],en]
     return [False]
-
+from django_dashboard.models import Company
 class Permissions():
-
-    def __init__(self, part_of_group):
-        self.part_of_group = part_of_group
+    
+    def __init__(self, uob):
+        self.uob = uob
+        self.part_of_groups = self.uob.groups.all()
+        self._get_roles_and_scope()
 
     def get_companies_and_permissions(self):
         self.companies_and_permissions = []
@@ -71,6 +75,65 @@ class Permissions():
 
         return self.companies_and_permissions
 
+    def _get_roles_and_scope(self):
+        roles_and_scope = {}
+        roles_and_scope['logged_in_as'] = []
+        roles_and_scope['other_roles'] = []
+        
+        try:
+            self.logged_in_as_company = self.uob.userdetail.logged_in_as
+            
+            if self.logged_in_as_company is None: # this is to ensure backwards compatability with existing users - will remove in the future
+                company = self.uob.user_details.company.all()[0]
+                self.uob.user_details.update( logged_in_as_company = company )
+                tech_group_name = slugify(company.company_name)+"__tech__"+str(company.company_id)
+                _group_, _created_ = Group.objects.get_or_create(name=tech_group_name)
+                _group_.user_set.add(self.uob)
+                self.logged_in_as_company = company
+
+            logged_in_company_id = str(self.logged_in_as_company.company_id)
+
+            for ii in self.part_of_groups:
+                if ("company_" in ii.name):
+                    company_and_role = ii.name.split("__")
+                    company_id_hex = company_and_role[-1]
+                    role = company_and_role[1]
+                    if (company_id_hex==logged_in_company_id):
+                        roles_and_scope['logged_in_as'].append({'company':self.logged_in_as_company, "name":ii.name, "company_id":company_id_hex, "role":role })
+                        
+                else:
+                    role = ii.name
+                    roles_and_scope['other_roles'].append( { "role": role } )
+
+        except ObjectDoesNotExist:
+            self.logged_in_as_company = None
+            print({ "error":"User details do not exisit, you need to create a user","code":1 })
+
+        self.roles_and_scope = roles_and_scope
+            
+        return roles_and_scope
+
+    def get_roles_and_scope(self):
+        return self.roles_and_scope
+
+    def get_company_scope(self):
+        """Get the company object that the user is logged in as so this can be used to control the scope of what is returned"""
+        return self.logged_in_as_company
+
+    def is_admin(self):
+        return any([True for ii in self.roles_and_scope['logged_in_as'] if ii['role']=='admin'])
+
+    def is_technician(self):
+        return any([True for ii in self.roles_and_scope['logged_in_as'] if ii['role']=='tech']) 
+
+    def is_superadmin(self):
+        return any([True for ii in self.roles_and_scope['logged_in_as'] if ii['role']=='superadmin'])
+
+    def is_system_admin(self):
+        return any([True for ii in self.roles_and_scope['other_roles'] if ii['role']=='sysadmin'])
+
+    def is_global_admin(self):
+        return any([True for ii in self.roles_and_scope['other_roles'] if ii['role']=='globaladmin'])
 
     def check_auth_admin(self):
         self.get_companies_and_permissions()
