@@ -47,35 +47,35 @@ MEDIA_URL ='/media/'
 INSTALLED_APPS = (
     'dal',
     'dal_select2',
-    'suit',
+    #'suit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.gis',
+    #'django.contrib.gis',
     'django_postgres_extensions',
-    'webpack_loader',
+    #'webpack_loader',
     'django_dashboard',
     'django_react',
-    'django_elasticsearch_dsl',
+    #'django_elasticsearch_dsl',
     #'channels',
     #'django_realtime',
-    'huey.contrib.djhuey',
+    #'huey.contrib.djhuey',
     'tastypie',
     'oauth2_provider',
     'corsheaders',
     'tastypie_oauth2',
-    'django_seed',
+    #'django_seed',
     'dynamic_raw_id',
     'searchableselect',
     #'datetimepicker',
     'phonenumber_field',
-    'autofixture',
+    #'autofixture',
     'zappa_django_utils',
-    'axe',
     'cachalot',
+    'storages',
     #'guardian',
     #'tastypie_swagger',
     
@@ -93,10 +93,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 )
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CORS_ORIGIN_ALLOW_ALL = True # this should be restricted in the future for security
 
@@ -154,8 +152,8 @@ DATABASES = {
     
     # },
         'default': {
-            #'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            #'ENGINE': 'django.contrib.gis.db.backends.postgis',
             'NAME': Config.get("postgres_azure", "database_name"),
             'USER': Config.get("postgres_azure", "username"),
             'PASSWORD': Config.get("postgres_azure", "password"),
@@ -201,12 +199,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
 #     os.path.join(BASE_DIR, 'assets'),
 # )
 
-WEBPACK_LOADER = {
-    'DEFAULT': {
-        'BUNDLE_DIR_NAME': 'bundles/',
-        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
-    }
-}
+# WEBPACK_LOADER = {
+#     'DEFAULT': {
+#         'BUNDLE_DIR_NAME': 'bundles/',
+#         'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
+#     }
+# }
 
 
 ELASTICSEARCH_DSL={
@@ -239,39 +237,39 @@ CHANNEL_LAYERS = {
 }
 
 
-HUEY = {
-    'name': 'django_huey',  # Use db name for huey.
-    'result_store': True,  # Store return values of tasks.
-    'events': True,  # Consumer emits events allowing real-time monitoring.
-    'store_none': False,  # If a task returns None, do not save to results.
-    'always_eager': False,  # If DEBUG=True, run synchronously.
-    'store_errors': True,  # Store error info if task throws exception.
-    'blocking': False,  # Poll the queue rather than do blocking pop.
-    'connection': {
-        'host': 'localhost',
-        'port': 6379,
-        'db': 0,
-        'connection_pool': None,  # Definitely you should use pooling!
-        # ... tons of other options, see redis-py for details.
+# HUEY = {
+#     'name': 'django_huey',  # Use db name for huey.
+#     'result_store': True,  # Store return values of tasks.
+#     'events': True,  # Consumer emits events allowing real-time monitoring.
+#     'store_none': False,  # If a task returns None, do not save to results.
+#     'always_eager': False,  # If DEBUG=True, run synchronously.
+#     'store_errors': True,  # Store error info if task throws exception.
+#     'blocking': False,  # Poll the queue rather than do blocking pop.
+#     'connection': {
+#         'host': 'localhost',
+#         'port': 6379,
+#         'db': 0,
+#         'connection_pool': None,  # Definitely you should use pooling!
+#         # ... tons of other options, see redis-py for details.
 
-        # huey-specific connection parameters.
-        'read_timeout': 1,  # If not polling (blocking pop), use timeout.
-        'max_errors': 1000,  # Only store the 1000 most recent errors.
-        'url': None,  # Allow Redis config via a DSN.
-    },
-    'consumer': {
-        'workers': 4,
-        'worker_type': 'thread',
-        'initial_delay': 0.1,  # Smallest polling interval, same as -d.
-        'backoff': 1.15,  # Exponential backoff using this rate, -b.
-        'max_delay': 10.0,  # Max possible polling interval, -m.
-        'utc': True,  # Treat ETAs and schedules as UTC datetimes.
-        'scheduler_interval': 1,  # Check schedule every second, -s.
-        'periodic': True,  # Enable crontab feature.
-        'check_worker_health': True,  # Enable worker health checks.
-        'health_check_interval': 1,  # Check worker health every second.
-    },
-}
+#         # huey-specific connection parameters.
+#         'read_timeout': 1,  # If not polling (blocking pop), use timeout.
+#         'max_errors': 1000,  # Only store the 1000 most recent errors.
+#         'url': None,  # Allow Redis config via a DSN.
+#     },
+#     'consumer': {
+#         'workers': 4,
+#         'worker_type': 'thread',
+#         'initial_delay': 0.1,  # Smallest polling interval, same as -d.
+#         'backoff': 1.15,  # Exponential backoff using this rate, -b.
+#         'max_delay': 10.0,  # Max possible polling interval, -m.
+#         'utc': True,  # Treat ETAs and schedules as UTC datetimes.
+#         'scheduler_interval': 1,  # Check schedule every second, -s.
+#         'periodic': True,  # Enable crontab feature.
+#         'check_worker_health': True,  # Enable worker health checks.
+#         'health_check_interval': 1,  # Check worker health every second.
+#     },
+# }
 
 EMAIL_HOST = Config.get("email", "host")
 EMAIL_PORT = Config.get("email", "port")
@@ -280,3 +278,13 @@ EMAIL_HOST_PASSWORD = Config.get("email", "password")
 EMAIL_USE_TLS = True
 SERVER_EMAIL = 'django@connectedenergy.net'
 ADMINS=( ('Joel', 'joel@connectedenergy.net'),)
+
+# AWS Lamdba settings
+AWS_STORAGE_BUCKET_NAME = 'smartbiogasstatic'
+
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+
+STATIC_URL = "https://%s/" % AWS_S3_CUSTOM_DOMAIN
+
+#STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage' # the old version - don't use this!!
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

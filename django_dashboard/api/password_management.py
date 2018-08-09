@@ -23,7 +23,7 @@ from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, 
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
-from django.contrib.gis.geos import Point
+#from django.contrib.gis.geos import Point
 from django.core.mail import send_mail
 import datetime
 import jwt

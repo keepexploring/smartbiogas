@@ -20,12 +20,12 @@ from django.db.models import Q
 import uuid
 import json
 from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, raise_custom_error, required_fields, CustomBadRequest, JobHistorySerialiser
-from helpers import parse_string_extract_filter
+from helpers import parse_string_extract_filter, to_serializable_location
 from helpers import Permissions
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
-from django.contrib.gis.geos import Point
+#from django.contrib.gis.geos import Point
 import datetime
 from django.utils import timezone
 from multiselectfield import MultiSelectField
@@ -265,7 +265,8 @@ class TechnicianDetailResource(ModelResource): # child
                 pass
             #pdb.set_trace()
             if "latitude" in data.keys() and "longitude" in data.keys():
-                tech_detail.update(location=Point(data['longitude'],data['latitude']) )
+                tech_detail.set_location(data['longitude'],data['latitude'])
+                tech_detail.save()
             
             bundle.data = {"message":"Profile updated"}
         except:
@@ -316,7 +317,7 @@ class TechnicianDetailResource(ModelResource): # child
                             pass
                     elif itm == "latitude":
                         try:
-                            tech_to_edit_additional_details.technician_details.update(location=Point(data['longitude'],data['latitude']) )
+                            tech_to_edit_additional_details.technician_details.set_location(data['longitude'],data['latitude'])
                         except:
                             pass
                     elif itm in ['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details']:
@@ -514,7 +515,7 @@ class UserDetailResource(ModelResource): # parent
                             'region':ii.region,
                             'mobile':ii.phone_number.as_international,
                             'uri':'/api/v1/users/' + str(ii.id) + '/',
-                            'location': to_serializable(ii.technician_details.location),
+                            'location': to_serializable_location(ii.technician_details.location),
                             # 'longitude': ii.technician_details.location.get_x(),
                             # 'latitude': ii.technician_details.location.get_y(),
                             'acredited_to_fix':ii.technician_details.acredited_to_fix,
@@ -679,7 +680,7 @@ class UserDetailResource(ModelResource): # parent
                             pass
                     elif itm == "latitude":
                         try:
-                            tech_additional_details.location = Point(data['longitude'],data['latitude']) 
+                            tech_additional_details.set_location(data['longitude'],data['latitude']) 
                         except:
                             pass
                     elif itm in ['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details','country']:
@@ -840,7 +841,7 @@ class JobHistoryResource(ModelResource):
                     serialized_jobs["reason_abandoning_job"] = ab.reason_abandoning_job
                     serialized_jobs["assistance"] = ab.assistance
                     serialized_jobs["date_flagged"] = ab.date_flagged
-                    serialized_jobs["location"] = to_serializable(ab.plant.location)
+                    serialized_jobs["location"] = to_serializable_location(ab.plant.location)
                     serialized_jobs["ward"] = ab.plant.ward
                     serialized_jobs["village"] = ab.plant.village
                     serialized_jobs["country"] = ab.plant.country

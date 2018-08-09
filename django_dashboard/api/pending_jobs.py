@@ -12,7 +12,7 @@ from helpers import keep_fields
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
 from django_dashboard.api.api import TechnicianDetailResource, UserDetailResource
 from tastypie_actions.actions import actionurls, action
-from helpers import remove_fields, to_serializable, CustomBadRequest
+from helpers import remove_fields, to_serializable, CustomBadRequest, to_serializable_location
 from cerberus import Validator
 from django.core import serializers
 import uuid
@@ -179,7 +179,7 @@ class PendingJobsResource(ModelResource):
                 job['district'] = pending_jobs[nn].biogas_plant.district
                 job['ward'] = pending_jobs[nn].biogas_plant.ward
                 job['volume'] = pending_jobs[nn].biogas_plant.volume_biogas
-                job['location'] = to_serializable(pending_jobs[nn].biogas_plant.location)
+                job['location'] = to_serializable_location(pending_jobs[nn].biogas_plant.location)
                 if (job['location'][0] != 'None' and job['location'][0] != None): # we can remove this, but is useful to have explictly
                     job['longitude'] = pending_jobs[nn].biogas_plant.location.get_x()
                     job['latitude'] = pending_jobs[nn].biogas_plant.location.get_y()

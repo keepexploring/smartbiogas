@@ -1,5 +1,6 @@
 import requests
-import numpy as np
+#import numpy as np
+from tinynumpy import tinynumpy as np
 import json
 import pdb
 import os

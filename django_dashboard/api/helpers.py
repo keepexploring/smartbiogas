@@ -7,7 +7,7 @@ from tastypie.exceptions import ImmediateHttpResponse
 import attr
 import datetime
 from enumfields import Enum
-from django.contrib.gis.geos import Point
+#from django.contrib.gis.geos import Point
 import uuid
 import serpy
 from cerberus import Validator
@@ -233,6 +233,12 @@ def error_handle_wrapper(func):
         return func(*args,**argv)
     except:
         return ""
+
+def to_serializable_location(val):
+    try:
+        return (val.get_x(),val.get_y())
+    except:
+        return (None,None)
 
 def to_serializable(val):
     try:

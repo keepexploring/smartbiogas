@@ -5,11 +5,11 @@ from django_dashboard.models import Company, UserDetail, TechnicianDetail, Bioga
 from tastypie.authorization import DjangoAuthorization
 from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
-from helpers import Permissions, only_keep_fields, if_empty_fill_none, to_serializable, raise_custom_error, BiogasPlantSerialiser
+from helpers import Permissions, only_keep_fields, if_empty_fill_none, to_serializable, to_serializable_location, raise_custom_error, BiogasPlantSerialiser
 from django.db.models import Q
 from tastypie.constants import ALL
 from tastypie_actions.actions import actionurls, action
-from django.contrib.gis.geos import Point
+#from django.contrib.gis.geos import Point
 from django.core import serializers
 from helpers import AddressSerializer, CustomBadRequest
 from cerberus import Validator
@@ -110,7 +110,7 @@ class BiogasPlantResource(ModelResource):
                         "verfied":bi.verfied,
                         "uri":"/api/v1/biogasplant/"+str(bi.id)+"/",
                         "location_estimated":bi.location_estimated,
-                        "location": to_serializable(bi.location),
+                        "location": to_serializable_location(bi.location),
                         }
                 data_list.append(data)
             bundle.data['biogas_plants'] = data_list
@@ -186,7 +186,7 @@ class BiogasPlantResource(ModelResource):
             for fld in fields:
                 try:
                     if fld == 'location':
-                        field_relations[fld] = Point(data['longitude'],data['latitude'])
+                        biogasplant.set_location(data['longitude'],data['latitude'])
                     else:
                         field_relations[fld] = data[fld]
                 except:

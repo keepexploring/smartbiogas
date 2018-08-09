@@ -123,7 +123,8 @@ class BiogasPlantContactResource(ModelResource):
                 bb=contact.save()
                 try:
                     if "latitude" in data.keys() and "longitude" in data.keys():
-                        contact.update(lat_long=Point(data['longitude'],data['latitude']) )
+                        contact.set_location(data['longitude'],data['latitude'])
+                        contact.save()
                 except:
                     pass
 
@@ -151,7 +152,7 @@ class BiogasPlantContactResource(ModelResource):
             perm = Permissions(uob)
             if (uob.is_superuser or perm.is_global_admin()):
                 
-                #pdb.set_trace()
+                
                 contacts = BiogasPlantContact.objects.filter(mobile=data['mobile'])
                 data_to_return = []
                 for cc in contacts:
@@ -163,7 +164,8 @@ class BiogasPlantContactResource(ModelResource):
                     biogas_owner['email'] = cc.email
                     #biogas_owner['contact'] = to_serializable(cc.uid)[0]
                     biogas_owner['contact']= cc.uid.hex
-                    biogas_owner['location'] = to_serializable(cc.lat_long)
+                    pdb.set_trace()
+                    biogas_owner['location'] = to_serializable(cc.location)
                     biogas_owner['village'] = cc.village
                     biogas_owner['ward'] = cc.ward
                     biogas_owner['region'] = cc.region

@@ -3,12 +3,11 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.conf import settings
-from django.contrib.gis.geos import Point
+#from django.contrib.gis.geos import Point
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Point
+#from django.contrib.gis.geos import Point
 from django.contrib.postgres.fields import ArrayField, HStoreField, JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator, EmailValidator
-from geopy.geocoders import Nominatim
 from django.utils import timezone
 import uuid
 from random import randint # for testing data streams
@@ -241,19 +240,37 @@ class TechnicianDetail(models.Model):
     #seconds_active = models.IntegerField(blank=True,null=True)
     status = models.NullBooleanField(db_index=True,blank=True,null=True,choices=BOOL_CHOICES)
     what3words = models.CharField(max_length=200,null=True,blank=True)
-    location = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
+    #location = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
     willing_to_travel = models.IntegerField(blank=True,null=True) # distance that a technician is willing to travel
     #rating = ArrayField(JSONField(blank=True, null=True),blank=True, null=True )
     average_rating = models.FloatField(editable=False,blank=True,null=True,default=0)
     max_num_jobs_allowed = models.IntegerField(blank=True,null=True,default=1)
     languages_spoken = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
     
-    
+    latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    srid = models.IntegerField(null=True,blank=True)
+
+    @property
+    def location(self):
+        return self
+
+    def set_location(self, longitude, latitude, srid=4326):
+        super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        super(BiogasPlantContact, self).__setattr__('srid', srid)
+
+    def get_x(self):
+        return self.longitude
+
+    def get_y(self):
+        return self.latitude
+
     def __str__(self):
         return '%s %s' % (self.technicians,self.status)
 
     def update_location(self,lat_,long_):
-        self.location = Point(long_, lat_)
+        self.set_location(long_, lat_)
         self.save()
     
     def update_status(self,status):
@@ -264,9 +281,9 @@ class TechnicianDetail(models.Model):
         if  (self.what3words != None): # want to change this so it is only saved when the coordinate has changed, not every time
             _location_ = find_coordinates(self.what3words)
             if _location_ is not None:
-                self.location = Point( _location_['lng'], _location_['lat'] )
+                self.set_location( _location_['lng'], _location_['lat'] )
             else:
-                self.location = Point( None, None )
+                self.set_location( None, None )
         return super(TechnicianDetail,self).save(*args,**kwargs)
 
     class Meta:
@@ -288,7 +305,26 @@ class Address(models.Model):
     district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    lat_long = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
+    #lat_long = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
+    latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    srid = models.IntegerField(null=True,blank=True)
+
+    @property
+    def location(self):
+        return self
+
+    def set_location(self, longitude, latitude, srid=4326):
+        super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        super(BiogasPlantContact, self).__setattr__('srid', srid)
+
+    def get_x(self):
+        return self.longitude
+
+    def get_y(self):
+        return self.latitude
+
 
 class BiogasPlantContact(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -308,8 +344,26 @@ class BiogasPlantContact(models.Model):
     district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    lat_long = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
+    #lat_long = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
     # biogas_owner = models.NullBooleanField(db_index=True,blank=True)
+    latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    srid = models.IntegerField(null=True,blank=True)
+
+    @property
+    def location(self):
+        return self
+
+    def set_location(self, longitude, latitude, srid=4326):
+        super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        super(BiogasPlantContact, self).__setattr__('srid', srid)
+
+    def get_x(self):
+        return self.longitude
+
+    def get_y(self):
+        return self.latitude
 
 
     def __str__(self):
@@ -379,7 +433,7 @@ class BiogasPlant(models.Model):
     #volume_biogas = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     volume_biogas = models.CharField(max_length=200,null=True,blank=True)
     location_estimated = models.NullBooleanField(default=False,blank=True)
-    location = models.PointField(geography=True, srid=4326,blank=True,db_index=True,null=True)
+    #location = models.PointField(geography=True, srid=4326,blank=True,db_index=True,null=True)
     #status = models.CharField(null=True,max_length=225,blank=True,choices=STATUS_CHOICES)
     QP_status = EnumField(QPStatus, max_length=1,null=True)
     sensor_status = EnumField(SensorStatus, max_length=1,null=True, blank = True)
@@ -387,7 +441,25 @@ class BiogasPlant(models.Model):
     verfied = models.NullBooleanField(db_index=True,blank=True,default=False)
     install_date = models.DateField(null=True,blank=True)
     what3words =  models.CharField(max_length=200,null=True,blank=True)
-    notes = models.TextField(null=True,blank=True) 
+    notes = models.TextField(null=True,blank=True)
+    latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    srid = models.IntegerField(null=True,blank=True)
+
+    @property
+    def location(self):
+        return {'latitude':latitude, 'longitude':longitude }
+
+    def set_location(self, longitude, latitude, srid=4326):
+        super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        super(BiogasPlantContact, self).__setattr__('srid', srid)
+
+    def get_x(self):
+        return self.longitude
+
+    def get_y(self):
+        return self.latitude
 
     def __str__(self):
         return '%s, %s, %s, %s, %s' % (str(self.id), str(self.type_biogas), str(self.supplier), str(self.volume_biogas), str(self.plant_id) )
@@ -420,7 +492,7 @@ class BiogasPlant(models.Model):
         #    self.location = Point(_location_.longitude, _location_.latitude)
         if  (self.what3words != None): # want to change this so it is only saved when the coordinate has changed, not every time
             _location_ = find_coordinates(self.what3words)
-            self.location = Point( _location_['lng'], _location_['lat'] )
+            self.set_location( _location_['lng'], _location_['lat'] )
         return super(BiogasPlant, self).save(*args, **kwargs)
 
         
@@ -655,12 +727,29 @@ class AddressData(models.Model):
     district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    lat_long = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
     population = models.IntegerField(blank=True,null=True)
+    latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    srid = models.IntegerField(null=True,blank=True)
 
-    #def __str__(self):
-       # unicode(self.region)
-   #     '%s, %s' % (self.ward, self.village)
+    @property
+    def location(self):
+        return self
+
+    def set_location(self, longitude, latitude, srid=4326):
+        super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        super(BiogasPlantContact, self).__setattr__('srid', srid)
+
+    def get_x(self):
+        return self.longitude
+
+    def get_y(self):
+        return self.latitude
+
+    def __str__(self):
+       unicode(self.region)
+       '%s, %s' % (self.ward, self.village)
 
 
 class Messages(models.Model):
