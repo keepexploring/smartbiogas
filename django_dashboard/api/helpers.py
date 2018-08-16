@@ -434,7 +434,7 @@ class BiogasPlantSerialiser(serpy.Serializer):
     notes = serpy.Field()
 
     def get_location(self, obj):
-        return to_serializable(obj.location)
+        return to_serializable_location(obj.location)
 
     def get_contact(self, obj):
         return [ {"first_name": ii.first_name, "surname": ii.surname, "mobile": ii.mobile } for ii in obj.contact.all() ]

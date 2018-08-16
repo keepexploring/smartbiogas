@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.conf import settings
 #from django.contrib.gis.geos import Point
-from django.contrib.gis.db import models
+#from django.contrib.gis.db import models
 #from django.contrib.gis.geos import Point
 from django.contrib.postgres.fields import ArrayField, HStoreField, JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator, EmailValidator

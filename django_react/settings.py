@@ -30,11 +30,11 @@ SECRET_KEY = Config.get("django","secret_key")
 #'frobam8*+@h(p%#8ft+)x=e73d_t(jch3hn%-nf+6f=y5zq=kb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 mimetypes.add_type("text/css", ".css", True)
 
-ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1','localhost','api.smartbiogas.org']
+ALLOWED_HOSTS = ['46.101.93.225','127.0.0.1','localhost','api.smartbiogas.org','6s10086kb9.execute-api.us-east-2.amazonaws.com']
 
 # LOGIN_URL = 'login'
 # LOGIN_REDIRECT_URL = 'home'
@@ -47,16 +47,13 @@ MEDIA_URL ='/media/'
 INSTALLED_APPS = (
     'dal',
     'dal_select2',
-    #'suit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'django.contrib.gis',
     'django_postgres_extensions',
-    #'webpack_loader',
     'django_dashboard',
     'django_react',
     #'django_elasticsearch_dsl',
@@ -152,14 +149,20 @@ DATABASES = {
     
     # },
         'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            #'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': Config.get("postgres_azure", "database_name"),
-            'USER': Config.get("postgres_azure", "username"),
-            'PASSWORD': Config.get("postgres_azure", "password"),
-            'HOST': Config.get("postgres_azure", "host"),
-            'PORT': Config.get("postgres_azure", "port"),
+            # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            # #'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            # 'NAME': Config.get("postgres_azure", "database_name"),
+            # 'USER': Config.get("postgres_azure", "username"),
+            # 'PASSWORD': Config.get("postgres_azure", "password"),
+            # 'HOST': Config.get("postgres_azure", "host"),
+            # 'PORT': Config.get("postgres_azure", "port"),
 
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': Config.get("postgres_zappa", "database_name"),
+            'USER': Config.get("postgres_zappa", "username"),
+            'PASSWORD': Config.get("postgres_zappa", "password"),
+            'HOST': Config.get("postgres_zappa", "host"),
+            'PORT': Config.get("postgres_zappa", "port"),
         },
 
         # 'default': {
@@ -190,14 +193,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
-#STATIC_ROOT 
-
-# STATICFILES_DIRS = (
-#     os.path.join(BASE_DIR, 'assets'),
-# )
 
 # WEBPACK_LOADER = {
 #     'DEFAULT': {
@@ -229,12 +225,12 @@ ELASTICSEARCH_DSL={
 #     }
 # }
 
-CHANNEL_LAYERS = {
- "default": {
- "BACKEND": "asgiref.inmemory.ChannelLayer",
- "ROUTING": "django_realtime.routing.channel_routing",
- },
-}
+# CHANNEL_LAYERS = {
+#  "default": {
+#  "BACKEND": "asgiref.inmemory.ChannelLayer",
+#  "ROUTING": "django_realtime.routing.channel_routing",
+#  },
+# }
 
 
 # HUEY = {
@@ -278,6 +274,15 @@ EMAIL_HOST_PASSWORD = Config.get("email", "password")
 EMAIL_USE_TLS = True
 SERVER_EMAIL = 'django@connectedenergy.net'
 ADMINS=( ('Joel', 'joel@connectedenergy.net'),)
+
+#STATIC_URL = '/static/'
+
+#STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
+#STATIC_ROOT 
+
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, 'assets'),
+# )
 
 # AWS Lamdba settings
 AWS_STORAGE_BUCKET_NAME = 'smartbiogasstatic'

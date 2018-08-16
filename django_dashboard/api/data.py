@@ -23,11 +23,11 @@ import json
 from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields,remove_fields_from_dict, map_fields, \
                     to_serializable, AddressSerializer, CardTemplateSerializer, CardSerializerNoPending, \
                     CardSerializerPending, TemplateCardSerializer,  raise_custom_error, get_enum_id, IndicatorObjectsSerialiser, \
-                    Permissions
+                    Permissions, to_serializable_location
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
 from django_postgres_extensions.models.functions import ArrayAppend, ArrayReplace
-from django.contrib.gis.geos import Point
+#from django.contrib.gis.geos import Point
 import datetime
 import get_and_push_data
 import time

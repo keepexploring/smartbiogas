@@ -8,4 +8,5 @@ config
 db.sqlite3
 npm-debug.log
 webpack-stats.json
+*.zip
 
