@@ -4,6 +4,7 @@ node_modules
 assets/bundles
 config/configs.ini
 config/aws_env.sh
+config/le-account.key
 config
 db.sqlite3
 npm-debug.log
