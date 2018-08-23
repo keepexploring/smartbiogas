@@ -649,7 +649,7 @@ class UserDetailResource(ModelResource): # parent
         perm = Permissions(uob)
         company = perm.get_company_scope()
         
-        if ( uob.is_superuser or perm.is_global_admin() ):
+        if ( uob.is_superuser or perm.is_global_admin() or perm.is_admin() ): # the company that we make the tech should be the same one the admin is logged in as- the one returned as the current company scope (above)
             
             if User.objects.filter(username=data['username']).exists():
                 raise CustomBadRequest( code="field_error", message="Username not unique someone else is using it. Do please try a different username. It must be an email address or a mobile number." )
@@ -664,7 +664,7 @@ class UserDetailResource(ModelResource): # parent
             try:
                 logged_in_as = uob.userdetail.logged_in_as
                 user = User.objects.create_user(username=data['username'], email=data['username'], password=data['password'], first_name=data['first_name'], last_name=data['last_name'] )    
-                userdetail = UserDetail.objects.create(user=user, logged_in_as = logged_in_as )
+                userdetail = UserDetail.objects.create(user=user, logged_in_as = logged_in_as)
                 try: # include this for the time being as a lot of the old users don't have this field
                     userdetail.company.add(logged_in_as)
                 except:

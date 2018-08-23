@@ -71,11 +71,15 @@ INSTALLED_APPS = (
     'zappa_django_utils',
     'cachalot',
     'storages',
+    'dbbackup',
     #'guardian',
     #'tastypie_swagger',
     
     #'django_seed',
 )
+
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DBBACKUP_STORAGE_OPTIONS = {'location': '/Users/Joel/Documents/CREATIVenergie/SmartBiogas/smartbiogas_database_backups'}
 
 MIDDLEWARE_CLASSES = (
     'django_react.disable.DisableCSRF',
