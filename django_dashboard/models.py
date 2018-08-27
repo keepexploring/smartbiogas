@@ -13,7 +13,7 @@ import uuid
 from random import randint # for testing data streams
 from enumfields import EnumField
 from django_dashboard.enums import ContactType, UserRole, JobStatus, QPStatus, CurrentStatus, TypeBiogas, SupplierBiogas, SensorStatus,FundingSourceEnum, CardTypes, EntityTypes, AlertTypes
-from django_dashboard.utilities import find_coordinates
+#from django_dashboard.utilities import find_coordinates
 from multiselectfield import MultiSelectField
 from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User, Group, Permission
@@ -121,14 +121,14 @@ class UserDetail(models.Model):
     #models.ManyTo.ManyField(Company)
     # maybe add choices here:
     
-    role = EnumField(UserRole, max_length=1,null=True)
+    #role = EnumField(UserRole, max_length=1,null=True)
     #pdb.set_trace()
     first_name = models.CharField(max_length=200,default=None,editable=False)
     last_name = models.CharField(max_length=200,default=None,editable=False)
     #last_name = models.CharField(max_length=200)
     user_photo = models.ImageField(upload_to = 'UserPhotos',null=True,blank=True)
-    #phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
-    phone_number = PhoneNumberField(db_index=True, null=True, blank=True)
+    phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
+    #mobile = PhoneNumberField(db_index=True, null=True, blank=True)
     email = models.EmailField(null=True,blank=True)
     country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
@@ -137,7 +137,6 @@ class UserDetail(models.Model):
     ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     neighbourhood = models.CharField(null=True,max_length=20,blank=True)
-    postcode = models.CharField(null=True,max_length=20,blank=True)
     postcode = models.CharField(null=True,max_length=20,blank=True)
     other_address_details = models.TextField(null=True,blank=True)
     datetime_created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
@@ -256,9 +255,12 @@ class TechnicianDetail(models.Model):
         return self
 
     def set_location(self, longitude, latitude, srid=4326):
-        super(BiogasPlantContact, self).__setattr__('latitude', latitude)
-        super(BiogasPlantContact, self).__setattr__('longitude', longitude)
-        super(BiogasPlantContact, self).__setattr__('srid', srid)
+        self.latitude = latitude
+        self.longitude = longitude
+        self.srid =  srid
+        #super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        #super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        #super(BiogasPlantContact, self).__setattr__('srid', srid)
 
     def get_x(self):
         return self.longitude
@@ -278,12 +280,12 @@ class TechnicianDetail(models.Model):
         self.save()
 
     def save(self, *args, **kwargs):
-        if  (self.what3words != None): # want to change this so it is only saved when the coordinate has changed, not every time
-            _location_ = find_coordinates(self.what3words)
-            if _location_ is not None:
-                self.set_location( _location_['lng'], _location_['lat'] )
-            else:
-                self.set_location( None, None )
+        # if  (self.what3words != None): # want to change this so it is only saved when the coordinate has changed, not every time
+        #     _location_ = find_coordinates(self.what3words)
+        #     if _location_ is not None:
+        #         self.set_location( _location_['lng'], _location_['lat'] )
+        #     else:
+        #         self.set_location( None, None )
         return super(TechnicianDetail,self).save(*args,**kwargs)
 
     class Meta:
@@ -315,9 +317,12 @@ class Address(models.Model):
         return self
 
     def set_location(self, longitude, latitude, srid=4326):
-        super(BiogasPlantContact, self).__setattr__('latitude', latitude)
-        super(BiogasPlantContact, self).__setattr__('longitude', longitude)
-        super(BiogasPlantContact, self).__setattr__('srid', srid)
+        self.latitude = latitude
+        self.longitude = longitude
+        self.srid =  srid
+        # super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        # super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        # super(BiogasPlantContact, self).__setattr__('srid', srid)
 
     def get_x(self):
         return self.longitude
@@ -355,9 +360,12 @@ class BiogasPlantContact(models.Model):
         return self
 
     def set_location(self, longitude, latitude, srid=4326):
-        super(BiogasPlantContact, self).__setattr__('latitude', latitude)
-        super(BiogasPlantContact, self).__setattr__('longitude', longitude)
-        super(BiogasPlantContact, self).__setattr__('srid', srid)
+        self.latitude = latitude
+        self.longitude = longitude
+        self.srid =  srid
+        # super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        # super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        # super(BiogasPlantContact, self).__setattr__('srid', srid)
 
     def get_x(self):
         return self.longitude
@@ -451,9 +459,12 @@ class BiogasPlant(models.Model):
         return {'latitude':latitude, 'longitude':longitude }
 
     def set_location(self, longitude, latitude, srid=4326):
-        super(BiogasPlantContact, self).__setattr__('latitude', latitude)
-        super(BiogasPlantContact, self).__setattr__('longitude', longitude)
-        super(BiogasPlantContact, self).__setattr__('srid', srid)
+        self.latitude = latitude
+        self.longitude = longitude
+        self.srid =  srid
+        # super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        # super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        # super(BiogasPlantContact, self).__setattr__('srid', srid)
 
     def get_x(self):
         return self.longitude
@@ -490,9 +501,10 @@ class BiogasPlant(models.Model):
         #    geolocator = Nominatim()
         #   _location_ = geolocator.geocode(self.town)
         #    self.location = Point(_location_.longitude, _location_.latitude)
-        if  (self.what3words != None): # want to change this so it is only saved when the coordinate has changed, not every time
-            _location_ = find_coordinates(self.what3words)
-            self.set_location( _location_['lng'], _location_['lat'] )
+
+        # if  (self.what3words != None): # want to change this so it is only saved when the coordinate has changed, not every time
+        #     _location_ = find_coordinates(self.what3words)
+        #     self.set_location( _location_['lng'], _location_['lat'] )
         return super(BiogasPlant, self).save(*args, **kwargs)
 
         
@@ -737,9 +749,12 @@ class AddressData(models.Model):
         return self
 
     def set_location(self, longitude, latitude, srid=4326):
-        super(BiogasPlantContact, self).__setattr__('latitude', latitude)
-        super(BiogasPlantContact, self).__setattr__('longitude', longitude)
-        super(BiogasPlantContact, self).__setattr__('srid', srid)
+        self.latitude = latitude
+        self.longitude = longitude
+        self.srid =  srid
+        # super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        # super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        # super(BiogasPlantContact, self).__setattr__('srid', srid)
 
     def get_x(self):
         return self.longitude

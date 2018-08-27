@@ -1,7 +1,7 @@
 from cerberus import Validator
-import phonenumbers
-from phonenumbers import carrier
-from phonenumbers.phonenumberutil import number_type
+# import phonenumbers
+# from phonenumbers import carrier
+# from phonenumbers.phonenumberutil import number_type
 import pdb
 import re
 
@@ -36,9 +36,12 @@ def technician_uri_validator(field, value, error):
 def validate_mobile(field, value, error):
     #pattern = re.compile("^\+[0-9]+$")
     #valid = bool(pattern.match(value))
-    a_mobile = carrier._is_mobile(number_type(phonenumbers.parse(value)))
-    if not a_mobile :
-        error(field, "This field should contain an international mobile number, e.g. +457543788853")
+    pattern = re.compile("^[\+][1-9][0-9]+$")
+    isnumber = bool(pattern.match(value))
+    #a_mobile = carrier._is_mobile(number_type(phonenumbers.parse(value)))
+    if isnumber is False:
+        error(field, "This field should contain an phone number in international format, e.g. +457543788853")
+
 
 schema = {
 

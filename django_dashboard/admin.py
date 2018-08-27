@@ -33,20 +33,20 @@ class TechnicianDetailAdmin(admin.StackedInline):
     model = TechnicianDetail
     #list_display = ('number_jobs_active','number_of_jobs_completed','location')
     #list_filter = ('number_jobs_active','number_of_jobs_completed','location')
-    def queryset(self, request):
-        """Limit Pages to those that belong to the request's user."""
-        qs = super(TechnicianDetailAdmin, self).queryset(request)
-        if request.user.is_superuser:
-            # It is mine, all mine. Just return everything.
-            return qs
-        # Now we just add an extra filter on the queryset and
-        # we're done. Assumption: Page.owner is a foreignkey
-        # to a User.
-        if request.role == 'TECHNICIAN':
-            return qs.filter(technicans=request.user)
+    # def queryset(self, request):
+    #     """Limit Pages to those that belong to the request's user."""
+    #     qs = super(TechnicianDetailAdmin, self).queryset(request)
+    #     if request.user.is_superuser:
+    #         # It is mine, all mine. Just return everything.
+    #         return qs
+    #     # Now we just add an extra filter on the queryset and
+    #     # we're done. Assumption: Page.owner is a foreignkey
+    #     # to a User.
+    #     if request.role == 'TECHNICIAN':
+    #         return qs.filter(technicans=request.user)
    
-        if request.role == 'COMPANY_ADMIN':
-            return qs.filter(technicans=request.company)
+    #     if request.role == 'COMPANY_ADMIN':
+    #         return qs.filter(technicans=request.company)
 
 class PendingJobsAdmin(admin.ModelAdmin): # could make a stacked inline??
     model = PendingJobs
@@ -61,8 +61,8 @@ class UserDetailAdmin(admin.ModelAdmin): # admin.StackedInline
     form = UserDetailForm
     inlines = [TechnicianDetailAdmin,]
     readonly_fields=('first_name','last_name')
-    list_display = ('role','company_title','first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
-    list_filter = ('role','first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details')
+    list_display = ('company_title','first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
+    list_filter = ('first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details')
     #ordering = ('first_name','last_name','role','phone_number','country','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
     filter_horizontal = ('company',)
     #form = UserForm

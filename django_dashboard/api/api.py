@@ -20,7 +20,7 @@ from django.db.models import Q
 import uuid
 import json
 from helpers import datetime_to_string, error_handle_wrapper, only_keep_fields, map_fields, to_serializable, AddressSerializer, raise_custom_error, required_fields, CustomBadRequest, JobHistorySerialiser
-from helpers import parse_string_extract_filter, to_serializable_location
+from helpers import parse_string_extract_filter, to_serializable_location, UserDetailsSerialiser
 from helpers import Permissions
 from django.core.paginator import Paginator
 from tastypie_actions.actions import actionurls, action
@@ -31,13 +31,15 @@ from django.utils import timezone
 from multiselectfield import MultiSelectField
 from validate_email import validate_email
 from django_dashboard.api.password_management import PasswordManagementResource
-import phonenumbers
-from phonenumbers import carrier
-from phonenumbers.phonenumberutil import number_type
+# import phonenumbers
+# from phonenumbers import carrier
+# from phonenumbers.phonenumberutil import number_type
 from cerberus import Validator
 from django_dashboard.api.validators.validator_patterns import schema
 from django.core.paginator import Paginator
 import math
+import re
+from django.db import transaction
 import pdb
 
 multiselect_fields = { "plumber":'PLUMBER',"mason":'MASON',"manager":'MANAGER',"design":'DESIGN','calculations':'CALCULATIONS','tubular':'TUBULAR','fixed_dome':'FIXED_DOME' }
@@ -282,7 +284,7 @@ class TechnicianDetailResource(ModelResource): # child
         bundle = self.build_bundle(data={}, request=request)
 
         data = json.loads( request.read() )
-        data = only_keep_fields(data,['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details','acredit_to_install','acredited_to_fix','specialist_skills','what3words','languages_spoken','longitude','latitude'])
+        data = only_keep_fields(data,['first_name','last_name','mobile','email','region','district','ward','village','other_address_details','acredit_to_install','acredited_to_fix','specialist_skills','what3words','languages_spoken','longitude','latitude'])
         
         create_technician_schema = schema['edit_technician']
         vv= Validator(create_technician_schema)
@@ -320,7 +322,7 @@ class TechnicianDetailResource(ModelResource): # child
                             tech_to_edit_additional_details.technician_details.set_location(data['longitude'],data['latitude'])
                         except:
                             pass
-                    elif itm in ['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details']:
+                    elif itm in ['first_name','last_name','mobile','email','region','district','ward','village','other_address_details']:
                         setattr(tech_to_edit, itm, data[itm])
                     elif itm == 'what3words':
                         setattr(tech_to_edit_additional_details, itm, data[itm])
@@ -481,10 +483,8 @@ class UserDetailResource(ModelResource): # parent
     def get_technicians(self, request, **kwargs):
         """get all the techs that are available for a job - this is only available to admins or superusers"""
         self.is_authenticated(request)
-        
-
+        #pdb.set_trace()
         try:
-            
              # we specify the type of bundle in order to help us filter the action we take before we return
             bundle = self.build_bundle(data={}, request=request)
             uob = bundle.request.user
@@ -497,7 +497,10 @@ class UserDetailResource(ModelResource): # parent
             num_active_jobs=len(active_jobs)
 
             #if len(pending_jobs) == 0 and num_active_jobs<1: # the user can not get another job if they have not accepted this one!
-            techs = UserDetail.objects.filter(technician_details__status=True, country='Tanzania', ) # technician_details__max_num_jobs_allowed__gt = num_active_jobs - for later at the moment we hardcode to allow only one job at a time
+            if perm.is_admin():
+                techs = UserDetail.objects.filter( technician_details__status=True, company__in=[company] ) # technician_details__max_num_jobs_allowed__gt = num_active_jobs - for later at the moment we hardcode to allow only one job at a time
+            if uob.is_superuser or perm.is_global_admin():
+                techs = UserDetail.objects.filter( technician_details__status=True )
             # use the related_name to look up and filter to ensure they do not have any active or pending jobs
             #bundle = self.build_bundle(obj=techs, request=request)
             #bundle = self.alter_detail_data_to_serialize(request, bundle)
@@ -505,43 +508,15 @@ class UserDetailResource(ModelResource): # parent
             ##now serialize:
             data_list = []
             for ii in techs:
-                #pdb.set_trace()
-                try:
-                    data = {'company':ii.company.name,
-                            'first_name':ii.first_name,
-                            'last_name':ii.last_name,
-                            'country':ii.country,
-                            'village':ii.village,
-                            'region':ii.region,
-                            'mobile':ii.phone_number.as_international,
-                            'uri':'/api/v1/users/' + str(ii.id) + '/',
-                            'location': to_serializable_location(ii.technician_details.location),
-                            # 'longitude': ii.technician_details.location.get_x(),
-                            # 'latitude': ii.technician_details.location.get_y(),
-                            'acredited_to_fix':ii.technician_details.acredited_to_fix,
-                            'specialist_skills':ii.technician_details.specialist_skills,
-                            'number_jobs_active':ii.technician_details.number_jobs_active,
-                            'number_of_jobs_completed':ii.technician_details.number_of_jobs_completed,
-                            'status':ii.technician_details.status,
-                            'willing_to_travel':ii.technician_details.willing_to_travel,
-                            'languages_spoken':ii.technician_details.languages_spoken,
-                            'uid':ii.technician_details.technician_id,
-                            }
-                    data_list.append(data)
-                except:
-                    pass
-            bundle.data['technicians'] = data_list
-
-            #bundle = self.build_bundle(data=bundle.data, request=request)
-
-
+                data = UserDetailsSerialiser(ii).data
+                data['uri'] = '/api/v1/users/' + str(data['id']) + '/'
+                data['location'] = to_serializable_location(ii.technician_details.location)
+                data_list.append(data)
+            bundle.data['data'] = data_list
         except:
             #bundle = self.build_bundle(data={}, request=request)
             pass
 
-        #return UserDetailResource().get_list(request).filter()
-        #bundle = self.full_dehydrate(bundle) 
-        
         return self.create_response(request, bundle)
 
 
@@ -630,8 +605,10 @@ class UserDetailResource(ModelResource): # parent
         return super(UserDetailResource, self).obj_create(bundle, user=uob)
 
     @action(allowed=['post'], require_loggedin=False,static=True)
+    #@transaction.atomic
     def create_technician(self, request, **kwargs):
         self.is_authenticated(request)
+        
         data = json.loads( request.read() )
         data = only_keep_fields(data,['first_name','last_name','mobile','phone_number','email','user_photo','country','region','district','ward','village','postcode','other_address_details','role','acredit_to_install','acredited_to_fix','specialist_skills','status','what3words','willing_to_travel','max_num_jobs_allowed','languages_spoken','username','password'])
         
@@ -642,59 +619,72 @@ class UserDetailResource(ModelResource): # parent
             raise CustomBadRequest( code="field_error", message=errors_to_report )
 
         required_fields(data,['first_name','last_name','username','mobile'] )
-        if 'phone_number' in data.keys():
-            data['mobile'] = data['phone_number']
+        if 'mobile' in data.keys():
+            data['phone_number'] = data['mobile']
         bundle = self.build_bundle(data={}, request=request)
         uob = bundle.request.user
         perm = Permissions(uob)
         company = perm.get_company_scope()
-        
         if ( uob.is_superuser or perm.is_global_admin() or perm.is_admin() ): # the company that we make the tech should be the same one the admin is logged in as- the one returned as the current company scope (above)
             
             if User.objects.filter(username=data['username']).exists():
                 raise CustomBadRequest( code="field_error", message="Username not unique someone else is using it. Do please try a different username. It must be an email address or a mobile number." )
             if validate_email(data['username']) is True:
                 is_mobile_email = 'email'
-            elif carrier._is_mobile(number_type(phonenumbers.parse(data['username']))):
+            elif bool(re.compile("^[\+][1-9][0-9]+$").match(data['username'])): # check if the username is an international number
                 is_mobile_email = 'mobile'
             else:
-                raise_custom_error({"error":"You need to provide a username and password. The username must be a valid email or mobile number (with international calling code)"}, 500)
+                raise_custom_error({"error":"You need to provide a username and password. The username must be a valid email or mobile number (with international calling code)"}, 400)
            
-
             try:
                 logged_in_as = uob.userdetail.logged_in_as
                 user = User.objects.create_user(username=data['username'], email=data['username'], password=data['password'], first_name=data['first_name'], last_name=data['last_name'] )    
                 userdetail = UserDetail.objects.create(user=user, logged_in_as = logged_in_as)
-                try: # include this for the time being as a lot of the old users don't have this field
+                try: # include this try statement for the time being as a lot of the old users don't have this field
                     userdetail.company.add(logged_in_as)
                 except:
                     pass
-                tech_additional_details=TechnicianDetail(technicians=userdetail)
-                tech_additional_details.save()
+                #userdetail.objects.get_or_create(**{self.related.field.name: instance})
+                #tech_additional_details=TechnicianDetail(technicians=userdetail)
+                tech_additional_details=TechnicianDetail()
+                #userdetail.objects.get_or_create(**{self.related.field.name: tech_additional_details})
+                userdetail.technician_details = tech_additional_details
+                #tech_additional_details.save()
+                #pdb.set_trace()
+                
                 
                 for itm in data: # for simple text based changes this is very easy - no additional clauses needed
                     if itm == 'languages_spoken':
                         try:
-                            tech_additional_details.languages_spoken = data["languages_spoken"]   # ArrayReplace("languages_spoken", 
+                            #pdb.set_trace()
+                            userdetail.technician_details.languages_spoken = data["languages_spoken"]   # ArrayReplace("languages_spoken", 
+                            
                         except:
                             pass
                     elif itm == "latitude":
                         try:
-                            tech_additional_details.set_location(data['longitude'],data['latitude']) 
+                            #pdb.set_trace() 
+                            userdetail.technician_details.set_location(data['longitude'],data['latitude'])
+                            
                         except:
                             pass
-                    elif itm in ['role','first_name','last_name','mobile','email','region','district','ward','village','other_address_details','country']:
+                    elif itm in ['role','first_name','last_name','phone_number','email','region','district','ward','village','other_address_details','country']:
                         setattr(userdetail, itm, data[itm])
                     elif itm in ['what3words', 'status','willing_to_travel']:
-                        setattr(tech_additional_details, itm, data[itm])
+                        #pdb.set_trace()
+                        setattr(userdetail.technician_details, itm, data[itm])
+                        
                     elif itm in ['acredit_to_install','acredited_to_fix','specialist_skills']:
+                        #pdb.set_trace()
                         choices_to_save = [ multiselect_fields[ii] for ii in data[itm] ]
-                        setattr(tech_additional_details, itm, choices_to_save)
+                        setattr(userdetail.technician_details, itm, choices_to_save)
+                        
                         #reset_code = PasswordManagementResource.generate_reset_code(uob)
                 
-                #pdb.set_trace()
+                userdetail.technician_details.save()
                 userdetail.save()
-                tech_additional_details.save()
+                
+                #tech_additional_details.save()
                 bundle.data = {"message":"User created", "user_id":userdetail.id }
             except:
                 raise_custom_error({"error":"Your request has not succeeded. Sorry not to be more helpful. Goodbye."}, 500)

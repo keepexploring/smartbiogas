@@ -497,3 +497,45 @@ class IndicatorObjectsSerialiser(serpy.Serializer):
     status = serpy.Field()
     created = serpy.Field()
     updated = serpy.Field()
+
+class NestedUserObject(serpy.Serializer):
+    id = serpy.Field()
+    username = serpy.Field()
+
+class TechnicianDetailsNested(serpy.Serializer):
+    status = serpy.Field()
+    what3words = serpy.Field()
+    max_num_jobs_allowed = serpy.Field()
+    willing_to_travel = serpy.Field()
+    specialist_skills = serpy.Field()
+    acredit_to_install = serpy.Field()
+    acredited_to_fix = serpy.Field()
+    number_jobs_active = serpy.Field()
+    languages_spoken = serpy.Field()
+    number_of_jobs_completed = serpy.Field()
+    latitude = serpy.MethodField()
+    longitude = serpy.MethodField()
+
+    def get_latitude(self, obj):
+        return str(obj.latitude)
+       
+    def get_longitude(self, obj):
+        return str(obj.longitude)
+        
+    
+class UserDetailsSerialiser(serpy.Serializer):
+    id = serpy.Field()
+    first_name = serpy.Field()
+    last_name = serpy.Field()
+    email = serpy.Field()
+    phone_number = serpy.Field()
+    country = serpy.Field()
+    region = serpy.Field()
+    district = serpy.Field()
+    ward = serpy.Field()
+    postcode = serpy.Field()
+    other_address_details = serpy.Field()
+    technician_details = TechnicianDetailsNested()
+    user = NestedUserObject()
+    user_photo = serpy.Field()
+    
