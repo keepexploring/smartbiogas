@@ -1,0 +1,4 @@
+{
+  "django-tastypie-oauth/testproject/polls/tests/test_api.py": true, 
+  "tests/test_apiendpoints.py": true
+}

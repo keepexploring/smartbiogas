@@ -128,9 +128,9 @@ class JobsAdmin(admin.ModelAdmin):
 class BiogasPlantsAdmin(admin.ModelAdmin):
     form = BiogasForm
     inlines = [JobHistoryInline,]
-    list_display = ('get_contact','mobile_num','contact_type','plant_id','type_biogas','volume_biogas','region','district','ward','village','neighbourhood','other_address_details','location')
-    list_filter = ('volume_biogas','region','district','ward','village','neighbourhood','other_address_details')
-    search_fields = ('get_contact','mobile_num','contact_type','type_biogas','volume_biogas','region','district','ward','village','neighbourhood','other_address_details')
+    list_display = ('volume_biogas','get_contact','mobile_num','adopted_by','contact_type','plant_id','type_biogas','region','district','ward','village','neighbourhood','other_address_details','location')
+    list_filter = ('volume_biogas','region','adopted_by','district','ward','village','neighbourhood','other_address_details')
+    search_fields = ('volume_biogas','get_contact','mobile_num','adopted_by','contact_type','type_biogas','region','district','ward','village','neighbourhood','other_address_details')
     filter_horizontal = ('contact','constructing_technicians',)
 
 

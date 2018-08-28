@@ -415,7 +415,8 @@ class BiogasPlant(models.Model):
         ('DECOMMISSIONED', "decommissioned"),
     )
     plant_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
-    
+    adopted_by = models.ForeignKey(UserDetail, on_delete=models.CASCADE, null=True, blank=True)
+
     UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200) # Unique Identiifer Code (their is one of these on all biogas plants) - this field how becomes redundant as we now use a separate table for this. It will be removed in the next release.
     biogas_plant_name = models.CharField(db_index=True,null=True,blank=True,max_length=200)
     thingboard_ref = models.CharField(db_index=True,null=True,blank=True,max_length=200)
@@ -439,7 +440,8 @@ class BiogasPlant(models.Model):
     supplier = EnumField(SupplierBiogas, max_length=1,null=True,blank=True)
     #size_biogas = models.FloatField(null=True,blank=True) # maybe specify this in m3
     #volume_biogas = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    volume_biogas = models.CharField(max_length=200,null=True,blank=True)
+    volume_biogas = models.IntegerField(null=True,blank=True, help_text="Integer value indicating the volume of the biogas plant in m3")
+    
     location_estimated = models.NullBooleanField(default=False,blank=True)
     #location = models.PointField(geography=True, srid=4326,blank=True,db_index=True,null=True)
     #status = models.CharField(null=True,max_length=225,blank=True,choices=STATUS_CHOICES)
@@ -471,6 +473,13 @@ class BiogasPlant(models.Model):
 
     def get_y(self):
         return self.latitude
+
+    @property
+    def adopted(self):
+        if (self.adopted_by is None):
+            return False
+        else:
+            return True
 
     def __str__(self):
         return '%s, %s, %s, %s, %s' % (str(self.id), str(self.type_biogas), str(self.supplier), str(self.volume_biogas), str(self.plant_id) )

@@ -9,7 +9,8 @@ from api.register_node import RegisterResource
 from api.data import DataResource
 from api.validate import ValidateToken
 from api.password_management import PasswordManagementResource
-from django_dashboard.views import RegionAutocomplete, CountryAutocomplete, ContinentAutocomplete, DistrictAutocomplete, WardAutocomplete, VillageAutocomplete, SupplierAutocomplete, VolumeAutocomplete 
+from django_dashboard.views import RegionAutocomplete, CountryAutocomplete, ContinentAutocomplete, DistrictAutocomplete, WardAutocomplete, VillageAutocomplete, SupplierAutocomplete
+    # VolumeAutocomplete 
 
 v1_api = Api(api_name='v1')
 v1_api.register(CompanyResource())
@@ -39,7 +40,7 @@ urlpatterns = [
                url(r'^country-autocomplete/$', CountryAutocomplete.as_view(), name='country-autocomplete'),
                url(r'^continent-autocomplete/$', ContinentAutocomplete.as_view(), name='continent-autocomplete'),
                url(r'^supplier-autocomplete/$', SupplierAutocomplete.as_view(), name='supplier-autocomplete'),
-               url(r'^volume-autocomplete/$', VolumeAutocomplete.as_view(), name='volume-autocomplete'),
+               #url(r'^volume-autocomplete/$', VolumeAutocomplete.as_view(), name='volume-autocomplete'),
                
 
 ]
