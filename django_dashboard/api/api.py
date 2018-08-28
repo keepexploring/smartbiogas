@@ -40,6 +40,7 @@ from django.core.paginator import Paginator
 import math
 import re
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 import pdb
 
 multiselect_fields = { "plumber":'PLUMBER',"mason":'MASON',"manager":'MANAGER',"design":'DESIGN','calculations':'CALCULATIONS','tubular':'TUBULAR','fixed_dome':'FIXED_DOME' }
@@ -205,31 +206,42 @@ class TechnicianDetailResource(ModelResource): # child
             perm = Permissions(uob)
             company = perm.get_company_scope()
 
-
+               
             if ( uob.is_superuser or perm.is_global_admin() or perm.is_technician() or perm.is_admin() ):
-                tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
-                user_detail = UserDetail.objects.get(user = uob)
-
-                detail = {}
-                detail['technician_id'] = tech_detail.technician_id
-                detail['acredit_to_install'] = tech_detail.acredit_to_install
-                detail['acredited_to_fix'] = tech_detail.acredited_to_fix
-                detail['specialist_skills'] = tech_detail.specialist_skills
-                detail['number_jobs_active'] = tech_detail.number_jobs_active
-                detail['number_of_jobs_completed'] = tech_detail.number_of_jobs_completed
-                detail['status'] = tech_detail.status
-                #detail['what3words'] = tech_detail.what3words
-                detail['location'] = tech_detail.location
-                detail['latitude'] = tech_detail.location.get_y()
-                detail['longitude'] = tech_detail.location.get_x() 
-                detail['willing_to_travel'] = tech_detail.willing_to_travel
-                detail['languages_spoken'] = tech_detail.languages_spoken
+                #tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
+                try:
+                    user_detail = UserDetail.objects.get(user = uob)
+                    detail = {}
+                    detail['first_name'] = user_detail.first_name
+                    detail['last_name'] = user_detail.last_name
+                    detail['mobile'] = user_detail.phone_number
+                    detail["email"] = user_detail.email
+                    detail["user_id"] = user_detail.user.id
+                except ObjectDoesNotExist:
+                    raise CustomBadRequest(
+                        code="403",
+                        message="User not found")
+                
+                try:
+                    tech_detail = user_detail.technician_details
+                    detail['technician_id'] = tech_detail.technician_id
+                    detail['acredit_to_install'] = tech_detail.acredit_to_install
+                    detail['acredited_to_fix'] = tech_detail.acredited_to_fix
+                    detail['specialist_skills'] = tech_detail.specialist_skills
+                    detail['number_jobs_active'] = tech_detail.number_jobs_active
+                    detail['number_of_jobs_completed'] = tech_detail.number_of_jobs_completed
+                    detail['status'] = tech_detail.status
+                    #detail['what3words'] = tech_detail.what3words
+                    detail['location'] = tech_detail.location
+                    detail['latitude'] = tech_detail.location.get_y()
+                    detail['longitude'] = tech_detail.location.get_x() 
+                    detail['willing_to_travel'] = tech_detail.willing_to_travel
+                    detail['languages_spoken'] = tech_detail.languages_spoken
+                except ObjectDoesNotExist:
+                    pass
+                 
                 #detail['company'] = user_detail.company.values() # this can be added later
-                detail['first_name'] = user_detail.first_name
-                detail['last_name'] = user_detail.last_name
-                detail['mobile'] = user_detail.phone_number
-                detail["email"] = user_detail.email
-
+                
                 bundle.data = detail
 
         except:
@@ -497,6 +509,7 @@ class UserDetailResource(ModelResource): # parent
             num_active_jobs=len(active_jobs)
 
             #if len(pending_jobs) == 0 and num_active_jobs<1: # the user can not get another job if they have not accepted this one!
+            pdb.set_trace()
             if perm.is_admin():
                 techs = UserDetail.objects.filter( technician_details__status=True, company__in=[company] ) # technician_details__max_num_jobs_allowed__gt = num_active_jobs - for later at the moment we hardcode to allow only one job at a time
             if uob.is_superuser or perm.is_global_admin():
