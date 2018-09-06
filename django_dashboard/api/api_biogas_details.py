@@ -16,8 +16,10 @@ from cerberus import Validator
 import serpy
 import uuid
 import json
+from django.db import transaction
 #from django_dashboard.api.api_biogas_contact import BiogasPlantContactResource
 from django_dashboard.api.validators.validator_patterns import schema
+from django_dashboard.api.addressmapper import get_address_keywords, create_address_object, map_database_to_address_object, map_address_to_database, map_address_to_json_from_database
 import pdb
 
 
@@ -96,11 +98,12 @@ class BiogasPlantResource(ModelResource):
                         "owner": [{"first_name":ii.first_name, "surname":ii.surname, "mobile":ii.mobile, "contact_type":ii.contact_type.name} for ii in bi.contact.all()],
                         "biogas_plant_name": bi.biogas_plant_name,
                             "associated_company": bi.associated_company,
-                        "country":bi.country,
-                        "region": bi.region,
-                        "district":bi.district,
-                        "ward": bi.ward,
-                        "village":bi.village,
+                        "address": map_address_to_json_from_database(bi.address),
+                        # "country":bi.country,
+                        # "region": bi.region,
+                        # "district":bi.district,
+                        # "ward": bi.ward,
+                        # "village":bi.village,
                         "type_biogas":bi.type_biogas,
                         "supplier":bi.supplier,
                         "volume_biogas":bi.volume_biogas,
@@ -110,7 +113,7 @@ class BiogasPlantResource(ModelResource):
                         "verfied":bi.verfied,
                         "uri":"/api/v1/biogasplant/"+str(bi.id)+"/",
                         "location_estimated":bi.location_estimated,
-                        "location": to_serializable_location(bi.location),
+                        "location": to_serializable_location(bi.address.location),
                         }
                 data_list.append(data)
             bundle.data['biogas_plants'] = data_list
@@ -126,6 +129,7 @@ class BiogasPlantResource(ModelResource):
         data = json.loads( request.read() )
         fields = ['UIC']
         data = only_keep_fields(data, fields)
+        pdb.set_trace()
         bundle = self.build_bundle(data={}, request=request)
         try:
             biogas_plant = BiogasPlant.objects.get(UIC=data['UIC'])
@@ -141,10 +145,11 @@ class BiogasPlantResource(ModelResource):
 
 
     @action(allowed=['post'], require_loggedin=False, static=True)
+    @transaction.atomic
     def create_biogas_plant(self, request, **kwargs):
         self.is_authenticated(request)
         data = json.loads( request.read() )
-        fields = ["UIC", "biogas_plant_name", "associated_company","contact","funding_source","latitude","longitude","country","village","region","district","ward","what3words","type_biogas","volume_biogas","install_date","other_address_details","current_status","contruction_tech","location_estimated"]
+        fields = ["UIC", "biogas_plant_name","adopt", "associated_company","contact","funding_source","latitude","longitude","country","village","region","district","ward","what3words","type_biogas","volume_biogas","install_date","other_address_details","current_status","contruction_tech","location_estimated"]
         _schema_ = schema['create_biogas_plant']
         vv= Validator(_schema_)
         if not vv.validate(data):
@@ -155,19 +160,47 @@ class BiogasPlantResource(ModelResource):
         data = if_empty_fill_none(data, fields)
 
         fields = data.keys()
-        
+
+        address_keywords = get_address_keywords() # these are all the words people might send relating to setting an address e.g. region, country etc
+        address_object = create_address_object()
+        address_object_instance = address_object()
         bundle = self.build_bundle(data={}, request=request)
         try:
             uob = bundle.request.user
             perm = Permissions(uob)
-            company = perm.get_company_scope()
+            company = perm.get_company_scope() 
 
-            biogasplant = BiogasPlant() # if plant_id is a field we need to add it to the plant that has been specified
-            field_relations = {'UIC': biogasplant.UIC, 'biogas_plant_name':biogasplant.biogas_plant_name, 'funding_souce':biogasplant.funding_souce,
-                'country':biogasplant.country, 'region':biogasplant.region, 'district':biogasplant.district,
-                'ward':biogasplant.ward, 'village':biogasplant.village, 'other_address_details':biogasplant.other_address_details,
-                'type_biogas':biogasplant.type_biogas,'volume_biogas':biogasplant.volume_biogas, 'location':biogasplant.location, 
-                'location_estimated':biogasplant.location_estimated, 'current_status':biogasplant.current_status }
+            if ( ( BiogasPlant.objects.filter(UIC=data['UIC']).exists() ) is (False or data['UIC'] is None) ) :
+                biogasplant = BiogasPlant()
+            else:
+                raise CustomBadRequest(
+                        code="400",
+                        message="This sensor is already registered on the system - please search for it if you want to modify the record")
+
+             # if plant_id is a field we need to add it to the plant that has been specified
+            # field_relations = {'UIC': biogasplant.UIC, 'biogas_plant_name':biogasplant.biogas_plant_name, 'funding_souce':biogasplant.funding_souce,
+            #     'country':biogasplant.country, 'region':biogasplant.region, 'district':biogasplant.district,
+            #     'ward':biogasplant.ward, 'village':biogasplant.village, 'other_address_details':biogasplant.other_address_details,
+            #     'type_biogas':biogasplant.type_biogas,'volume_biogas':biogasplant.volume_biogas, 'location':biogasplant.location, 
+            #     'location_estimated':biogasplant.location_estimated, 'current_status':biogasplant.current_status, 'adopted_by':biogasplant.adopted_by }
+            for itm in data:
+                if itm in ['UIC','biogas_plant_name','funding_souce','volume_biogas','location_estimated','current_status','type_biogas']:
+                    setattr(biogasplant, itm, data[itm])
+
+                elif itm in address_keywords:
+                    setattr(address_object_instance, itm, data[itm])
+
+                elif itm in ['location']:
+                    address_object_instance.set_location( data['longitude'],data['latitude'] )
+
+                elif itm in ['adopt']:
+                    if data['adopt'] == True:
+                        setattr(biogasplant, 'adopted_by', uob.userdetail)
+
+            address_object_to_save = map_address_to_database(address_object_instance)
+            address_object_to_save.save()
+            biogasplant.address = address_object_to_save
+            biogasplant.save()
             #pdb.set_trace()
             #biogasplant.UIC = data['UIC']
             #biogasplant.biogas_plant_name = data['biogas_plant_name']
@@ -183,16 +216,19 @@ class BiogasPlantResource(ModelResource):
             #biogasplant.location = Point(data['longitude'],data['latitude'])
             #biogasplant.location_estimated = data["location_estimated"]
             #biogasplant.current_status = data['current_status']
-            for fld in fields:
-                try:
-                    if fld == 'location':
-                        biogasplant.set_location(data['longitude'],data['latitude'])
-                    else:
-                        field_relations[fld] = data[fld]
-                except:
-                    pass
 
-            bb=biogasplant.save()
+            # for fld in fields:
+            #     try:
+            #         if fld == 'location':
+            #             biogasplant.set_location(data['longitude'],data['latitude'])
+            #         elif fld == 'adopt':
+            #             if data['adopt'] == True:
+            #                 field_relations['adopted_by'] = uob.userdetail
+            #         else:
+            #             field_relations[fld] = data[fld]
+            #     except:
+            #         pass
+
             if data["contruction_tech"] == "me":
                 biogasplant.constructing_technicians.add(UserDetail.objects.get(user=uob) )
             if (data['contact'] is not None): # now link the biogas plant to a contact
@@ -206,11 +242,14 @@ class BiogasPlantResource(ModelResource):
             #create(first_name=data['firstname'],surname=surname,mobile,contact_type=contact_type, mobile=mobile, email=email)
             bundle.data = {"message":"biogas plant created","uid":plant_id}
         except:
-            bundle.data = {"message":"error"}
+            raise CustomBadRequest(
+                        code="500",
+                        message="Unknown error")
 
         return self.create_response(request, bundle)
 
     @action(allowed=['put'], require_loggedin=False, static=False)
+    @transaction.atomic
     def edit_biogas_plant(self, request, **kwargs):
         self.is_authenticated(request)
         #pdb.set_trace()
@@ -240,12 +279,23 @@ class BiogasPlantResource(ModelResource):
             if (uob.is_superuser or perm.is_global_admin() ):
                 plant_to_edit = BiogasPlant.objects.get(id=pk)
 
+                address_keywords = get_address_keywords() # these are all the words people might send relating to setting an address e.g. region, country etc
+                address_object = map_database_to_address_object( plant_to_edit.address )
+
                 for itm in data: # for simple text based changes this is very easy - no additional clauses needed
-                    setattr(plant_to_edit, itm, data[itm])
+                    if itm in address_keywords:
+                        setattr(address_object, item, data[itm])
+                    else:
+                        setattr(plant_to_edit, itm, data[itm])
+                _address_object = map_address_to_database(address_object)
+                _address_object.save()
+                plant_to_edit.address = _address_object
                 plant_to_edit.save()
                 bundle.data = { "message":"Biogas Plant Updated" }
         except:
-            pass
+            raise CustomBadRequest(
+                        code="403",
+                        message="Object not found")
 
         return self.create_response(request, bundle)
     

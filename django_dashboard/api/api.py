@@ -41,6 +41,7 @@ import math
 import re
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
+from django_dashboard.api.addressmapper import get_address_keywords, create_address_object, map_database_to_address_object, map_address_to_database, map_address_to_json_from_database, map_serialised_address
 import pdb
 
 multiselect_fields = { "plumber":'PLUMBER',"mason":'MASON',"manager":'MANAGER',"design":'DESIGN','calculations':'CALCULATIONS','tubular':'TUBULAR','fixed_dome':'FIXED_DOME' }
@@ -69,11 +70,6 @@ class CompanyResource(ModelResource):
         list_allowed_methods = ['get', 'post', 'put']
         filtering = {'company_name':ALL,
                     'username':ALL,
-                    'country':ALL,
-                    'region':ALL,
-                    'district':ALL,
-                    'ward':ALL,
-                    'village':ALL,
                     'phone_number':ALL
                     } # can use the filtering options from django
         authorization = DjangoAuthorization()
@@ -206,7 +202,6 @@ class TechnicianDetailResource(ModelResource): # child
             perm = Permissions(uob)
             company = perm.get_company_scope()
 
-               
             if ( uob.is_superuser or perm.is_global_admin() or perm.is_technician() or perm.is_admin() ):
                 #tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
                 try:
@@ -214,9 +209,16 @@ class TechnicianDetailResource(ModelResource): # child
                     detail = {}
                     detail['first_name'] = user_detail.first_name
                     detail['last_name'] = user_detail.last_name
-                    detail['mobile'] = user_detail.phone_number
+                    detail['mobile'] = user_detail.mobile
                     detail["email"] = user_detail.email
                     detail["user_id"] = user_detail.user.id
+                    detail["address"] = map_address_to_json_from_database(user_detail.address)
+                    detail['location'] = to_serializable_location(user_detail.address.location)
+                    detail['latitude'] = user_detail.address.location.get_y()
+                    detail['longitude'] = user_detail.address.location.get_x()
+                    detail['user_photo'] = user_detail.user_photo
+                    detail['username'] = user_detail.user.username
+                    detail['id'] = user_detail.id
                 except ObjectDoesNotExist:
                     raise CustomBadRequest(
                         code="403",
@@ -231,25 +233,27 @@ class TechnicianDetailResource(ModelResource): # child
                     detail['number_jobs_active'] = tech_detail.number_jobs_active
                     detail['number_of_jobs_completed'] = tech_detail.number_of_jobs_completed
                     detail['status'] = tech_detail.status
-                    #detail['what3words'] = tech_detail.what3words
-                    detail['location'] = tech_detail.location
-                    detail['latitude'] = tech_detail.location.get_y()
-                    detail['longitude'] = tech_detail.location.get_x() 
+                    detail['what3words'] = tech_detail.what3words
                     detail['willing_to_travel'] = tech_detail.willing_to_travel
                     detail['languages_spoken'] = tech_detail.languages_spoken
                 except ObjectDoesNotExist:
-                    pass
+                    raise CustomBadRequest(
+                        code="403",
+                        message="User not found")
                  
                 #detail['company'] = user_detail.company.values() # this can be added later
-                
+                detail = map_serialised_address(detail)
                 bundle.data = detail
 
         except:
-            pass
+            raise CustomBadRequest(
+                    code="404",
+                    message="Request failed")
 
         return self.create_response(request, bundle)
 
     @action(allowed=['put'], require_loggedin=False, static=True)
+    @transaction.atomic
     def edit_profile(self, request, **kwargs):
         self.is_authenticated(request)
         
@@ -279,76 +283,18 @@ class TechnicianDetailResource(ModelResource): # child
                 pass
             #pdb.set_trace()
             if "latitude" in data.keys() and "longitude" in data.keys():
-                tech_detail.set_location(data['longitude'],data['latitude'])
+                tech_detail.address.set_location(data['longitude'],data['latitude'])
                 tech_detail.save()
             
             bundle.data = {"message":"Profile updated"}
         except:
-            pass
+            raise CustomBadRequest(
+                        code="403",
+                        message="Resource not found")
 
         return self.create_response(request, bundle)
     
 
-    @action(allowed=['put'], require_loggedin=False, static=False) ## This is introduced here to avoid making a breaking change with the app - this function is for admin users to allow them to edit any plant in their company
-    def edit_technician(self, request, **kwargs):
-        self.is_authenticated(request)
-        
-        bundle = self.build_bundle(data={}, request=request)
-
-        data = json.loads( request.read() )
-        data = only_keep_fields(data,['first_name','last_name','mobile','email','region','district','ward','village','other_address_details','acredit_to_install','acredited_to_fix','specialist_skills','what3words','languages_spoken','longitude','latitude'])
-        
-        create_technician_schema = schema['edit_technician']
-        vv= Validator(create_technician_schema)
-        if not vv.validate(data):
-            errors_to_report = vv.errors
-            raise CustomBadRequest( code="field_error", message=errors_to_report )
-
-
-        try:
-            pk = int(kwargs['pk'])
-        except:
-            pk = kwargs['pk']
-
-        
-        try:
-            #uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
-            uob = bundle.request.user
-            part_of_groups = uob.groups.all()
-            perm = Permissions(uob)
-            company = perm.get_company_scope()
-            
-            multiselect_fields = { "plumber":'PLUMBER',"mason":'MASON',"manager":'MANAGER',"design":'DESIGN','calculations':'CALCULATIONS','tubular':'TUBULAR','fixed_dome':'FIXED_DOME' }
-            if uob.is_superuser:
-                tech_to_edit = UserDetail.objects.get(id=pk)
-                tech_to_edit_additional_details = tech_to_edit.technician_details
-                
-                for itm in data: # for simple text based changes this is very easy - no additional clauses needed
-                    if itm == 'languages_spoken':
-                        try:
-                            tech_to_edit_additional_details.update(languages_spoken = data["languages_spoken"] )  # ArrayReplace("languages_spoken", 
-                        except:
-                            pass
-                    elif itm == "latitude":
-                        try:
-                            tech_to_edit_additional_details.technician_details.set_location(data['longitude'],data['latitude'])
-                        except:
-                            pass
-                    elif itm in ['first_name','last_name','mobile','email','region','district','ward','village','other_address_details']:
-                        setattr(tech_to_edit, itm, data[itm])
-                    elif itm == 'what3words':
-                        setattr(tech_to_edit_additional_details, itm, data[itm])
-                    elif itm in ['acredit_to_install','acredited_to_fix','specialist_skills']:
-                        choices_to_save = [ multiselect_fields[ii] for ii in data[itm] ]
-                        setattr(tech_to_edit_additional_details, itm, choices_to_save)
-
-                tech_to_edit.save()
-                tech_to_edit_additional_details.save()
-                bundle.data = { "message":"Tech Updated" }
-        except:
-            pass
-
-        return self.create_response(request, bundle)
 
 
     @action(allowed=['get'], require_loggedin=False, static=True)
@@ -469,15 +415,11 @@ class UserDetailResource(ModelResource): # parent
         list_allowed_methods = ['get', 'post']
         filtering = {'first_name':ALL,
                     'last_name':ALL,
-                    'country':ALL,
-                    'region':ALL,
-                    'district':ALL,
-                    'ward':ALL,
-                    'village':ALL,
                     'phone_number':ALL,
                     'user': ALL_WITH_RELATIONS,
+                    'address': ALL_WITH_RELATIONS,
                     }
-        ordering = ['first_name','last_name','country','region','district','phone_number','user','logged_in_as','technician_details']
+        ordering = ['first_name','last_name','phone_number','user','logged_in_as','technician_details']
         #filtering = {'username':ALL} # can use the filtering options from django
         authorization = DjangoAuthorization()
         authentication = OAuth2ScopedAuthentication(
@@ -618,12 +560,12 @@ class UserDetailResource(ModelResource): # parent
         return super(UserDetailResource, self).obj_create(bundle, user=uob)
 
     @action(allowed=['post'], require_loggedin=False,static=True)
-    #@transaction.atomic
+    @transaction.atomic
     def create_technician(self, request, **kwargs):
         self.is_authenticated(request)
         
         data = json.loads( request.read() )
-        data = only_keep_fields(data,['first_name','last_name','mobile','phone_number','email','user_photo','country','region','district','ward','village','postcode','other_address_details','role','acredit_to_install','acredited_to_fix','specialist_skills','status','what3words','willing_to_travel','max_num_jobs_allowed','languages_spoken','username','password'])
+        data = only_keep_fields(data,['first_name','last_name','mobile','phone_number','email','user_photo','country','region','district','ward','village','postcode','other_address_details','role','acredit_to_install','acredited_to_fix','specialist_skills','status','what3words','willing_to_travel','max_num_jobs_allowed','languages_spoken','username','password','latitude','longitude'])
         
         create_technician_schema = schema['create_technician']
         vv= Validator(create_technician_schema)
@@ -632,12 +574,12 @@ class UserDetailResource(ModelResource): # parent
             raise CustomBadRequest( code="field_error", message=errors_to_report )
 
         required_fields(data,['first_name','last_name','username','mobile'] )
-        if 'mobile' in data.keys():
-            data['phone_number'] = data['mobile']
+        
         bundle = self.build_bundle(data={}, request=request)
         uob = bundle.request.user
         perm = Permissions(uob)
         company = perm.get_company_scope()
+
         if ( uob.is_superuser or perm.is_global_admin() or perm.is_admin() ): # the company that we make the tech should be the same one the admin is logged in as- the one returned as the current company scope (above)
             
             if User.objects.filter(username=data['username']).exists():
@@ -665,6 +607,9 @@ class UserDetailResource(ModelResource): # parent
                 #tech_additional_details.save()
                 #pdb.set_trace()
                 
+                address_keywords = get_address_keywords() # these are all the words people might send relating to setting an address e.g. region, country etc
+                address_object = create_address_object()
+                address_object_instance = address_object()
                 
                 for itm in data: # for simple text based changes this is very easy - no additional clauses needed
                     if itm == 'languages_spoken':
@@ -676,13 +621,16 @@ class UserDetailResource(ModelResource): # parent
                             pass
                     elif itm == "latitude":
                         try:
-                            #pdb.set_trace() 
-                            userdetail.technician_details.set_location(data['longitude'],data['latitude'])
-                            
+                            address_object_instance.set_location(data['longitude'],data['latitude'])
+                            #userdetail.technician_details.set_location(data['longitude'],data['latitude'])  
                         except:
                             pass
-                    elif itm in ['role','first_name','last_name','phone_number','email','region','district','ward','village','other_address_details','country']:
+                    elif itm in ['role','first_name','last_name','mobile','email']:
                         setattr(userdetail, itm, data[itm])
+
+                    elif itm in address_keywords:
+                        setattr(address_object_instance, itm, data[itm])
+
                     elif itm in ['what3words', 'status','willing_to_travel']:
                         #pdb.set_trace()
                         setattr(userdetail.technician_details, itm, data[itm])
@@ -693,9 +641,13 @@ class UserDetailResource(ModelResource): # parent
                         setattr(userdetail.technician_details, itm, choices_to_save)
                         
                         #reset_code = PasswordManagementResource.generate_reset_code(uob)
-                
+
+                address_object_to_save = map_address_to_database(address_object_instance)
+                address_object_to_save.save()
                 userdetail.technician_details.save()
+                userdetail.address = address_object_to_save
                 userdetail.save()
+                #userdetail.address.save()
                 
                 #tech_additional_details.save()
                 bundle.data = {"message":"User created", "user_id":userdetail.id }
@@ -705,6 +657,79 @@ class UserDetailResource(ModelResource): # parent
             return self.create_response(request, bundle)
         else:
             raise_custom_error({"error":"You are not authorised"}, 403)
+
+
+    @action(allowed=['put'], require_loggedin=False, static=False) ## This is introduced here to avoid making a breaking change with the app - this function is for admin users to allow them to edit any plant in their company
+    @transaction.atomic
+    def edit_technician(self, request, **kwargs):
+        self.is_authenticated(request)
+        
+        bundle = self.build_bundle(data={}, request=request)
+
+        
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['first_name','last_name','mobile','email','region','district','ward','village','other_address_details','acredit_to_install','acredited_to_fix','specialist_skills','what3words','languages_spoken','longitude','latitude'])
+        
+        create_technician_schema = schema['edit_technician']
+        vv= Validator(create_technician_schema)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+
+        
+        try:
+            #uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
+            uob = bundle.request.user
+            part_of_groups = uob.groups.all()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+            
+            multiselect_fields = { "plumber":'PLUMBER',"mason":'MASON',"manager":'MANAGER',"design":'DESIGN','calculations':'CALCULATIONS','tubular':'TUBULAR','fixed_dome':'FIXED_DOME' }
+            
+            if ( uob.is_superuser or perm.is_global_admin() or perm.is_admin() ):
+                tech_to_edit = UserDetail.objects.get(id=pk)
+                tech_to_edit_additional_details = tech_to_edit.technician_details
+
+                address_keywords = get_address_keywords() # these are all the words people might send relating to setting an address e.g. region, country etc
+                address_object = map_database_to_address_object( tech_to_edit.address )
+                
+                for itm in data: # for simple text based changes this is very easy - no additional clauses needed
+                    if itm == 'languages_spoken':
+                        try:
+                            tech_to_edit_additional_details.languages_spoken = data["languages_spoken"]
+                            #tech_to_edit_additional_details.update(languages_spoken = data["languages_spoken"] )  # ArrayReplace("languages_spoken", 
+                        except:
+                            pass
+                    elif itm == "latitude":
+                        try:
+                            tech_to_edit_additional_details.technician_details.address.set_location(data['longitude'],data['latitude'])
+                        except:
+                            pass
+                    elif itm in ['first_name','last_name','mobile','email']:
+                        setattr(tech_to_edit, itm, data[itm])
+                    elif itm in address_keywords:
+                        setattr(address_object, itm, data[itm])
+                    elif itm == 'what3words':
+                        setattr(tech_to_edit_additional_details, itm, data[itm])
+                    elif itm in ['acredit_to_install','acredited_to_fix','specialist_skills']:
+                        choices_to_save = [ multiselect_fields[ii] for ii in data[itm] ]
+                        setattr(tech_to_edit_additional_details, itm, choices_to_save)
+
+                _address_object = map_address_to_database(address_object)
+                _address_object.save()
+                tech_to_edit.address = _address_object
+                tech_to_edit.save()
+                tech_to_edit_additional_details.save()
+                bundle.data = { "message":"Tech Updated" }
+        except:
+            raise_custom_error({"error":"Your request has not succeeded. Sorry not to be more helpful. Goodbye."}, 404)
+
+        return self.create_response(request, bundle)
 
     def authorized_read_list(self, object_list, bundle):
         #return object_list.filter(user=bundle.request.user)
@@ -810,7 +835,9 @@ class JobHistoryResource(ModelResource):
             bundle.data = { "message":"job_abandoned", "job_id": pk }
 
         except:
-            pass
+            raise CustomBadRequest(
+                        code="403",
+                        message="Job not found for logged in user")
 
         return self.create_response(request, bundle)
 
@@ -844,13 +871,14 @@ class JobHistoryResource(ModelResource):
                     serialized_jobs["reason_abandoning_job"] = ab.reason_abandoning_job
                     serialized_jobs["assistance"] = ab.assistance
                     serialized_jobs["date_flagged"] = ab.date_flagged
-                    serialized_jobs["location"] = to_serializable_location(ab.plant.location)
-                    serialized_jobs["ward"] = ab.plant.ward
-                    serialized_jobs["village"] = ab.plant.village
-                    serialized_jobs["country"] = ab.plant.country
-                    serialized_jobs["region"] = ab.plant.region
-                    serialized_jobs["district"] = ab.plant.district
-                    serialized_jobs["other_address_details"] = ab.plant.other_address_details
+                    serialized_jobs["location"] = to_serializable_location(ab.plant.address.location)
+                    serialized_jobs["address"] = map_address_to_json_from_database(ab.plant.address)
+                    # serialized_jobs["ward"] = ab.plant.ward
+                    # serialized_jobs["village"] = ab.plant.village
+                    # serialized_jobs["country"] = ab.plant.country
+                    # serialized_jobs["region"] = ab.plant.region
+                    # serialized_jobs["district"] = ab.plant.district
+                    # serialized_jobs["other_address_details"] = ab.plant.other_address_details
                     contacts = []
                     for cc in ab.plant.contact.all():
                         contact = {}
@@ -867,7 +895,9 @@ class JobHistoryResource(ModelResource):
                 bundle.data = {}
 
         except:
-            pass
+            raise CustomBadRequest(
+                        code="500",
+                        message="Server error")
 
         return self.create_response(request, bundle)
 

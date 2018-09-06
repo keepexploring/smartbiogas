@@ -322,19 +322,34 @@ def validate_data(validation_schema, data, error_handler = None ):
     if not vv.validate(data):
         errors_to_report = vv.errors
         raise CustomBadRequest( code="field_error", message=errors_to_report )
-    
 
 class AddressSerializer(serpy.Serializer):
-    """The serializer schema definition."""
-    # Use a Field subclass like IntField if you need more validation.
     id = serpy.IntField()
+    building_name_number = serpy.Field()
+    address_line1 = serpy.Field()
+    address_line2 = serpy.Field()
+    address_line3 = serpy.Field()
+    region = serpy.Field()
+    city = serpy.Field()
+    zip_code = serpy.Field()
     country = serpy.Field()
     continent = serpy.Field()
-    region = serpy.Field()
-    district = serpy.Field()
-    ward = serpy.Field()
-    village = serpy.Field()
-    population = serpy.Field()
+    other = serpy.Field()
+    latitude = serpy.Field()
+    longitude = serpy.Field()
+    srid = serpy.Field()
+
+# class AddressSerializer(serpy.Serializer):
+#     """The serializer schema definition."""
+#     # Use a Field subclass like IntField if you need more validation.
+#     id = serpy.IntField()
+#     country = serpy.Field()
+#     continent = serpy.Field()
+#     region = serpy.Field()
+#     district = serpy.Field()
+#     ward = serpy.Field()
+#     village = serpy.Field()
+#     population = serpy.Field()
 
 class NestedCompany(serpy.Serializer):
     company_id= serpy.Field()
@@ -420,23 +435,24 @@ class BiogasPlantSerialiser(serpy.Serializer):
     plant_id = serpy.Field()
     biogas_plant_name = serpy.Field()
     #constructing_technicians = serpy.Field()
-    contact = serpy.MethodField()
+    contact_details = serpy.MethodField()
     UIC = serpy.Field()
     funding_source_notes = serpy.Field()
-    other_address_details = serpy.Field()
     type_biogas = serpy.Field()
     supplier = serpy.Field()
+    what3words = serpy.Field()
     volume_biogas = serpy.Field()
     location_estimated = serpy.Field()
     location = serpy.MethodField()
+    address = AddressSerializer()
     QP_status = serpy.Field()
     current_status = serpy.Field()
     notes = serpy.Field()
 
     def get_location(self, obj):
-        return to_serializable_location(obj.location)
+        return to_serializable_location(obj.address.location)
 
-    def get_contact(self, obj):
+    def get_contact_details(self, obj):
         return [ {"first_name": ii.first_name, "surname": ii.surname, "mobile": ii.mobile } for ii in obj.contact.all() ]
     
 class BiogasPlantIDSerialiser(serpy.Serializer):
@@ -529,12 +545,13 @@ class UserDetailsSerialiser(serpy.Serializer):
     last_name = serpy.Field()
     email = serpy.Field()
     phone_number = serpy.Field()
-    country = serpy.Field()
-    region = serpy.Field()
-    district = serpy.Field()
-    ward = serpy.Field()
-    postcode = serpy.Field()
-    other_address_details = serpy.Field()
+    address = AddressSerializer()
+    # country = serpy.Field()
+    # region = serpy.Field()
+    # district = serpy.Field()
+    # ward = serpy.Field()
+    # postcode = serpy.Field()
+    # other_address_details = serpy.Field()
     technician_details = TechnicianDetailsNested()
     user = NestedUserObject()
     user_photo = serpy.Field()

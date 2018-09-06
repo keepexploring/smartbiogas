@@ -2,6 +2,7 @@ from cerberus import Validator
 # import phonenumbers
 # from phonenumbers import carrier
 # from phonenumbers.phonenumberutil import number_type
+from countries import allowed_countries
 import pdb
 import re
 
@@ -54,7 +55,7 @@ schema = {
                             'phone_number': { 'type':'string', 'validator':validate_mobile },
                             'mobile': { 'type':'string', 'validator':validate_mobile, 'required':True },
                             'email':{'type':'string', 'regex': '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'},
-                            'country':{'type': 'string','required':True},
+                            'country':{'type': 'string','required':True, 'allowed':allowed_countries},
                             'region':{'type': 'string','required':True},
                             'postcode':{'type': 'string'},
                             'district':{'type': 'string'},
@@ -72,6 +73,8 @@ schema = {
                             'what3words':{'type': 'string','validator': what3words_validator},
                             'username':{'type':'string', 'required':True, 'required':True},
                             'password':{ 'type':'string', 'required':True, 'minlength':6 },
+                            "latitude":{'type':'float'},
+                            "longitude":{'type':'float'},
                         },
 
     "edit_technician": {
@@ -98,16 +101,36 @@ schema = {
                             'languages_spoken': {'type': 'list', 'schema': {'type': 'string'} },
                             'user_photo':{'type':'string'},
                             'what3words':{'type': 'string','validator': what3words_validator},
-                            'username':{'type':'string', 'required':True },
-                            'password':{ 'type':'string', 'required':True, 'minlength':6 }
+                            'username':{'type':'string', 'required':False },
+                            'password':{ 'type':'string', 'required':False, 'minlength':6 },
+                            "latitude":{'type':'float'},
+                            "longitude":{'type':'float'},
                         },
 
     "create_biogas_contact":{
                             "contact_type":{'type': 'integer', 'allowed': [1, 2, 3, 4]},
-                            "firstname":{'type': 'string','required':True},
+                            "first_name":{'type': 'string','required':True},
                             "surname":{'type': 'string','required':True},
                             "mobile":{'type': 'string','regex':'^\+[0-9]+$', 'required':True},
-                            "country":{'type': 'string'},
+                            "email":{'type':'string', 'regex': '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'},
+                            "country":{'type': 'string','required':True,'allowed':allowed_countries},
+                            "village":{'type': 'string'},
+                            "region":{'type': 'string'},
+                            "district":{'type': 'string'},
+                            "ward":{'type': 'string'},
+                            "latitude":{'type':'float'},
+                            "longitude":{'type':'float'},
+                            "what3words":{'type': 'string','validator': what3words_validator},
+                            "UIC":{'type': 'string'}
+    },
+
+    "edit_biogas_contact":{
+                            "contact_type":{'type': 'integer', 'allowed': [1, 2, 3, 4]},
+                            "firstname":{'type': 'string','required':False},
+                            "surname":{'type': 'string','required':False},
+                            "mobile":{'type': 'string','regex':'^\+[0-9]+$', 'required':False},
+                            "email":{'type':'string', 'regex': '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'},
+                            "country":{'type': 'string','required':False,'allowed':allowed_countries},
                             "village":{'type': 'string'},
                             "region":{'type': 'string'},
                             "district":{'type': 'string'},
@@ -127,13 +150,14 @@ schema = {
                             "longitude":{'type':'float'},
                             "what3words":{'type': 'string','validator': what3words_validator},
                             "type_biogas":{'type': 'integer', 'allowed': [1, 2, 3, 4, 5]},
-                            "volume_biogas":{'type': 'string', 'allowed': ['<3m3','3m3','4m3','5m3','6m3','7m3','8m3','9m3','10m3','11m3','12m3','>12m3']},
+                            "volume_biogas":{'type': 'integer'},
+                            "adopt": {'type':'boolean'},
                             "install_date":{'type': 'integer'},
                             "current_status":{'type': 'integer', 'allowed': [1, 2, 3, 4, 5]},
                             "construction_tech":{'type': 'string','allowed':['me','none']},
                             "location_estimated":{'type':'boolean'},
                             "funding_source_notes":{'type': 'string'},
-                            "country":{'type': 'string','required':False},
+                            "country":{'type': 'string','required':True,'allowed':allowed_countries},
                             "region":{'type': 'string','required':False },
                             "district":{'type': 'string','required':False},
                             "ward":{'type': 'string','required':False},
@@ -163,7 +187,7 @@ schema = {
                             "location_estimated":{ 'type':'boolean', 'required':False },
                             "biogas_plant_name":{'type': 'string'},
                             "funding_source_notes":{'type': 'string'},
-                            "country":{'type': 'string','required':False},
+                            "country":{'type': 'string','required':False,'allowed':allowed_countries},
                             "region":{'type': 'string','required':False},
                             "district":{'type': 'string','required':False},
                             "ward":{'type': 'string','required':False},

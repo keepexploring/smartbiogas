@@ -15,6 +15,7 @@ from tastypie_actions.actions import actionurls, action
 from helpers import remove_fields, to_serializable, CustomBadRequest, to_serializable_location
 from cerberus import Validator
 from django.core import serializers
+from django.db import transaction
 import uuid
 import json
 #from django_dashboard.api.api_biogas_contact import BiogasPlantContactResource
@@ -34,6 +35,7 @@ class PendingJobsResource(ModelResource):
         return actionurls(self)
 
     @action(allowed=['put'], require_loggedin=False, static=False)
+    @transaction.atomic
     def accept_job(self, request, **kwargs):
         self.is_authenticated(request)
         #pdb.set_trace()

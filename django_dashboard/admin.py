@@ -6,7 +6,7 @@ from django.db import models
 
 from .models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, TechnicianDetail, BiogasPlant, JobHistory, Dashboard, PendingJobs, \
     CardTemplate, Card, PendingAction, UtilisationStatus, LowGasPressure, TrendChangeDetectionPDecrease, TrendChangeDetectionPIncrease, \
-    BiogasSensorStatus, AutoFault, DataConnection, IndictorJoinTable, RegisteredNode, IndicatorsTemplate, IndicatorObjects
+    BiogasSensorStatus, AutoFault, DataConnection, IndictorJoinTable, RegisteredNode, IndicatorsTemplate, IndicatorObjects, AddressLocation
 
 from django.contrib.admin import widgets
 from dynamic_raw_id.admin import DynamicRawIDMixin
@@ -28,6 +28,12 @@ from django.utils.translation import ugettext_lazy
 #     # Text to put at the top of the admin index page.
 #     index_title = ugettext_lazy('SmartBiogas Administration')
 
+
+class AddressAdmin(admin.ModelAdmin):
+    model = AddressLocation
+    list_display = ('building_name_number','address_line1','address_line2','address_line3','region','city','zip_code','country','continent','other','latitude','longitude','srid')
+    list_filter = ('building_name_number','address_line1','address_line2','address_line3','region','city','zip_code','country','continent','other','latitude','longitude','srid')
+    search_fields = ('building_name_number','address_line1','address_line2','address_line3','region','city','zip_code','country','continent','other','latitude','longitude','srid')
 
 class TechnicianDetailAdmin(admin.StackedInline):
     model = TechnicianDetail
@@ -53,16 +59,16 @@ class PendingJobsAdmin(admin.ModelAdmin): # could make a stacked inline??
     list_display = ('biogas_plant','technician','job_id','datetime_created','job_details','accepted','technicians_rejected',)
     list_filter = ('biogas_plant','technician','job_id','datetime_created','job_details','accepted','technicians_rejected',)
     search_fields = ('biogas_plant','technician','job_id','datetime_created','job_details','accepted','technicians_rejected',)
-   
+    readonly_fields=('accepted',)
 
 class UserDetailAdmin(admin.ModelAdmin): # admin.StackedInline
     #inlines = (TechnicianDetailAdmin,)
     model = UserDetail
     form = UserDetailForm
-    inlines = [TechnicianDetailAdmin,]
+    inlines = [TechnicianDetailAdmin,] # AddressAdmin,
     readonly_fields=('first_name','last_name')
-    list_display = ('company_title','first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
-    list_filter = ('first_name','last_name','phone_number','region','district','ward','village','neighbourhood','other_address_details')
+    list_display = ('address','company_title','first_name','last_name','mobile','datetime_created')
+    list_filter = ('address','first_name','last_name','mobile')
     #ordering = ('first_name','last_name','role','phone_number','country','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
     filter_horizontal = ('company',)
     #form = UserForm
@@ -71,9 +77,10 @@ class UserDetailAdmin(admin.ModelAdmin): # admin.StackedInline
 class CompanyAdmin(admin.ModelAdmin):
     model = Company
     form = CompanyForm
-    list_display = ('company_name','region','district','ward','village','neighbourhood','other_address_details','phone_number', 'emails', 'other_info')
-    list_filter = ('company_name','region','district','ward','village','neighbourhood','other_address_details','emails')
-    search_fields = ('company_name','region','district','ward','village','neighbourhood','other_address_details','emails','phone_number')
+    #inlines = [AddressAdmin,]
+    list_display = ('company_name','phone_number', 'emails', 'other_info')
+    list_filter = ('company_name','emails')
+    search_fields = ('company_name','emails','phone_number')
 
 
 class DashboardAdmin(admin.ModelAdmin):
@@ -127,19 +134,21 @@ class JobsAdmin(admin.ModelAdmin):
 
 class BiogasPlantsAdmin(admin.ModelAdmin):
     form = BiogasForm
-    inlines = [JobHistoryInline,]
-    list_display = ('volume_biogas','get_contact','mobile_num','adopted_by','contact_type','plant_id','type_biogas','region','district','ward','village','neighbourhood','other_address_details','location')
-    list_filter = ('volume_biogas','region','adopted_by','district','ward','village','neighbourhood','other_address_details')
-    search_fields = ('volume_biogas','get_contact','mobile_num','adopted_by','contact_type','type_biogas','region','district','ward','village','neighbourhood','other_address_details')
+    inlines = [JobHistoryInline,] # AddressAdmin,
+    
+    list_display = ('address','volume_biogas','get_contact','mobile_num','adopted_by','contact_type','plant_id','type_biogas',) #'location'
+    list_filter = ('address','volume_biogas','adopted_by')
+    search_fields = ('address','volume_biogas','get_contact','mobile_num','adopted_by','contact_type','type_biogas')
     filter_horizontal = ('contact','constructing_technicians',)
 
 
 class BiogasPlantContactAdmin(admin.ModelAdmin):
     model = BiogasPlantContact
-    list_display = ('uid','associated_company','contact_type','first_name','surname','mobile','email')
-    list_filter = ('uid','associated_company','contact_type','first_name','surname','mobile','email')
-    search_fields = ('uid','associated_company','contact_type','first_name','surname','mobile','email')
-    dynamic_raw_id_fields = ('associated_company',)
+    #inlines = [AddressAdmin, ]
+    list_display = ('address','uid','associated_company','contact_type','first_name','surname','mobile','email')
+    list_filter = ('address','uid','associated_company','contact_type','first_name','surname','mobile','email')
+    search_fields = ('address','uid','associated_company','contact_type','first_name','surname','mobile','email')
+    dynamic_raw_id_fields = ('address','associated_company',)
     #form = UserForm
 
 
@@ -239,6 +248,7 @@ class RegisteredNodeAdmin(admin.ModelAdmin):
 #admin.ModelAdmin.ordering = ()
 #admin_site = MyAdminSite()
 admin.site.site_header = 'SmartBiogas Admin'
+
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(Dashboard, DashboardAdmin)
 admin.site.register(UserDetail, UserDetailAdmin)
@@ -253,6 +263,10 @@ admin.site.register(IndictorJoinTable, IndicatorAdmin)
 admin.site.register(PendingAction, PendingActionsAdmin)
 admin.site.register(IndicatorsTemplate, IndicatorsTemplateAdmin)
 admin.site.register(IndicatorObjects, IndicatorObjectsAdmin)
+admin.site.register(AddressLocation, AddressAdmin)
+
+
+
 
 #admin.site.register(Users, UserAdmin)
 

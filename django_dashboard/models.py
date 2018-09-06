@@ -23,6 +23,7 @@ from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from django.db import transaction
 from django.db.models import signals
+import json
 
 import pdb
 
@@ -44,6 +45,88 @@ def skip_signal():
         return _decorator
     return _skip_signal
 
+class AddressLocation(models.Model):
+    building_name_number = models.CharField(max_length=1024, blank=True, null=True, help_text="Name or number of building")
+    address_line1 = models.CharField(max_length=1024, blank=True, null=True, help_text="Address line 1")
+    address_line2 = models.CharField(max_length=1024, blank=True, null=True, help_text="Address line 2")
+    address_line3 = models.CharField(max_length=1024, blank=True, null=True, help_text="Address line 3")
+    region = models.CharField(db_index=True,null=True,blank=True,max_length=200, help_text="region")
+    city = models.CharField(db_index=True,null=True,blank=True,max_length=200, help_text="city")
+    zip_code = models.CharField(null=True,max_length=20,blank=True, help_text="zip_code/postcode")
+    country = models.CharField(db_index=True,null=True,blank=True,max_length=200,help_text="Country")
+    continent = models.CharField(db_index=True,null=True,blank=True,max_length=200)
+    other = models.TextField(blank=True,null=True, help_text="Other address details")
+
+    what3words =  models.CharField(max_length=200,null=True,blank=True)
+    latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    srid = models.IntegerField(null=True,blank=True)
+
+    class Meta:
+        verbose_name = "Address"
+        verbose_name_plural = "Addresses"
+
+    def __str__(self):
+        return '%s, %s, %s, %s' % (self.id, self.country, self.region, self.city)
+
+
+    @property
+    def location(self):
+        return self
+
+    def set_location(self, longitude, latitude, srid=4326):
+        self.latitude = latitude
+        self.longitude = longitude
+        self.srid =  srid
+        # super(BiogasPlantContact, self).__setattr__('latitude', latitude)
+        # super(BiogasPlantContact, self).__setattr__('longitude', longitude)
+        # super(BiogasPlantContact, self).__setattr__('srid', srid)
+
+    def get_x(self):
+        return float(self.longitude)
+
+    def get_y(self):
+        return float(self.latitude)
+
+
+# class AddressMapping(models.Model):
+#     address_mapping = models.ForeignKey( # the user will need to choose (prob in a settings tab of some sort, who they are logged in as)
+#         'Address',
+#         on_delete=models.CASCADE,
+#         related_name="address",
+#         blank=True,
+#         null=True,
+#     )
+#     building_name_number = models.CharField(max_length=1024, blank=True, null=True)
+#     address_line1 = models.CharField(max_length=1024, blank=True, null=True)
+#     address_line2 = models.CharField(max_length=1024, blank=True, null=True)
+#     address_line3 = models.CharField(max_length=1024, blank=True, null=True)
+#     region = models.CharField(max_length=1024, blank=True, null=True)
+#     city = models.CharField(max_length=1024, blank=True, null=True)
+#     zip_code = models.CharField(max_length=1024, blank=True, null=True)
+#     country = models.CharField(max_length=1024, blank=True, null=True)
+#     other = models.CharField(max_length=1024, blank=True, null=True)
+
+#     class Meta:
+#         verbose_name = "Address Mapping"
+#         verbose_name_plural = "Address Mappings"
+
+class EditRecord(models.Model):
+    datetime_modified = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
+    who = models.ForeignKey( 'UserDetail', on_delete=models.CASCADE, blank=True, null=True, related_name = 'who_edited' ) 
+    previous_model_data = JSONField(null=True, blank=True)
+
+    def archive_data(previous_object):
+        data = previous_object.__dict__
+        self.previous_model_data = data
+        # self.previous_model_data = json.dumps(data)
+
+    def get_archived_data():
+        return json.loads(self.previous_model_data)
+
+    def save(self, *args, **kwargs):
+        if not self.datetime_modified:
+            self.datetime_modified = timezone.now()
 
 class Company(models.Model):
     #user = models.ForeignKey(settings.AUTH_USER_MODEL)
@@ -53,18 +136,20 @@ class Company(models.Model):
     company_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
     company_name = models.CharField(max_length=200)
 
-    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    postcode = models.CharField(null=True,max_length=20,blank=True)
-    neighbourhood = models.CharField(null=True,max_length=20,blank=True)
-    other_address_details = models.TextField(null=True,blank=True)
+    address = models.ForeignKey( # the user will need to choose (prob in a settings tab of some sort, who they are logged in as)
+         'AddressLocation',
+         on_delete=models.CASCADE,
+         related_name="company",
+         blank=True,
+         null=True,
+     )
     #phone_number = models.CharField(max_length=15, db_index=True,null=True)
     phone_number = PhoneNumberField(db_index=True, null=True, blank=True)
     emails = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
     other_info = models.TextField(blank=True,null=True)
+
+    record_creator = models.ForeignKey('UserDetail', blank=True, null=True, on_delete=models.CASCADE, related_name='company_record_created_by')
+    record_of_edits = models.ForeignKey('EditRecord', blank=True, null=True, on_delete=models.CASCADE, related_name='company')
 
     def __str__(self):
         return '%s' % (self.company_name)
@@ -127,20 +212,23 @@ class UserDetail(models.Model):
     last_name = models.CharField(max_length=200,default=None,editable=False)
     #last_name = models.CharField(max_length=200)
     user_photo = models.ImageField(upload_to = 'UserPhotos',null=True,blank=True)
-    phone_number = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
+    mobile = models.CharField(max_length=15, db_index=True,null=True) # we'll need to add some validaters for this
     #mobile = PhoneNumberField(db_index=True, null=True, blank=True)
     email = models.EmailField(null=True,blank=True)
-    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    #region = models.ManyToManyField('django_dashboard.region')
-    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    neighbourhood = models.CharField(null=True,max_length=20,blank=True)
-    postcode = models.CharField(null=True,max_length=20,blank=True)
-    other_address_details = models.TextField(null=True,blank=True)
+    
+    address = models.ForeignKey( # the user will need to choose (prob in a settings tab of some sort, who they are logged in as)
+         'AddressLocation',
+         on_delete=models.CASCADE,
+         related_name="userdetail",
+         blank=True,
+         null=True,
+     )
+     
     datetime_created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
     datetime_modified = models.DateTimeField(null=True,blank=True,editable=False)
+
+    record_creator = models.ForeignKey('UserDetail', blank=True, null=True, on_delete=models.CASCADE, related_name='user_detail_record_created_by')
+    record_of_edits = models.ForeignKey('EditRecord', blank=True, null=True, on_delete=models.CASCADE, related_name='user_detail')
 
     def __str__(self):
         return '%s, %s %s' % (self.last_name,self.first_name,self.phone_number)
@@ -250,6 +338,7 @@ class TechnicianDetail(models.Model):
     longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
     srid = models.IntegerField(null=True,blank=True)
 
+
     @property
     def location(self):
         return self
@@ -298,80 +387,48 @@ class TechnicianDetail(models.Model):
 
         )
     
-    
-
-class Address(models.Model):
-    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    continent = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    #lat_long = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
-    latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
-    srid = models.IntegerField(null=True,blank=True)
-
-    @property
-    def location(self):
-        return self
-
-    def set_location(self, longitude, latitude, srid=4326):
-        self.latitude = latitude
-        self.longitude = longitude
-        self.srid =  srid
-        # super(BiogasPlantContact, self).__setattr__('latitude', latitude)
-        # super(BiogasPlantContact, self).__setattr__('longitude', longitude)
-        # super(BiogasPlantContact, self).__setattr__('srid', srid)
-
-    def get_x(self):
-        return self.longitude
-
-    def get_y(self):
-        return self.latitude
-
 
 class BiogasPlantContact(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, editable=False)
     #associated_company = models.ManyToManyField(Company)
-    associated_company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True ) # this field will be depreciated in the production version as will be on the biogas plant instead (and will be the company who constructed)
+    associated_company = models.ForeignKey( Company, on_delete=models.CASCADE, blank=True, null=True ) # this field will be depreciated in the production version as will be on the biogas plant instead (and will be the company who constructed)
+    registered_by = models.ForeignKey( UserDetail, on_delete=models.CASCADE, blank=True, null=True )
     contact_type = EnumField(ContactType, max_length=1)
     first_name = models.CharField(null=True,max_length=200)
     surname = models.CharField(null=True,max_length=200)
     mobile = models.CharField(db_index=True,null=True,blank=True,max_length=15)
     email = models.CharField(validators=[EmailValidator],db_index=True,null=True,blank=True,max_length=200)
-    address = models.ForeignKey( Address, on_delete=models.CASCADE, blank=True, null=True, related_name = "biogasplantcontact" ) 
+    
+    record_creator = models.ForeignKey('UserDetail', blank=True, null=True, on_delete=models.CASCADE, related_name='biogas_plant_contact_record_created_by')
+    record_of_edits = models.ForeignKey('EditRecord', blank=True, null=True, on_delete=models.CASCADE, related_name='biogas_plant_contact')
+    
+    address = models.ForeignKey( # the user will need to choose (prob in a settings tab of some sort, who they are logged in as)
+         'AddressLocation',
+         on_delete=models.CASCADE,
+         related_name="biogasplantcontact",
+         blank=True,
+         null=True,
+     )
 
 # to be removed
-    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    continent = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    #lat_long = models.PointField(geography=True, srid=4326,blank=True,null=True,db_index=True)
-    # biogas_owner = models.NullBooleanField(db_index=True,blank=True)
-    latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
-    srid = models.IntegerField(null=True,blank=True)
-
+    
     @property
     def location(self):
         return self
 
     def set_location(self, longitude, latitude, srid=4326):
-        self.latitude = latitude
-        self.longitude = longitude
-        self.srid =  srid
+        self.address.latitude = latitude
+        self.address.longitude = longitude
+        self.address.srid =  srid
         # super(BiogasPlantContact, self).__setattr__('latitude', latitude)
         # super(BiogasPlantContact, self).__setattr__('longitude', longitude)
         # super(BiogasPlantContact, self).__setattr__('srid', srid)
 
     def get_x(self):
-        return self.longitude
+        return self.address.longitude
 
     def get_y(self):
-        return self.latitude
+        return self.address.latitude
 
 
     def __str__(self):
@@ -387,6 +444,7 @@ class BiogasPlantContact(models.Model):
                         ("edit_mobile_number","Able to Edit a users mobile number")
 
         )
+    
 
 # @receiver(post_save, sender=BiogasPlantContact, dispatch_uid="update_client_groups")
 # def add_new_clients_to_groups(sender, instance, **kwargs):
@@ -415,7 +473,7 @@ class BiogasPlant(models.Model):
         ('DECOMMISSIONED', "decommissioned"),
     )
     plant_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
-    adopted_by = models.ForeignKey(UserDetail, on_delete=models.CASCADE, null=True, blank=True)
+    adopted_by = models.ForeignKey(UserDetail, on_delete=models.CASCADE, null=True, blank=True, related_name='biogas_plants_adopted')
 
     UIC = models.CharField(db_index=True,null=True,blank=True,max_length=200) # Unique Identiifer Code (their is one of these on all biogas plants) - this field how becomes redundant as we now use a separate table for this. It will be removed in the next release.
     biogas_plant_name = models.CharField(db_index=True,null=True,blank=True,max_length=200)
@@ -423,18 +481,20 @@ class BiogasPlant(models.Model):
     associated_company = models.ManyToManyField(Company, blank=True, related_name='biogas_plant_company') 
     contact = models.ManyToManyField(BiogasPlantContact, related_name='biogas_plant_detail') # a biogas plant can have one or many users and a user can have one or many biogas plants
     constructing_technicians = models.ManyToManyField(UserDetail,blank=True, related_name = 'constructing_technicians')
-
+    
+    record_creator = models.ForeignKey('UserDetail', blank=True, null=True, on_delete=models.CASCADE, related_name='biogas_plant_record_created_by')
+    record_of_edits = models.ForeignKey('EditRecord', blank=True, null=True, on_delete=models.CASCADE, related_name='biogas_plants')
+    
     funding_souce = EnumField(FundingSourceEnum, max_length=1,null=True, blank = True)
     funding_source_notes = models.TextField(null=True, blank=True)
     
-    country = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    region = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    district = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    ward = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    village = models.CharField(db_index=True,null=True,blank=True,max_length=200)
-    postcode = models.CharField(null=True,max_length=20,blank=True)
-    neighbourhood = models.CharField(null=True,max_length=20,blank=True)
-    other_address_details = models.TextField(null=True,blank=True)
+    address = models.ForeignKey( # the user will need to choose (prob in a settings tab of some sort, who they are logged in as)
+         'AddressLocation',
+         on_delete=models.CASCADE,
+         related_name="biogasplant",
+         blank=True,
+         null=True,
+     )
     #type_biogas = models.CharField(choices=TYPE_BIOGAS_CHOICES,null=True,max_length=20,blank=True)
     type_biogas = EnumField(TypeBiogas, max_length=1,null=True)
     supplier = EnumField(SupplierBiogas, max_length=1,null=True,blank=True)
@@ -450,29 +510,29 @@ class BiogasPlant(models.Model):
     current_status = EnumField(CurrentStatus, max_length=1,null=True)
     verfied = models.NullBooleanField(db_index=True,blank=True,default=False)
     install_date = models.DateField(null=True,blank=True)
-    what3words =  models.CharField(max_length=200,null=True,blank=True)
+    what3words =  models.CharField(max_length=200,null=True,blank=True) # this needs to be removed
     notes = models.TextField(null=True,blank=True)
-    latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
-    srid = models.IntegerField(null=True,blank=True)
+    #latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    #longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
+    #srid = models.IntegerField(null=True,blank=True)
 
-    @property
-    def location(self):
-        return {'latitude':latitude, 'longitude':longitude }
+    # @property
+    # def location(self):
+    #     return {'latitude':self.address.latitude, 'longitude':self.address.longitude }
 
     def set_location(self, longitude, latitude, srid=4326):
-        self.latitude = latitude
-        self.longitude = longitude
-        self.srid =  srid
+        self.address.latitude = latitude
+        self.address.longitude = longitude
+        self.address.srid =  srid
         # super(BiogasPlantContact, self).__setattr__('latitude', latitude)
         # super(BiogasPlantContact, self).__setattr__('longitude', longitude)
         # super(BiogasPlantContact, self).__setattr__('srid', srid)
 
     def get_x(self):
-        return self.longitude
+        return self.address.longitude
 
     def get_y(self):
-        return self.latitude
+        return self.address.latitude
 
     @property
     def adopted(self):
@@ -797,37 +857,43 @@ class PendingJobs(models.Model):
     technician = models.ForeignKey(UserDetail, on_delete=models.CASCADE, blank=True, null=True,related_name='atechician') # one techncian can have more than one job
     datetime_created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
     job_details = models.TextField(null=True,blank=True)
-    accepted = models.NullBooleanField(db_index=True,blank=True,null=True,default=None)
+    accepted = models.BooleanField(db_index=True,blank=True,default=False)
     technicians_rejected = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
     
+    record_creator = models.ForeignKey(UserDetail, blank=True, null=True, on_delete=models.CASCADE, related_name='pending_job_record_created_by')
+    record_of_edits = models.ForeignKey(EditRecord, blank=True, null=True, on_delete=models.CASCADE, related_name='pending_job')
     # technicians_rejected will be a list of id's of technicans who have said they do not want this job - the system can get this and use to make sure it does not send messages to these technicians again
 
     def check_to_accept_job(self):
+
         if self.accepted is True:
-            job_id_uid = uuid(self.job_id) # keep the same id all the way through - makes searching easier!
-            JobHistory.objects.create(
-                    plant=self.biogas_plant,
-                    fixers=technician, 
-                    date_flagged=self.datetime_created,
-                    job_status=2,
-                    fault_description=self.job_details,
-                    job_id = job_id_uid
-                ) # job_status = 2 means 'resolving'
+            job_id_uid = uuid.UUID(self.job_id) # keep the same id all the way through - makes searching easier!
+            #JobHistory.objects.create(plant=self.biogas_plant,fixers__in=[self.technician],date_flagged=self.datetime_created,job_status=2,fault_description=self.job_details,job_id = job_id_uid)
+            history = JobHistory(
+                                    plant=self.biogas_plant,
+                                    date_flagged=self.datetime_created,
+                                    job_status=2,
+                                    fault_description=self.job_details,
+                                    job_id = job_id_uid
+                                )
+            history.save()
+            history.fixers.add(self.technician)
+                    
+            # job_status = 2 means 'resolving'
             # remove job from pending jobs
-            PendingJobs.objects.filter(pk=self.id).delete() # delete the pending job
+            PendingJobs.objects.filter(job_id=job_id_uid).delete() # delete the pending job
             # now update the technicians details
-            techn = TechnicianDetail.objects.filter(technicians=technician)
+            techn = TechnicianDetail.objects.get(technicians=self.technician)
             techn.number_jobs_active = techn.number_jobs_active + 1 # we'll do this for the time being, in the future might be best to get all the jobs associated with this technician and count up
             techn.status = True # check this is set to true
             # now send message to user to confirm that a technician has accepted
         elif self.accepted is False:
-            self.technicians_rejected.append(str(techn.technician_id))
+            self.technicians_rejected.append(str(self.technician.id))
             # now call another function to search for another technician
             
 
     def save(self, *args, **kwargs):
         self.check_to_accept_job() # check if technician has accepted and then creates a new job for that plant and technician
-        
         if not self.datetime_created:
             self.datetime_created = timezone.now()
        
@@ -963,6 +1029,10 @@ class IndicatorObjects(models.Model):
 
     def __str__(self):
         return '%s' % (self.biogas_plant)
+    
+    class Meta:
+        verbose_name = "Indicator Object"
+        verbose_name_plural = "Indicator Objects"
 
     def save(self, *args, **kwargs):
         
