@@ -335,9 +335,10 @@ class AddressSerializer(serpy.Serializer):
     country = serpy.Field()
     continent = serpy.Field()
     other = serpy.Field()
-    latitude = serpy.Field()
-    longitude = serpy.Field()
+    latitude = serpy.FloatField()
+    longitude = serpy.FloatField()
     srid = serpy.Field()
+    what3words = serpy.Field()
 
 # class AddressSerializer(serpy.Serializer):
 #     """The serializer schema definition."""
@@ -432,7 +433,7 @@ class NestedContactSerializer(serpy.Serializer):
 
 class BiogasPlantSerialiser(serpy.Serializer):
     id = serpy.Field()
-    plant_id = serpy.Field()
+    plant_id = serpy.MethodField()
     biogas_plant_name = serpy.Field()
     #constructing_technicians = serpy.Field()
     contact_details = serpy.MethodField()
@@ -445,9 +446,13 @@ class BiogasPlantSerialiser(serpy.Serializer):
     location_estimated = serpy.Field()
     location = serpy.MethodField()
     address = AddressSerializer()
+    install_date = serpy.Field()
     QP_status = serpy.Field()
     current_status = serpy.Field()
     notes = serpy.Field()
+
+    def get_plant_id(self, obj):
+        return obj.plant_id.hex
 
     def get_location(self, obj):
         return to_serializable_location(obj.address.location)

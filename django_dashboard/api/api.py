@@ -201,7 +201,6 @@ class TechnicianDetailResource(ModelResource): # child
             uob = bundle.request.user
             perm = Permissions(uob)
             company = perm.get_company_scope()
-
             if ( uob.is_superuser or perm.is_global_admin() or perm.is_technician() or perm.is_admin() ):
                 #tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
                 try:
@@ -233,7 +232,7 @@ class TechnicianDetailResource(ModelResource): # child
                     detail['number_jobs_active'] = tech_detail.number_jobs_active
                     detail['number_of_jobs_completed'] = tech_detail.number_of_jobs_completed
                     detail['status'] = tech_detail.status
-                    detail['what3words'] = tech_detail.what3words
+                    #detail['what3words'] = tech_detail.what3words
                     detail['willing_to_travel'] = tech_detail.willing_to_travel
                     detail['languages_spoken'] = tech_detail.languages_spoken
                 except ObjectDoesNotExist:
@@ -574,7 +573,6 @@ class UserDetailResource(ModelResource): # parent
             raise CustomBadRequest( code="field_error", message=errors_to_report )
 
         required_fields(data,['first_name','last_name','username','mobile'] )
-        
         bundle = self.build_bundle(data={}, request=request)
         uob = bundle.request.user
         perm = Permissions(uob)
@@ -631,7 +629,7 @@ class UserDetailResource(ModelResource): # parent
                     elif itm in address_keywords:
                         setattr(address_object_instance, itm, data[itm])
 
-                    elif itm in ['what3words', 'status','willing_to_travel']:
+                    elif itm in ['status','willing_to_travel']:
                         #pdb.set_trace()
                         setattr(userdetail.technician_details, itm, data[itm])
                         

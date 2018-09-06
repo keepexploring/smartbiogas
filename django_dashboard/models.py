@@ -23,6 +23,7 @@ from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from django.db import transaction
 from django.db.models import signals
+import datetime
 import json
 
 import pdb
@@ -512,6 +513,7 @@ class BiogasPlant(models.Model):
     install_date = models.DateField(null=True,blank=True)
     what3words =  models.CharField(max_length=200,null=True,blank=True) # this needs to be removed
     notes = models.TextField(null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True,editable=False, db_index=True, null=True, blank=True)
     #latitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
     #longitude = models.DecimalField(db_index=True,null=True,blank=True,max_digits=9, decimal_places=6)
     #srid = models.IntegerField(null=True,blank=True)
@@ -565,7 +567,12 @@ class BiogasPlant(models.Model):
     contact_type.short_description = 'Type'
     contact_type.allow_tags = True
 
+    def save_install_date(self):
+        if type(self.install_date) is int:
+            self.install_date = datetime.datetime.utcfromtimestamp(self.install_date)
+
     def save(self, *args, **kwargs):
+        self.save_install_date()
         #if not self.location:
         #    geolocator = Nominatim()
         #   _location_ = geolocator.geocode(self.town)

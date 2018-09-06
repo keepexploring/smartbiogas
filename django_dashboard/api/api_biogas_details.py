@@ -19,7 +19,7 @@ import json
 from django.db import transaction
 #from django_dashboard.api.api_biogas_contact import BiogasPlantContactResource
 from django_dashboard.api.validators.validator_patterns import schema
-from django_dashboard.api.addressmapper import get_address_keywords, create_address_object, map_database_to_address_object, map_address_to_database, map_address_to_json_from_database
+from django_dashboard.api.addressmapper import get_address_keywords, create_address_object, map_database_to_address_object, map_address_to_database, map_address_to_json_from_database, map_serialised_address
 import pdb
 
 
@@ -129,12 +129,13 @@ class BiogasPlantResource(ModelResource):
         data = json.loads( request.read() )
         fields = ['UIC']
         data = only_keep_fields(data, fields)
-        pdb.set_trace()
         bundle = self.build_bundle(data={}, request=request)
         try:
             biogas_plant = BiogasPlant.objects.get(UIC=data['UIC'])
             biogas_plant_serialised = BiogasPlantSerialiser(biogas_plant)
-            bundle.data = biogas_plant_serialised.data
+            bundle.data = map_serialised_address(biogas_plant_serialised.data)
+
+            map_serialised_address
 
         except:
             raise CustomBadRequest(
@@ -183,8 +184,9 @@ class BiogasPlantResource(ModelResource):
             #     'ward':biogasplant.ward, 'village':biogasplant.village, 'other_address_details':biogasplant.other_address_details,
             #     'type_biogas':biogasplant.type_biogas,'volume_biogas':biogasplant.volume_biogas, 'location':biogasplant.location, 
             #     'location_estimated':biogasplant.location_estimated, 'current_status':biogasplant.current_status, 'adopted_by':biogasplant.adopted_by }
+            
             for itm in data:
-                if itm in ['UIC','biogas_plant_name','funding_souce','volume_biogas','location_estimated','current_status','type_biogas']:
+                if itm in ['UIC','biogas_plant_name','funding_souce','volume_biogas','location_estimated','current_status','type_biogas','install_date']:
                     setattr(biogasplant, itm, data[itm])
 
                 elif itm in address_keywords:

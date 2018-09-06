@@ -16,7 +16,8 @@ addressmappings = {
                          'continent':'continent',
                          'latitude':'latitude',
                          'longitude':'longitude',
-                         'srid':'srid'
+                         'srid':'srid',
+                         'what3words':'what3words'
                          }
 
             }
