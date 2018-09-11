@@ -254,7 +254,6 @@ class BiogasPlantResource(ModelResource):
     @transaction.atomic
     def edit_biogas_plant(self, request, **kwargs):
         self.is_authenticated(request)
-        #pdb.set_trace()
         bundle = self.build_bundle(data={}, request=request)
 
         data = json.loads( request.read() )
@@ -280,20 +279,30 @@ class BiogasPlantResource(ModelResource):
             
             if (uob.is_superuser or perm.is_global_admin() ):
                 plant_to_edit = BiogasPlant.objects.get(id=pk)
+            elif perm.is_admin():
+                plant_to_edit = BiogasPlant.objects.get( Q(id=pk) & ( Q(adopted_by__company=company) | Q(adopted_by__company=None) ) )
+            else:
+                raise CustomBadRequest(
+                        code="401",
+                        message="Unauthorized")
 
-                address_keywords = get_address_keywords() # these are all the words people might send relating to setting an address e.g. region, country etc
-                address_object = map_database_to_address_object( plant_to_edit.address )
+            address_keywords = get_address_keywords() # these are all the words people might send relating to setting an address e.g. region, country etc
+            address_object = map_database_to_address_object( plant_to_edit.address )
 
-                for itm in data: # for simple text based changes this is very easy - no additional clauses needed
-                    if itm in address_keywords:
-                        setattr(address_object, item, data[itm])
-                    else:
-                        setattr(plant_to_edit, itm, data[itm])
-                _address_object = map_address_to_database(address_object)
-                _address_object.save()
-                plant_to_edit.address = _address_object
-                plant_to_edit.save()
-                bundle.data = { "message":"Biogas Plant Updated" }
+            for itm in data: # for simple text based changes this is very easy - no additional clauses needed
+                if itm in address_keywords:
+                    setattr(address_object, itm, data[itm])
+                elif itm in ['contact']:
+                    contact_uuid = uuid.UUID(hex = data[itm])
+                    plant_contact = BiogasPlantContact.objects.get(uid=contact_uuid)
+                    plant_to_edit.contact.add(plant_contact)
+                else:
+                    setattr(plant_to_edit, itm, data[itm])
+            _address_object = map_address_to_database(address_object)
+            _address_object.save()
+            plant_to_edit.address = _address_object
+            plant_to_edit.save()
+            bundle.data = { "message":"Biogas Plant Updated" }
         except:
             raise CustomBadRequest(
                         code="403",

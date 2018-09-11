@@ -180,7 +180,7 @@ schema = {
                             "longitude":{'type':'float'},
                             "what3words":{ 'validator': what3words_validator },
                             "type_biogas":{'type': 'integer', 'allowed': [1, 2, 3, 4, 5]},
-                            "volume_biogas":{'type': 'string', 'allowed': ['<3m3','3m3','4m3','5m3','6m3','7m3','8m3','9m3','10m3','11m3','12m3','>12m3']},
+                            "volume_biogas":{'type': 'integer'},
                             "install_date":{'type': 'integer'},
                             "current_status":{'type': 'integer', 'allowed': [1, 2, 3, 4, 5]},
                             "construction_tech":{'type': 'string','allowed':['me','none']},
@@ -201,9 +201,9 @@ schema = {
                             },
 
     "create_pending_job":{
-                            "technician": { 'type': 'string', 'validator': technician_uri_validator },
+                            "technician": { 'type': 'integer' },
                             "job_details": {'type': 'string'},
-                            "biogas_plant":{ 'type': 'string', 'validator': biogas_plant_uri_validator }
+                            "biogas_plant":{ 'type': 'integer' }
                         },
 
     "register_node": {

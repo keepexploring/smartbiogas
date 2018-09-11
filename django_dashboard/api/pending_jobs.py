@@ -8,7 +8,7 @@ from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
 from helpers import Permissions
 from django.db.models import Q
 from tastypie.constants import ALL
-from helpers import keep_fields
+from helpers import keep_fields, required_fields, only_keep_fields
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
 from django_dashboard.api.api import TechnicianDetailResource, UserDetailResource
 from tastypie_actions.actions import actionurls, action
@@ -20,6 +20,8 @@ import uuid
 import json
 #from django_dashboard.api.api_biogas_contact import BiogasPlantContactResource
 from django_dashboard.api.validators.validator_patterns import schema
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 import pdb
 
 class PendingJobsResource(ModelResource):
@@ -202,6 +204,41 @@ class PendingJobsResource(ModelResource):
             pdb.set_trace()
             pass
 
+        return self.create_response(request, bundle)
+
+    @action(allowed=['post'], require_loggedin=False,static=True)
+    @transaction.atomic
+    def create_pending_job(self, request, **kwargs):
+        self.is_authenticated(request)
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['technician','job_details','biogas_plant'])
+        required_fields(data,['technician','job_details','biogas_plant'] )
+
+        bundle = self.build_bundle(data={}, request=request)
+        uob = bundle.request.user
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
+
+        _schema_ = schema['create_pending_job']
+        vv= Validator(_schema_)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+
+        if ( uob.is_superuser or perm.is_global_admin() or perm.is_admin() ):
+            try:
+                biogas_plant_object = BiogasPlant.objects.get(id = data['biogas_plant'])
+                technician_object = UserDetail.objects.get(id = data['technician'])
+                pending_job_object = PendingJobs.objects.create(record_creator = uob.userdetail, technician=technician_object, biogas_plant = biogas_plant_object )
+                bundle.data = {"message":"Pending job created", "id": pending_job_object.job_id}
+            except ObjectDoesNotExist:
+                raise CustomBadRequest( code="field_error", message=errors_to_report )
+        else:
+            raise CustomBadRequest(
+                        code="401",
+                        message="Unauthorized")
+            
+        pdb.set_trace()
         return self.create_response(request, bundle)
 
     @action(allowed=['put'], require_loggedin=True)
