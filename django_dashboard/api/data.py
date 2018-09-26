@@ -103,7 +103,9 @@ class DataResource(MultipartResource, ModelResource):
         bundle = self.build_bundle(data={}, request=request)
         try:
             uob = bundle.request.user
-            part_of_companies = UserDetail.objects.get(user=uob).company.all()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+           
             #logged_in_as = UserDetail.objects.get(user=uob).logged_in_as # use this in the future
             
             ##part_of_groups = uob.groups.all()
@@ -114,7 +116,7 @@ class DataResource(MultipartResource, ModelResource):
             # use the commented out option below to filter by companies they are part of in the future - or better even filter by the comany they are logged in as
             #card_templates = CardTemplate.objects.filter(company__in = part_of_companies)
             # for now we just show all card tempates as there are not many and we want to display something for development purposes
-            card_templates = CardTemplate.objects.all()
+            card_templates = CardTemplate.objects.filter(company__in = [company])
             card_templated_serialized = TemplateCardSerializer(card_templates, many=True).data
             
             bundle.data = { "data":card_templated_serialized }
@@ -140,7 +142,9 @@ class DataResource(MultipartResource, ModelResource):
         #pdb.set_trace()
         try:
             uob = bundle.request.user
-            part_of_companies = UserDetail.objects.get(user=uob).company.all()
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+            #part_of_companies = UserDetail.objects.get(user=uob).company.all()
             #logged_in_as = UserDetail.objects.get(user=uob).logged_in_as # use this in the future
             
             ##part_of_groups = uob.groups.all()

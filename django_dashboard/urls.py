@@ -2,8 +2,7 @@ from django.conf.urls import include, url
 from . import views
 from tastypie.api import Api
 from api.api import CompanyResource, UserDetailResource, TechnicianDetailResource, JobHistoryResource, DashboardResource
-from api.api_biogas_contact import BiogasPlantContactResource
-from api.api_biogas_details import BiogasPlantResource
+from api.api_biogas_details import BiogasPlantResource, BiogasPlantContactResource
 from api.pending_jobs import PendingJobsResource
 from api.register_node import RegisterResource
 from api.data import DataResource

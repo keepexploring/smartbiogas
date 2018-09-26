@@ -151,10 +151,10 @@ schema = {
                             "what3words":{'type': 'string','validator': what3words_validator},
                             "type_biogas":{'type': 'integer', 'allowed': [1, 2, 3, 4, 5]},
                             "volume_biogas":{'type': 'integer'},
-                            "adopt": {'type':'boolean'},
+                            "adopt": {'type':'boolean','required':True},
                             "install_date":{'type': 'integer'},
                             "current_status":{'type': 'integer', 'allowed': [1, 2, 3, 4, 5]},
-                            "construction_tech":{'type': 'string','allowed':['me','none']},
+                            "construction_tech":{'type': 'string','allowed':['me','other']},
                             "location_estimated":{'type':'boolean'},
                             "funding_source_notes":{'type': 'string'},
                             "country":{'type': 'string','required':True,'allowed':allowed_countries},
@@ -234,6 +234,35 @@ schema = {
                         "info": { 'type': 'dict', 'required': False },
                         "status": { 'type': 'integer', 'required': True },
                         "value": { 'type': 'string', 'required': False }
-                           },               
+                           },
+
+    "get_historical_jobs": {
+                        "page" : { 'type': 'integer', 'required':True },
+                        "per_page": { 'type': 'integer', 'required':True }
+                            },
+    "abandon_job": {
+                        "reasons" : { 'type': 'string', 'required': True },
+                        "additional_comments": { 'type': 'string', 'required': False }
+                            },
+    "reassign_pending_job": {
+                        "technician" : { 'type': 'integer', 'required': True },
+                            },
+    "edit_profile": {
+                "mobile": { 'type':'string', 'validator':validate_mobile, 'required':False },
+                "email": {'type':'string', 'regex': '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'},
+                "languages_spoken":{'type': 'list', 'schema': {'type': 'string'} },
+                "latitude":{'type':'float'},
+                "longitude":{'type':'float'},
+                "specialist_skills":{'type': 'list', 'schema': {'type': 'string'} },
+                "willing_to_travel":{'type': 'integer','min': 0 },
+                "user_photo":{'type':'string'}
+                    },
+    "get_biogas_plants": {
+                    "mobile": { 'type':'string', 'validator':validate_mobile, 'required':True },
+                    },
+    "call_for_assistance": {
+                    "help_type": { 'type': 'string', 'required': False },
+                    "additional_comments": { 'type': 'string', 'required': False },
+                    }
 
 }

@@ -133,7 +133,6 @@ class Company(models.Model):
     #user = models.ForeignKey(settings.AUTH_USER_MODEL)
     #session = models.ForeignKey(Session)
     
-
     company_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,db_index=True)
     company_name = models.CharField(max_length=200)
 
@@ -232,7 +231,7 @@ class UserDetail(models.Model):
     record_of_edits = models.ForeignKey('EditRecord', blank=True, null=True, on_delete=models.CASCADE, related_name='user_detail')
 
     def __str__(self):
-        return '%s, %s %s' % (self.last_name,self.first_name,self.phone_number)
+        return '%s, %s %s' % (self.last_name,self.first_name,self.mobile)
 
     def save(self, *args, **kwargs):
         #if self.id is None:
@@ -493,8 +492,7 @@ class BiogasPlant(models.Model):
          'AddressLocation',
          on_delete=models.CASCADE,
          related_name="biogasplant",
-         blank=True,
-         null=True,
+         null = True,
      )
     #type_biogas = models.CharField(choices=TYPE_BIOGAS_CHOICES,null=True,max_length=20,blank=True)
     type_biogas = EnumField(TypeBiogas, max_length=1,null=True)
@@ -601,8 +599,10 @@ class JobHistory(models.Model):
     plant = models.ForeignKey(BiogasPlant, on_delete=models.CASCADE) # a biogas plan can have many job records
     fixers = models.ManyToManyField(UserDetail,blank=True, related_name="fixerss") # associating it with someone who can fix it, blank means it is optional  - importan because it will not initially be associated
     accepted_but_did_not_visit = models.ManyToManyField(UserDetail,blank=True, related_name='acceptednovisit')
-    rejected_job = models.ManyToManyField(UserDetail,blank=True, related_name='rejectedjob')
-    rejected_jobs = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
+    rejected_by  = models.ManyToManyField(UserDetail,blank=True, related_name='job_rejected_by')
+    #rejected_job = models.ManyToManyField(UserDetail,blank=True, related_name='rejectedjob')
+    #rejected_jobs = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
+    abandoned = models.ForeignKey('Abandoned', null=True, blank=True, on_delete=models.CASCADE)
     
     STATUS_CHOICES = (
     ('UNASSIGNED', "unassigned"),
@@ -623,7 +623,7 @@ class JobHistory(models.Model):
     due_date = models.DateField(null=True,blank=True)# when the job should be completed by, this could be based on the problem e.g. water in the pipe would be less than rebuilding the plant
     #job_duration = models.IntegerField() # how long the job has been outstanding in seconds
     date_completed = models.DateField(null=True,blank=True)
-    completed = models.NullBooleanField(db_index=True,blank=True,default=False)
+    completed = models.NullBooleanField(db_index=True,default=False)
     #job_status = models.CharField(choices=STATUS_CHOICES,default='UNASSIGNED',max_length=16,null=True)# states (unassigned, resolving- being worked on, assitance, overdue- accepted, but not been completed, after x number of days, resolved, feedback- if received low star, then flag up and push to an admin)
                 # decommissioned
     dispute_raised = models.NullBooleanField(default=False,blank=True)
@@ -640,6 +640,7 @@ class JobHistory(models.Model):
         null=True,
         blank=True,
      )
+    associated_with_company = associated_with_company = models.ManyToManyField('Company', blank=True, related_name = "job_history_associated_with_company" )
     
     client_feedback_additional = models.TextField(null=True,blank=True)# if the customer wants to give additional feedback
   
@@ -648,7 +649,6 @@ class JobHistory(models.Model):
     fault_class = models.CharField(null=True,max_length=225,blank=True,choices=FAULT_CLASSES)
     assistance = models.NullBooleanField(default=False,blank=True)
     description_help_need = models.TextField(null=True,blank=True)
-    reason_abandoning_job = models.TextField(null=True,blank=True)
 
     @property
     def _completed(self):
@@ -738,6 +738,10 @@ class JobHistory(models.Model):
                         ("edit_job_status","Able to edit a job status")
 
         )
+
+class Abandoned(models.Model):
+    technician = models.ManyToManyField(UserDetail,blank=True, related_name="abandonedjob") 
+    reason_abandoning_job = models.TextField(null=True,blank=True)
 
 # class AggregatedStatistics(models.Model):
 #     plant_type
@@ -862,14 +866,20 @@ class PendingJobs(models.Model):
     job_id = models.CharField(db_index=True,default=uuid.uuid4,blank=True,max_length=200, primary_key=True)
     biogas_plant = models.ForeignKey(BiogasPlant, on_delete=models.CASCADE, blank=True, null=True,related_name='abiogasplant') # a job is associated with a biogas plant
     technician = models.ForeignKey(UserDetail, on_delete=models.CASCADE, blank=True, null=True,related_name='atechician') # one techncian can have more than one job
+    rejected_by = models.ManyToManyField('UserDetail', blank=True,related_name='techicians_rejected')
+    
     datetime_created = models.DateTimeField(editable=False, db_index=True,null=True,blank=True)
     job_details = models.TextField(null=True,blank=True)
     accepted = models.BooleanField(db_index=True,blank=True,default=False)
     technicians_rejected = ArrayField(models.CharField(max_length=200),default=list, blank=True,null=True)
-    
+    company_of_creator = models.ForeignKey(UserDetail, on_delete=models.CASCADE, blank=True, null=True,related_name='pending_job_creator')
+
     record_creator = models.ForeignKey(UserDetail, blank=True, null=True, on_delete=models.CASCADE, related_name='pending_job_record_created_by')
     record_of_edits = models.ForeignKey(EditRecord, blank=True, null=True, on_delete=models.CASCADE, related_name='pending_job')
     # technicians_rejected will be a list of id's of technicans who have said they do not want this job - the system can get this and use to make sure it does not send messages to these technicians again
+    previously_abandoned = models.BooleanField(db_index=True,default=False)
+    link_to_job_record = models.OneToOneField('JobHistory',null=True, blank=True, on_delete=models.CASCADE)
+    associated_with_company = models.ManyToManyField('Company', blank=True, related_name = "pending_job_associated_with_company" )
 
     def check_to_accept_job(self):
 
@@ -889,13 +899,16 @@ class PendingJobs(models.Model):
             # job_status = 2 means 'resolving'
             # remove job from pending jobs
             PendingJobs.objects.filter(job_id=job_id_uid).delete() # delete the pending job
-            # now update the technicians details
+            # now update the technicians detailsπ
             techn = TechnicianDetail.objects.get(technicians=self.technician)
             techn.number_jobs_active = techn.number_jobs_active + 1 # we'll do this for the time being, in the future might be best to get all the jobs associated with this technician and count up
             techn.status = True # check this is set to true
             # now send message to user to confirm that a technician has accepted
         elif self.accepted is False:
-            self.technicians_rejected.append(str(self.technician.id))
+            try:
+                self.technicians_rejected.append(str(self.technician.id))
+            except:
+                pass
             # now call another function to search for another technician
             
 

@@ -340,6 +340,8 @@ class AddressSerializer(serpy.Serializer):
     srid = serpy.Field()
     what3words = serpy.Field()
 
+
+
 # class AddressSerializer(serpy.Serializer):
 #     """The serializer schema definition."""
 #     # Use a Field subclass like IntField if you need more validation.
@@ -430,6 +432,13 @@ class NestedContactSerializer(serpy.Serializer):
     surname = serpy.Field()
     mobile  = serpy.Field()
     email = serpy.Field()
+    contact_uid = serpy.MethodField()
+
+    def contact_uid(self, obj):
+        try:
+            return contact.uid.hex
+        except:
+            return None
 
 class BiogasPlantSerialiser(serpy.Serializer):
     id = serpy.Field()
@@ -445,7 +454,7 @@ class BiogasPlantSerialiser(serpy.Serializer):
     volume_biogas = serpy.Field()
     location_estimated = serpy.Field()
     location = serpy.MethodField()
-    address = AddressSerializer()
+    address = serpy.MethodField()
     install_date = serpy.Field()
     QP_status = serpy.Field()
     current_status = serpy.Field()
@@ -455,27 +464,98 @@ class BiogasPlantSerialiser(serpy.Serializer):
         return obj.plant_id.hex
 
     def get_location(self, obj):
-        return to_serializable_location(obj.address.location)
+        try:
+            return to_serializable_location(obj.address.location)
+        except:
+            return None
 
     def get_contact_details(self, obj):
-        return [ {"first_name": ii.first_name, "surname": ii.surname, "mobile": ii.mobile } for ii in obj.contact.all() ]
-    
+        try:
+            return [ {"first_name": ii.first_name, "surname": ii.surname, "mobile": ii.mobile,  "contact_uic":ii.uid.hex } for ii in obj.contact.all() ]
+        except:
+            return None
+
+    def get_address(self, obj):
+        try:
+            return AddressSerializer(obj.address).data
+        except:
+            return None
 class BiogasPlantIDSerialiser(serpy.Serializer):
     id = serpy.Field()
+    address = AddressSerializer()
+    QP_status = serpy.MethodField()
+    sensor_status = serpy.MethodField()
+    current_status = serpy.MethodField()
+    type_biogas = serpy.MethodField()
+    notes = serpy.Field()
+    biogas_plant_name = serpy.Field()
+    contact = serpy.MethodField()
+
+    def get_contact(self, obj):
+        return [ {"first_name": ii.first_name, "surname":ii.surname, "mobile":ii.mobile} for ii in obj.contact.all() ]
+
+    def get_sensor_status(self,obj):
+        try:
+            return obj.sensor_status.name
+        except:
+            return None
+
+    def get_current_status(self,obj):
+        try:
+            return obj.current_status.name
+        except:
+            return None
+
+    def get_type_biogas(self,obj):
+        try:
+            return obj.type_biogas.name
+        except:
+            return None
+
+    def get_QP_status(self,obj):
+        try:
+            return obj.QP_status.name
+        except:
+            return None
+
+class TechnicianDetailsNested(serpy.Serializer):
+    status = serpy.Field()
+    what3words = serpy.Field()
+    max_num_jobs_allowed = serpy.Field()
+    willing_to_travel = serpy.Field()
+    specialist_skills = serpy.Field()
+    acredit_to_install = serpy.Field()
+    acredited_to_fix = serpy.Field()
+    number_jobs_active = serpy.Field()
+    languages_spoken = serpy.Field()
+    number_of_jobs_completed = serpy.Field()
+    latitude = serpy.MethodField()
+    longitude = serpy.MethodField()
+
+    def get_latitude(self, obj):
+        return str(obj.latitude)
+       
+    def get_longitude(self, obj):
+        return str(obj.longitude)
+
+
+class AbadonedSerialiser(serpy.Serializer):
+    id = serpy.Field()
+    reason_abandoning_job = serpy.Field()
+    technician = TechnicianDetailsNested()
 
 
 class JobHistorySerialiser(serpy.Serializer):
     plant = BiogasPlantIDSerialiser()
     fixers = serpy.MethodField()
-    accepted_but_did_not_visit = serpy.MethodField()
-    rejected_job = serpy.MethodField()
-    job_id = serpy.Field()
-    date_flagged = serpy.Field()
-    date_accepted = serpy.Field()
-    date_completed = serpy.Field()
+    #accepted_but_did_not_visit = serpy.MethodField()
+    job_id = serpy.MethodField()
+    date_flagged = serpy.MethodField()
+    date_accepted = serpy.MethodField()
+    date_completed = serpy.MethodField()
     completed = serpy.Field()
     dispute_raised = serpy.Field()
-    job_status = serpy.Field() # Enum field
+    job_status = serpy.MethodField()
     verification_of_engagement = serpy.Field()
     fault_description = serpy.Field()
     other = serpy.Field()
@@ -486,7 +566,23 @@ class JobHistorySerialiser(serpy.Serializer):
     fault_class = serpy.Field()
     assistance = serpy.Field()
     description_help_need = serpy.Field()
-    reason_abandoning_job = serpy.Field()
+    abandoned = serpy.MethodField()
+
+    def get_abandoned(self, obj):
+        try:
+            #pdb.set_trace()
+            return [ {"reason_abandoning_job":ii['reason_abandoning_job'], "id":ii['id'], "technician": ii['technician'] } for ii in TechnicianDetailsNested(obj.abandoned, many=True).data ]
+        except:
+            return None
+
+    def get_date_flagged(self, obj):
+        return datetime_to_string(obj.date_flagged)
+
+    def get_date_accepted(self, obj):
+        return datetime_to_string(obj.date_accepted)
+
+    def get_date_completed(self, obj):
+        return datetime_to_string(obj.date_completed)
 
     def get_fixers(self, obj):
         return [ {"id":ii.id} for ii in obj.fixers.all() ]
@@ -496,6 +592,62 @@ class JobHistorySerialiser(serpy.Serializer):
     
     def get_accepted_but_did_not_visit(self, obj):
         return [ {"id": ii.id} for ii in obj.accepted_but_did_not_visit.all() ]
+
+    def get_job_status(self, obj):
+        try:
+            return obj.job_status.name
+        except:
+            return None
+
+    def get_job_id(self, obj):
+        return str(obj.job_id)
+
+class JobHistorySerialiserSingleJob(serpy.Serializer):
+    #accepted_but_did_not_visit = serpy.MethodField()
+    job_id = serpy.MethodField()
+    date_flagged = serpy.MethodField()
+    date_accepted = serpy.MethodField()
+    date_completed = serpy.MethodField()
+    completed = serpy.Field()
+    dispute_raised = serpy.Field()
+    job_status = serpy.MethodField()
+    verification_of_engagement = serpy.Field()
+    fault_description = serpy.Field()
+    other = serpy.Field()
+    client_feedback_star = serpy.Field()
+    client_feedback_additional = serpy.Field()
+    overdue_for_acceptance = serpy.Field()
+    priority = serpy.Field()
+    fault_class = serpy.Field()
+    assistance = serpy.Field()
+    description_help_need = serpy.Field()
+    abandoned = serpy.MethodField()
+
+    def get_abandoned(self, obj):
+        try:
+            #pdb.set_trace()
+            return [ {"reason_abandoning_job":ii['reason_abandoning_job'], "id":ii['id'], "technician": ii['technician'] } for ii in TechnicianDetailsNested(obj.abandoned, many=True).data ]
+        except:
+            return None
+
+    def get_date_flagged(self, obj):
+        return datetime_to_string(obj.date_flagged)
+
+    def get_date_accepted(self, obj):
+        return datetime_to_string(obj.date_accepted)
+
+    def get_date_completed(self, obj):
+        return datetime_to_string(obj.date_completed)
+
+    def get_job_status(self, obj):
+        try:
+            return obj.job_status.name
+        except:
+            return None
+
+    def get_job_id(self, obj):
+        return str(obj.job_id)
+
 
 class IndicatorsTemplateSerialiser(serpy.Serializer):
     id = serpy.Field()
@@ -523,33 +675,47 @@ class NestedUserObject(serpy.Serializer):
     id = serpy.Field()
     username = serpy.Field()
 
-class TechnicianDetailsNested(serpy.Serializer):
-    status = serpy.Field()
-    what3words = serpy.Field()
-    max_num_jobs_allowed = serpy.Field()
-    willing_to_travel = serpy.Field()
-    specialist_skills = serpy.Field()
-    acredit_to_install = serpy.Field()
-    acredited_to_fix = serpy.Field()
-    number_jobs_active = serpy.Field()
-    languages_spoken = serpy.Field()
-    number_of_jobs_completed = serpy.Field()
-    latitude = serpy.MethodField()
-    longitude = serpy.MethodField()
 
-    def get_latitude(self, obj):
-        return str(obj.latitude)
-       
-    def get_longitude(self, obj):
-        return str(obj.longitude)
         
-    
+class PendingJobsBiogasPlantSerialiser(serpy.Serializer):
+    biogas_plant_name = serpy.Field()
+    contact = serpy.MethodField()
+    address = AddressSerializer()
+    type_biogas = serpy.MethodField()
+    supplier = serpy.MethodField()
+    volume_biogas = serpy.Field()
+    location_estimated = serpy.Field()
+
+    def get_contact(self, obj):
+        return [ {"first_name": ii.first_name, "surname":ii.surname, "mobile":ii.mobile} for ii in obj.contact.all() ]
+
+    def get_type_biogas(self,obj):
+        try:
+            return obj.type_biogas.name
+        except:
+            return None
+
+    def get_supplier(self,obj):
+        try:
+            return obj.supplier.name
+        except:
+            return None
+
+class PendingJobSerialiser(serpy.Serializer):
+    job_id = serpy.Field()
+    biogas_plant = PendingJobsBiogasPlantSerialiser()
+    job_details= serpy.Field()
+    datetime_created = serpy.MethodField()
+
+    def get_datetime_created(self, obj):
+        return datetime_to_string(obj.datetime_created)
+
 class UserDetailsSerialiser(serpy.Serializer):
     id = serpy.Field()
     first_name = serpy.Field()
     last_name = serpy.Field()
     email = serpy.Field()
-    phone_number = serpy.Field()
+    mobile = serpy.Field()
     address = AddressSerializer()
     # country = serpy.Field()
     # region = serpy.Field()
@@ -560,4 +726,128 @@ class UserDetailsSerialiser(serpy.Serializer):
     technician_details = TechnicianDetailsNested()
     user = NestedUserObject()
     user_photo = serpy.Field()
+
+class UserDetailsSerialiserSimplified(serpy.Serializer):
+    id = serpy.Field()
+    first_name = serpy.Field()
+    last_name = serpy.Field()
+
+
+class UserDetailNestedSerialiser(serpy.Serializer):
+    id = serpy.Field()
+    first_name = serpy.Field()
+    last_name = serpy.Field()
+    mobile = serpy.Field()
+
+class UnassignedBiogasPlantSerialiser(serpy.Serializer):
+    id = serpy.Field()
+    plant_id = serpy.MethodField()
+    biogas_plant_name = serpy.Field()
+    contact_details = serpy.MethodField()
+    UIC = serpy.Field()
+    type_biogas= serpy.MethodField()
+    supplier= serpy.MethodField()
+    volume_biogas = serpy.Field()
+    current_status = serpy.MethodField()
+    sensor_status = serpy.MethodField()
+    location_estimated = serpy.Field()
+    address = AddressSerializer()
+    install_date = serpy.Field()
+    QP_status = serpy.MethodField()
+    notes = serpy.Field()
+    #constructing_technicians = serpy.Field()
+
+    def get_plant_id(self, obj):
+        return obj.plant_id.hex
+
+    def get_location(self, obj):
+        return to_serializable_location(obj.address.location)
+
+    def get_contact_details(self, obj):
+        return [ {"first_name": ii.first_name, "surname": ii.surname, "mobile": ii.mobile } for ii in obj.contact.all() ]
+    
+    def get_QP_status(self, obj):
+        try:
+            return obj.QP_status.name
+        except:
+            return None
+
+    def get_type_biogas(self, obj):
+        try:
+            return obj.type_biogas.name
+        except:
+            return None
+
+    def get_supplier(self, obj):
+        try:
+            return obj.supplier.name
+        except:
+            return None
+
+    def get_current_status(self, obj):
+        try:
+            return obj.current_status.name
+        except:
+            return None
+
+    def get_sensor_status(self, obj):
+        try:
+            return obj.sensor_status.name
+        except:
+            return None
+
+class UnassignedPendingJobSerialiser(serpy.Serializer):
+    job_id = serpy.Field()
+    biogas_plant = UnassignedBiogasPlantSerialiser()
+
+
+class ContactDetailsSerializer(serpy.Serializer):
+    id = serpy.IntField()
+    uid = serpy.Field()
+    registered_by = serpy.MethodField()
+    contact_type  = serpy.MethodField()
+    first_name = serpy.Field()
+    surname = serpy.Field()
+    mobile = serpy.Field()
+    email = serpy.Field()
+    record_creator = serpy.MethodField()
+    address = serpy.MethodField()
+
+    def get_contact_type(self, obj):
+        try:
+            return obj.contact_type.name
+        except:
+            return None
+
+    def get_registered_by(self, obj):
+        try:
+            return UserDetailNestedSerialiser(obj.registered_by, many=True).data
+        except:
+            return None
+
+    def get_record_creator(self, obj):
+        try:
+            return UserDetailNestedSerialiser(obj.record_creator).data
+        except:
+            return None
+
+
+    def get_address(self, obj):
+        try:
+            return AddressSerializer(obj.address).data
+        except:
+            return None
+
+class ContactDetailsSerializerSimplified(serpy.Serializer):
+    id = serpy.IntField()
+    mobile = serpy.Field()
+    first_name = serpy.Field()
+    surname = serpy.Field()
+    contact_type  = serpy.MethodField()
+
+    def get_contact_type(self, obj):
+        try:
+            return obj.contact_type.name
+        except:
+            return None
     

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from tastypie.resources import ModelResource, Resource , ALL_WITH_RELATIONS
 from tastypie import fields, utils
-from django_dashboard.models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, BiogasPlant, JobHistory, Dashboard, PendingJobs
+from django_dashboard.models import Company, UserDetail, TechnicianDetail, BiogasPlantContact, BiogasPlant, JobHistory, Dashboard, PendingJobs, Abandoned
 from tastypie.authorization import DjangoAuthorization
 from tastypie_oauth2.authentication import OAuth20Authentication
 from tastypie_oauth2.authentication import OAuth2ScopedAuthentication
@@ -9,7 +9,8 @@ from tastypie.constants import ALL
 from django_dashboard.api.api_biogas_details import BiogasPlantResource
 from helpers import Permissions
 from helpers import CustomBadRequest
-from helpers import keep_fields
+from helpers import keep_fields, remove_fields_from_dict
+from helpers import ContactDetailsSerializer, UserDetailsSerialiser, UserDetailsSerialiserSimplified, ContactDetailsSerializerSimplified, JobHistorySerialiserSingleJob, BiogasPlantSerialiser
 import uuid
 import traceback
 from copy import copy
@@ -257,11 +258,16 @@ class TechnicianDetailResource(ModelResource): # child
         self.is_authenticated(request)
         
         data = json.loads( request.read() )
+        _schema = schema['edit_profile']
+        vv= Validator(_schema)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+
         fields = ["mobile", "email","languages_spoken","latitude","longitude","specialist_skills","willing_to_travel"]
         data = only_keep_fields(data, fields)
-        ud_fields = ["phone_number","email"]
+        ud_fields = ["mobile","email"]
         td_fields = ["specialist_skills","willing_to_travel"]
-        data = map_fields( data, [ ("mobile","phone_number") ] )
         bundle = self.build_bundle(data={}, request=request)  
         uob = bundle.request.user
         perm = Permissions(uob)
@@ -287,9 +293,7 @@ class TechnicianDetailResource(ModelResource): # child
             
             bundle.data = {"message":"Profile updated"}
         except:
-            raise CustomBadRequest(
-                        code="403",
-                        message="Resource not found")
+            raise_custom_error({"error":"Resource not found"}, 403)
 
         return self.create_response(request, bundle)
     
@@ -300,7 +304,6 @@ class TechnicianDetailResource(ModelResource): # child
     def get_status(self, request, **kwargs):
         self.is_authenticated(request)
 
-        #pdb.set_trace()
         try:
             bundle = self.build_bundle(data={}, request=request)
              # we specify the type of bundle in order to help us filter the action we take before we return
@@ -311,10 +314,10 @@ class TechnicianDetailResource(ModelResource): # child
 
             tech_detail = TechnicianDetail.objects.get(technicians__user = uob)
 
-            bundle.data = {"status":tech_detail.status,"tech_id":str(tech_detail.technician_id)}
+            bundle.data = {"status":tech_detail.status,"tech_id":str(tech_detail.technician_id)} # "id":tech_detail.technicians.id
 
         except:
-            pass
+            raise raise_custom_error({"error":"Server error"}, 500)
 
         return self.create_response(request, bundle)
 
@@ -399,7 +402,12 @@ class TechnicianDetailResource(ModelResource): # child
     def authorized_read_list(self, object_list, bundle):
         uob = bundle.request.user
         
-        return object_list.filter(technicians__user__username=uob.username)
+        #return object_list.filter(technicians__user__username=uob.username)
+        return []
+
+    def authorized_read_detail(self, object_list, bundle):
+
+        return []
 
 
 class UserDetailResource(ModelResource): # parent
@@ -729,6 +737,40 @@ class UserDetailResource(ModelResource): # parent
 
         return self.create_response(request, bundle)
 
+    @action(allowed=['get'], require_loggedin=False, static=False) ## This is introduced here to avoid making a breaking change with the app - this function is for admin users to allow them to edit any plant in their company
+    @transaction.atomic
+    def get_single_technician(self, request, **kwargs):
+        self.is_authenticated(request)
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+        try:
+            bundle = self.build_bundle(data={}, request=request)
+            uob = bundle.request.user
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+        except:
+            raise_custom_error({"error":"Biogas plant object not found"}, 404)
+
+        if ( uob.is_superuser or perm.is_global_admin() ):
+            userdetail_object = UserDetail.objects.get( id = pk )
+        elif perm.is_admin(): # return all the people associated with this company
+            userdetail_object = UserDetail.objects.get( id = pk, company = company )
+        elif perm.is_technician(): # only return the user info of the logged in technican
+            userdetail_object = UserDetail.objects.get( id = pk, company = company, user = uob )
+            
+        else:
+            raise_custom_error({"error":"You do not have permission"}, 401)
+
+        try:
+            serialised_userdetail = UserDetailsSerialiser(userdetail_object).data
+            bundle.data = map_serialised_address(serialised_userdetail)
+        except:
+            raise_custom_error({"error":"Serialisation error"}, 500)
+
+        return self.create_response(request, bundle)
+
     def authorized_read_list(self, object_list, bundle):
         #return object_list.filter(user=bundle.request.user)
         #pdb.set_trace()
@@ -737,21 +779,46 @@ class UserDetailResource(ModelResource): # parent
         company = perm.get_company_scope()
 
         user_object = UserDetail.objects.filter(user=uob)
-        if uob.is_superuser:
+        if ( uob.is_superuser or perm.is_global_admin() ):
             return object_list
 
         if perm.is_admin(): # return all the people associated with this company
-            company_object = user_object[0].company.all()
-            company_names = [co.company_name for co in company_object]
-            return object_list.filter(company__company_name__in=company_names)
+            return object_list.filter(company = company)
 
         if perm.is_technician(): # only return the user info of the logged in technican
-            return object_list.filter(user__username=uob.username)
+            return object_list.filter( user=uob )
+
+    def authorized_read_detail(self, object_list, bundle):
+        try:
+            uob = bundle.request.user
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+            user_object = UserDetail.objects.filter( user=uob )
+
+            if ( uob.is_superuser or perm.is_global_admin() ):
+                return object_list
+
+            if perm.is_admin(): # return all the people associated with this company
+                #pdb.set_trace()
+                #company_object = user_object[0].company.all()
+                #company_names = [co.company_name for co in company_object]
+                #return object_list.filter(Q(contact__associated_company__company_name__in=company_names) | Q(associated_company__company_name__in=company_names))
+                return object_list.filter( company = company )
+
+            if perm.is_technician(): # only return the user info of the logged in technican
+                # a technician cannot get the user details associated with a company
+                #pdb.set_trace()
+                # we want to filter and return only the biogas plants associated with that technican
+                #object_list.biogas_plant_detail
+                return object_list.filter(user=uob)
+                # self.build_bundle(obj=JobHistory(), data = bundle.data)
+        except:
+            raise raise_custom_error({"error":"Server error"}, 500)
           
 
 class JobHistoryResource(ModelResource):
     #plant = fields.ToManyField(BiogasPlantResource, 'plant', null=True, blank=True, full=True)
-    fixers = fields.ManyToManyField(UserDetailResource, 'fixers', full=True)
+    #fixers = fields.ManyToManyField(UserDetailResource, 'fixers', full_detail=True, full_list=False)
     
     class Meta:
         queryset = JobHistory.objects.all()
@@ -775,6 +842,8 @@ class JobHistoryResource(ModelResource):
             put=("read","write")
         )
 
+        # paginator_class = Paginator
+
     def prepend_urls(self):
         return actionurls(self)
 
@@ -793,36 +862,56 @@ class JobHistoryResource(ModelResource):
         self.is_authenticated(request)
         pass
 
-    @action(allowed=['post'], require_loggedin=False, static=False)
+    @action(allowed=['put'], require_loggedin=False, static=False)
+    @transaction.atomic
     def abandon_job(self, request, **kwargs):
         self.is_authenticated(request)
-        #pdb.set_trace()
         data = json.loads( request.read() )
         data = only_keep_fields(data,['reasons','additional_comments'])
-        
+
+        _schema = schema['abandon_job']
+        vv= Validator(_schema)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+
         try:
             pk = int(kwargs['pk'])
         except:
             pk = kwargs['pk']
 
-        
-        
         bundle = self.build_bundle(data={}, request=request)
-        try:
-            uid = uuid.UUID(hex=pk)
-            uob = bundle.request.user
-            perm = Permissions(uob)
-            company = perm.get_company_scope()
+        uid = uuid.UUID(hex=pk)
+        uob = bundle.request.user
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
 
-            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))[0]
-            user_detail = UserDetail.objects.get(user=uob)
-            current_job.rejected_job.add(user_detail) # this is
+        try:
+            current_job = JobHistory.objects.get(fixers__user=uob, job_id=uid)
+        except:
+            raise raise_custom_error({"error":"Object not found, perhaps you have already abandoned that job?"}, 404)
+        
+
+        try:
+            user_detail = uob.userdetail
+            abandoned_job = Abandoned()
+            abandoned_job.reason_abandoning_job = data['reasons']
+            abandoned_job.save()
+            abandoned_job.technician.add(user_detail)
+            #current_job.rejected_job.add(user_detail) # this is
             current_job.fixers.remove(user_detail)
             #fixers  = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))[0]
             current_job.completed = False
             current_job.job_status = 1
             current_job.verification_of_engagement = False
             current_job.priority = True
+            # now create a new unassigned pending job
+            pending_job_object = PendingJobs.objects.create(record_creator = user_detail, technician=None, 
+                                        biogas_plant = current_job.plant, job_details= current_job.fault_description, 
+                                        previously_abandoned = True,link_to_job_record= current_job,
+                                        associated_with_company=current_job.associated_with_company.all(),
+                                        job_id = pk)
+
             if "help_type" in data.keys():
                 current_job.reason_abandoning_job = str(current_job.reason_abandoning_job) + "\n \n" + datetime_to_string(datetime.datetime.now()) + "\n" + data['reasons']
             
@@ -833,12 +922,9 @@ class JobHistoryResource(ModelResource):
             bundle.data = { "message":"job_abandoned", "job_id": pk }
 
         except:
-            raise CustomBadRequest(
-                        code="403",
-                        message="Job not found for logged in user")
+            raise raise_custom_error({"error":"Server error"}, 500)
 
         return self.create_response(request, bundle)
-
 
     @action(allowed=['get'], require_loggedin=False,static=True)
     def get_abandoned_jobs(self, request, **kwargs):
@@ -857,7 +943,7 @@ class JobHistoryResource(ModelResource):
                 abandoned_jobs = JobHistory.objects.filter(Q(fixers=None)) # for now we include all jobs that do not have fixers
                 #serialized_jobs = json.loads( serializers.serialize('json', abandoned_jobs) )
                 jobs_to_send = []
-                #pdb.set_trace()
+                
                 for ab in abandoned_jobs:
                     serialized_jobs = {}
                     serialized_jobs["job_id"] = ab.job_id.hex
@@ -896,39 +982,6 @@ class JobHistoryResource(ModelResource):
             raise CustomBadRequest(
                         code="500",
                         message="Server error")
-
-        return self.create_response(request, bundle)
-
-    @action(allowed=['post'], require_loggedin=False,static=False)
-    def reassign_abandoned_job(self, request, **kwargs):
-        self.is_authenticated(request)
-        #pdb.set_trace()
-        data = json.loads( request.read() )
-        data = only_keep_fields(data,['technician'])
-        
-        try:
-            pk = int(kwargs['pk'])
-        except:
-            pk = kwargs['pk']
-
-        bundle = self.build_bundle(data={}, request=request)
-
-        try:
-            uid = uuid.UUID(hex=pk) # the id of the job that wants reasigning needs to be included in the URL
-            uob = bundle.request.user
-            perm = Permissions(uob)
-            company = perm.get_company_scope()
-
-            if ( uob.is_superuser or perm.is_global_admin() ):
-                job_to_reassign = JobHistory.objects.filter(job_id=uid)[0]
-                fixer_id = int(data['technician'].split("/")[-2])
-                user_to_reassign_to = UserDetail.objects.get(user__id=fixer_id) # the user id of the fixer is used to look up the user object
-                job_to_reassign.fixers.add(user_to_reassign_to)
-                bundle.data = { "message":"Job Reassigned" }
-            else:
-                 bundle.data = { "error":"Permission Denied" }
-        except:
-            pass
 
         return self.create_response(request, bundle)
 
@@ -980,58 +1033,21 @@ class JobHistoryResource(ModelResource):
     @action(allowed=['get'], require_loggedin=False,static=True)
     def get_active_jobs(self, request, **kwargs):
         self.is_authenticated(request)
-        #pdb.set_trace()
         bundle = self.build_bundle(data={}, request=request)
-
         try:
             
             uob = bundle.request.user
             part_of_groups = uob.groups.all()
             perm = Permissions(uob)
             company = perm.get_company_scope()
-            #pdb.set_trace()
             current_jobs = JobHistory.objects.filter(fixers__user=uob, completed=False).order_by('-date_flagged')
+            job_list = JobHistorySerialiser(current_jobs,many=True).data
+            for job in job_list:
+                job['plant'] = map_serialised_address(job['plant'])
 
-            job_list = []
-            for job in current_jobs:
-                #pdb.set_trace()
-                job_record = {}
-                job_record["job_id"] = job.pk.hex
-                
-                job_record["install_date"] = datetime_to_string(job.plant.install_date)
-                job_record["date_flagged"] = datetime_to_string(job.date_flagged)
-                job_record["date_accepted"] = datetime_to_string(job.date_accepted)
-                
-                job_record["job_status"] = job.job_status
-                job_record["fault_description"] = job.fault_description
-                job_record["other"] = job.other
-                job_record["priority"] = job.priority
-                job_record["fault_class"] = job.fault_class
-                job_record["district"] = job.plant.district
-                job_record["ward"] = job.plant.ward
-                job_record["volume"] = job.plant.volume_biogas
-                try:
-                    job_record["longitude"] = job.plant.location.get_x()
-                    job_record["latitude"] = job.plant.location.get_y()
-                except:
-                    pass
-                
-                try:
-                    job_record["supplier"] = job.plant.supplier.name
-                except:
-                    pass
-        
-                job_record["QP_status"] = job.plant.QP_status
-                job_record["sensor_status"] = job.plant.sensor_status
-                job_record["current_status"] = job.plant.current_status
-                job_record["type_biogas"] = job.plant.type_biogas
-                
-                job_list.append(job_record)
-            
             bundle.data = {'data':job_list}
         except Exception as e:
-            #print(e)
-            pass
+            raise raise_custom_error({"error":"Server error"}, 500)
 
         return self.create_response(request, bundle)
 
@@ -1091,7 +1107,16 @@ class JobHistoryResource(ModelResource):
     def get_historical_jobs(self, request, **kwargs):
         self.is_authenticated(request)
 
+        
         data = json.loads( request.read() )
+        data = only_keep_fields(data,['page','per_page'])
+
+        _schema = schema['get_historical_jobs']
+        vv= Validator(_schema)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+
         page=int(data['page']) # add in some error handling here
         per_page = int(data["per_page"])
 
@@ -1106,56 +1131,71 @@ class JobHistoryResource(ModelResource):
             pag = Paginator(historical_jobs, per_page)
             historical_jobs=pag.page(page)
             #serialized_jobs = json.loads( serializers.serialize('json', historical_jobs) )
-            job_list = []
+            job_list = JobHistorySerialiser(historical_jobs, many=True).data
+            job_list_filtered = []
+            for job in job_list:
+                job['plant'] = map_serialised_address(job['plant'])
+                job_list_filtered.append( only_keep_fields(job, ['job_id', 'install_date','job_status','fault_description','plant','current_status']) )
             
-            for job in historical_jobs:
-                job_record = {}
-                job_record["job_id"] = job.pk.hex
+            # for job in historical_jobs:
+            #     job_record = {}
+            #     job_record["job_id"] = job.pk.hex
                 
-                job_record["install_date"] = datetime_to_string(job.plant.install_date)
-                job_record["job_status"] = job.job_status
-                job_record["fault_description"] = job.fault_description
-                job_record["other"] = job.other
-                job_record["district"] = job.plant.district
-                job_record["ward"] = job.plant.ward
-                job_record["volume"] = job.plant.volume_biogas
-                try:
-                    job_record["longitude"] = job.plant.location.get_x()
-                    job_record["latitude"] = job.plant.location.get_y()
-                except:
-                    pass
+            #     job_record["install_date"] = datetime_to_string(job.plant.install_date)
+            #     job_record["job_status"] = job.job_status
+            #     job_record["fault_description"] = job.fault_description
+            #     job_record["other"] = job.other
+            #     job_record["district"] = job.plant.district
+            #     job_record["ward"] = job.plant.ward
+            #     job_record["volume"] = job.plant.volume_biogas
+            #     try:
+            #         job_record["longitude"] = job.plant.location.get_x()
+            #         job_record["latitude"] = job.plant.location.get_y()
+            #     except:
+            #         pass
                 
-                try:
-                    job_record["supplier"] = job.plant.supplier.name
-                except:
-                    pass
+            #     try:
+            #         job_record["supplier"] = job.plant.supplier.name
+            #     except:
+            #         pass
         
-                job_record["QP_status"] = job.plant.QP_status
-                job_record["sensor_status"] = job.plant.sensor_status
-                job_record["current_status"] = job.plant.current_status
-                job_record["type_biogas"] = job.plant.type_biogas
+            #     job_record["QP_status"] = job.plant.QP_status
+            #     job_record["sensor_status"] = job.plant.sensor_status
+            #     job_record["current_status"] = job.plant.current_status
+            #     job_record["type_biogas"] = job.plant.type_biogas
                 
-                job_list.append(job_record)
+            #     job_list.append(job_record)
             
-            bundle.data = {'data':job_list}
+            bundle.data = {'data':job_list_filtered}
             bundle.data['pagination'] = {"item_count":pag.count, "page_count":pag.num_pages,"page_num":page,"has_next":historical_jobs.has_next(),"has_previous":historical_jobs.has_previous()}
 
         except:
-            pass
+            raise raise_custom_error({"error":"Object not found"}, 404)
 
         return self.create_response(request, bundle)
 
     @action(allowed=['post'], require_loggedin=False,static=False)
+    @transaction.atomic
     def call_for_assistance(self, request, **kwargs):
         self.is_authenticated(request)
-        data = json.loads( request.read() )
-        data = only_keep_fields(data,['help_type','additional_comments'])
-        #pdb.set_trace()
+
+        try:
+            data = json.loads( request.read() )
+            data = only_keep_fields(data,['help_type','additional_comments'])
+            _schema = schema['call_for_assistance']
+            vv= Validator(_schema)
+            if not vv.validate(data):
+                errors_to_report = vv.errors
+                raise CustomBadRequest( code="field_error", message=errors_to_report )
+        except:
+            data = {}
+
         try:
             pk = int(kwargs['pk'])
             #job_id = 
         except:
             pk = kwargs['pk']
+
 
         uid = uuid.UUID(hex=pk)
         bundle = self.build_bundle(data={}, request=request)
@@ -1165,9 +1205,10 @@ class JobHistoryResource(ModelResource):
             perm = Permissions(uob)
             company = perm.get_company_scope()
 
-            current_job = JobHistory.objects.filter(fixers__user=uob, job_id=uid).filter(Q(completed=False) | Q(completed = None))[0]
+            current_job = JobHistory.objects.get(fixers__user=uob, job_id=uid)
             current_job.job_status = 5
             current_job.priority = True
+            current_job.assistance = True
             if "help_type" in data.keys():
                 current_job.description_help_need = str(current_job.description_help_need) + "\n \n" + datetime_to_string(datetime.datetime.now()) + "\n" + data['help_type']
             
@@ -1178,16 +1219,24 @@ class JobHistoryResource(ModelResource):
             bundle.data = {"message":"We have requested additional assistance for you","job_id":pk}
 
         except:
-            pass
+            raise raise_custom_error({"error":"Server error"}, 500)
 
         return self.create_response(request, bundle)
 
+    # @action(allowed=['get'], require_loggedin=False, static=True)
+    # def get_jobs_that_need_help(self, request, **kwargs):
+    #     self.is_authenticated(request)
+    #     bundle = self.build_bundle(data={}, request=request)
+    #     uob = bundle.request.user
+    #     perm = Permissions(uob)
+    #     company = perm.get_company_scope()
+
+    #     jobs_needing_help = JobHistory.objects.filter(assistance=True, associated_with_company=company )
 
 
     @action(allowed=['post'], require_loggedin=False, static=False)
     def job_complete(self, request, **kwargs):
         self.is_authenticated(request)
-        #pdb.set_trace()
         data = json.loads( request.read() )
         data = only_keep_fields(data,['issue','additional_comments'])
         try:
@@ -1215,7 +1264,7 @@ class JobHistoryResource(ModelResource):
             current_job.save()
             bundle.data = {"message":"job completed", "job_id":pk}
         except:
-            pass
+            raise_custom_error({"error":"Object not found"}, 404)
 
         return self.create_response(request, bundle)
 
@@ -1246,45 +1295,43 @@ class JobHistoryResource(ModelResource):
 
 
     def dehydrate(self, bundle):
-        plant_info = bundle.obj.plant.__dict__ # one biogas plant associated with one job
-        contact_info = bundle.obj.plant.contact.values()
-        constructing_tech = []
-        constructing_tech_obj = bundle.obj.plant.constructing_technicians.all()
-        for ii in constructing_tech_obj:
-            ct = ii.__dict__
-            ct["company_name"] = [k['company_name'] for k in ii.company.values()] 
-            #ct["company_names"] = ii.company.get().company_name  # include company name
-            constructing_tech.append(ct)
+        #plant_info = bundle.obj.plant.__dict__ # one biogas plant associated with one job
 
-        fixers_list = []
-        fixers_obj = bundle.obj.fixers.all()
+        # for ii in constructing_tech_obj:
+        #     ct = ii.__dict__
+        #     ct["company_name"] = [k['company_name'] for k in ii.company.values()] 
+        #     #ct["company_names"] = ii.company.get().company_name  # include company name
+        #     constructing_tech.append(ct)
+
+        # fixers_list = []
+        # fixers_obj = bundle.obj.fixers.all()
        
-        try:
-            for ii in fixers_obj:
-                fx = ii.__dict__
-                fx["company_name"] = [k['company_name'] for k in ii.company.values()] 
-                #fx["company_name"] = ii.company.get().company_name  # include company name
-                fixers_list.append(fx)
-        except Exception, err:
-            print(err)
-            traceback.print_exc()
-            #pdb.set_trace()
-            pass
+        # try:
+        #     for ii in fixers_obj:
+        #         fx = ii.__dict__
+        #         fx["company_name"] = [k['company_name'] for k in ii.company.values()] 
+        #         #fx["company_name"] = ii.company.get().company_name  # include company name
+        #         fixers_list.append(fx)
+        # except Exception, err:
+        #     print(err)
+        #     traceback.print_exc()
+        #     #pdb.set_trace()
+        #     pass
 
-        #cconstructing_tech = [i.values() for i in bundle.obj.plant.constructing_technicians ]
+        # #cconstructing_tech = [i.values() for i in bundle.obj.plant.constructing_technicians ]
         
 
         
-        fields_to_return_plant_info = ['country','region','district','ward','village','postcode','neighbourhood','other_address_details','type_biogas','size_biogas','what3words','plant_status']
-        fields_to_return_contact_info = ['contact_type','first_name','surname','mobile','associated_company']
-        fields_to_return_fixers = ['role','first_name','last_name','phone_number','company_name','user_id']
-        fields_to_return_constructing_tech = ['role','first_name','last_name','phone_number','company_name','user_id']
+        # fields_to_return_plant_info = ['country','region','district','ward','village','postcode','neighbourhood','other_address_details','type_biogas','size_biogas','what3words','plant_status']
+        # fields_to_return_contact_info = ['contact_type','first_name','surname','mobile','associated_company']
+        # fields_to_return_fixers = ['role','first_name','last_name','phone_number','company_name','user_id']
+        # fields_to_return_constructing_tech = ['role','first_name','last_name','phone_number','company_name','user_id']
 
-        #pdb.set_trace()
-        bundle.data['system_info'] = plant_info
-        bundle.data['contact_info'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_contact_info} for i in contact_info]
-        bundle.data['constructing_tech'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_constructing_tech} for i in constructing_tech]
-        bundle.data['fixers'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_fixers} for i in fixers_list]
+        # #pdb.set_trace()
+        # bundle.data['system_info'] = plant_info
+        # bundle.data['contact_info'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_contact_info} for i in contact_info]
+        # bundle.data['constructing_tech'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_constructing_tech} for i in constructing_tech]
+        # bundle.data['fixers'] = [{k:v for  k, v in i.iteritems() if k in fields_to_return_fixers} for i in fixers_list]
         return bundle
 
     def obj_update(self, bundle, **kwargs):
@@ -1354,6 +1401,7 @@ class JobHistoryResource(ModelResource):
             company = perm.get_company_scope()
 
             user_object = UserDetail.objects.filter(user=uob)
+            
             if ( uob.is_superuser or perm.is_global_admin() ):
                 return object_list
 
@@ -1362,15 +1410,123 @@ class JobHistoryResource(ModelResource):
                 # company_object = user_object[0].company.all()
                 # company_names = [co.company_name for co in company_object]
                 #return object_list.filter(plant__contact__associated_company__company_name__in=company_names)
-                return  object_list.filter( plant__contact__associated_company = company )
+                return  object_list.filter( associated_with_company = company )
 
             if perm.is_technician(): # only return the user info of the logged in technican
                 #pdb.set_trace()
-                pass
-                return object_list.filter(fixers__user=uob)
+                return []
         except:
-            #pdb.set_trace()
-            pass
+            raise raise_custom_error({"error":"Server error"}, 500)
+
+    @action(allowed=['get'], require_loggedin=False, static=False) ## This is introduced here to avoid making a breaking change with the app - this function is for admin users to allow them to edit any plant in their company
+    @transaction.atomic
+    def get_single_job(self, request, **kwargs):
+        self.is_authenticated(request)
+
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+        try:
+            bundle = self.build_bundle(data={}, request=request)
+            uob = bundle.request.user
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+            user_object = UserDetail.objects.filter(user=uob)
+        except:
+            raise_custom_error({"error":"User object not found"}, 404)
+
+        try:
+            job_uuid = uuid.UUID(hex = pk)
+        except:
+            raise_custom_error({"error":"Invalid job_id"}, 400)
+        
+        if ( uob.is_superuser or perm.is_global_admin() ):
+            job = JobHistory.objects.get( job_id =job_uuid )
+        elif perm.is_admin(): # return all the people associated with this company
+            job = JobHistory.objects.get( job_id =job_uuid, associated_with_company__in = [company] )
+        elif perm.is_technician(): # only return the user info of the logged in technican
+                # a technician cannot get the user details associated with a company
+                #pdb.set_trace()
+                # we want to filter and return only the biogas plants associated with that technican
+                #object_list.biogas_plant_detail
+            job = JobHistory.objects.get( job_id =job_uuid, associated_with_company__in = [company], fixers__user__in = [uob] )
+                # self.build_bundle(obj=JobHistory(), data = bundle.data)
+        else:
+            raise_custom_error({"error":"You do not have permission"}, 401)
+
+        try:
+            job_serialised = JobHistorySerialiserSingleJob(job).data
+
+            job_rejected_by_obj = job.rejected_by.all()
+            contact_info = job.plant.contact.all()
+            fixers_obj = job.fixers.all()
+            constructing_tech_obj = job.plant.constructing_technicians.all()
+            accepted_but_did_not_visit = job.accepted_but_did_not_visit.all()
+
+            contacts = ContactDetailsSerializer(contact_info, many=True).data
+            for ob in contacts:
+                ob = map_serialised_address(ob)
+
+            fixers = UserDetailsSerialiser(fixers_obj, many=True).data
+
+            for ob in fixers:
+                ob = map_serialised_address(ob)
+
+            #if job_rejected_by_obj is not None:
+            job_rejected_by = UserDetailsSerialiser(job_rejected_by_obj, many=True).data
+            job_serialised['job_rejected_by'] = job_rejected_by
+
+            #if accepted_but_did_not_visit is not None:
+            accepted_but_did_not_visit = UserDetailsSerialiser(accepted_but_did_not_visit, many=True).data
+            job_serialised['accepted_but_did_not_visit'] = accepted_but_did_not_visit
+
+            
+            job_serialised['plant'] = BiogasPlantSerialiser(job.plant).data
+            job_serialised['plant']['contact_details'] = contacts
+
+            
+            job_serialised['fixers'] = fixers
+
+            constructing_tech = UserDetailsSerialiser(constructing_tech_obj, many=True).data
+            job_serialised['plant']['constructing_technicians'] = constructing_tech
+
+            bundle.data = job_serialised
+        except:
+            raise_custom_error({"error":"Server error"}, 500)
+
+        return self.create_response(request, bundle)
+
+    def authorized_read_detail(self, object_list, bundle):
+        try:
+            uob = bundle.request.user
+            perm = Permissions(uob)
+            company = perm.get_company_scope()
+            user_object = UserDetail.objects.filter(user=uob)
+
+            
+            
+            if ( uob.is_superuser or perm.is_global_admin() ):
+                return object_list
+
+            if perm.is_admin(): # return all the people associated with this company
+                #pdb.set_trace()
+                #company_object = user_object[0].company.all()
+                #company_names = [co.company_name for co in company_object]
+                #return object_list.filter(Q(contact__associated_company__company_name__in=company_names) | Q(associated_company__company_name__in=company_names))
+                return object_list.filter( associated_with_company = company )
+
+            if perm.is_technician(): # only return the user info of the logged in technican
+                # a technician cannot get the user details associated with a company
+                #pdb.set_trace()
+                # we want to filter and return only the biogas plants associated with that technican
+                #object_list.biogas_plant_detail
+                return object_list.filter(fixers__user=uob)
+                # self.build_bundle(obj=JobHistory(), data = bundle.data)
+
+            
+        except:
+            raise raise_custom_error({"error":"Server error"}, 500)
 
 class DashboardResource(ModelResource):
     class Meta:

@@ -67,8 +67,8 @@ class UserDetailAdmin(admin.ModelAdmin): # admin.StackedInline
     form = UserDetailForm
     inlines = [TechnicianDetailAdmin,] # AddressAdmin,
     readonly_fields=('first_name','last_name')
-    list_display = ('address','company_title','first_name','last_name','mobile','datetime_created')
-    list_filter = ('address','first_name','last_name','mobile')
+    list_display = ('id','address','company_title','first_name','last_name','mobile','datetime_created')
+    list_filter = ('id','address','first_name','last_name','mobile')
     #ordering = ('first_name','last_name','role','phone_number','country','region','district','ward','village','neighbourhood','other_address_details','datetime_created')
     filter_horizontal = ('company',)
     #form = UserForm
@@ -136,9 +136,9 @@ class BiogasPlantsAdmin(admin.ModelAdmin):
     form = BiogasForm
     inlines = [JobHistoryInline,] # AddressAdmin,
     
-    list_display = ('address','volume_biogas','get_contact','mobile_num','adopted_by','contact_type','plant_id','type_biogas',) #'location'
-    list_filter = ('address','volume_biogas','adopted_by')
-    search_fields = ('address','volume_biogas','get_contact','mobile_num','adopted_by','contact_type','type_biogas')
+    list_display = ('id','UIC','address','volume_biogas','get_contact','mobile_num','adopted_by','contact_type','plant_id','type_biogas',) #'location'
+    list_filter = ('id','UIC','address','volume_biogas','adopted_by')
+    search_fields = ('id','UIC','address','volume_biogas','get_contact','mobile_num','adopted_by','contact_type','type_biogas')
     filter_horizontal = ('contact','constructing_technicians',)
 
 
