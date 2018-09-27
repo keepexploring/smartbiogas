@@ -429,7 +429,7 @@ class CardSerializerPending(serpy.Serializer):
 class NestedContactSerializer(serpy.Serializer):
     id = serpy.IntField()
     first_name = serpy.Field()
-    surname = serpy.Field()
+    last_name = serpy.Field()
     mobile  = serpy.Field()
     email = serpy.Field()
     contact_uid = serpy.MethodField()
@@ -439,6 +439,7 @@ class NestedContactSerializer(serpy.Serializer):
             return contact.uid.hex
         except:
             return None
+
 
 class BiogasPlantSerialiser(serpy.Serializer):
     id = serpy.Field()
@@ -459,6 +460,7 @@ class BiogasPlantSerialiser(serpy.Serializer):
     QP_status = serpy.Field()
     current_status = serpy.Field()
     notes = serpy.Field()
+    adopted_by = serpy.MethodField()
 
     def get_plant_id(self, obj):
         return obj.plant_id.hex
@@ -480,6 +482,14 @@ class BiogasPlantSerialiser(serpy.Serializer):
             return AddressSerializer(obj.address).data
         except:
             return None
+
+    def get_adopted_by(self, obj):
+        try:
+            return NestedContactSerializer(obj.adopted_by).data
+        except:
+            return None
+
+
 class BiogasPlantIDSerialiser(serpy.Serializer):
     id = serpy.Field()
     address = AddressSerializer()

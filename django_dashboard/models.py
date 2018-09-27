@@ -937,7 +937,7 @@ class PasswordManagement(models.Model):
 
 class CardTemplate(models.Model):
     id = models.AutoField(primary_key=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True ) # a company might not have access to all the available templates
+    company = models.ManyToManyField(Company, blank=True ) # a company might not have access to all the available templates
     template_id = models.UUIDField(default=uuid.uuid4, editable=False,db_index=True)
     name = models.CharField(db_index=True,null=True,blank=True,max_length=200) # This is an internal name for reference
     title = models.CharField(null=True,blank=True,max_length=200)
@@ -967,10 +967,18 @@ class Card(models.Model):
     position = models.IntegerField( blank=True,null=True,default=0 )
     created = models.DateTimeField(editable=True, db_index=True,null=True,blank=True)
     updated = models.DateTimeField(null=True,blank=True,editable=False)
-
+    _list_data = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return '%s, %s, %s' % (self.id, self.card_template, self.user)
+
+    @property
+    def list_data(self):
+        return json.loads(self._list_data)
+
+    @list_data.setter
+    def list_data(self,x):
+        self._list_data = json.dumps(x)
 
     def save(self, *args, **kwargs):
         

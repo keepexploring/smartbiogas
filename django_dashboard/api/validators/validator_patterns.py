@@ -263,6 +263,10 @@ schema = {
     "call_for_assistance": {
                     "help_type": { 'type': 'string', 'required': False },
                     "additional_comments": { 'type': 'string', 'required': False },
+                    },
+
+    "orphan_or_adopt": {
+                    "orphan_or_adopt": { 'type':'string', 'required':True, 'allowed': ['adopt','orphan'] }
                     }
 
 }

@@ -42,6 +42,7 @@ from django_dashboard.enums import EntityTypes, AlertTypes
 from helpers import validate_data
 from django_dashboard.api.validators.validator_patterns import schema
 from django.core.exceptions import ObjectDoesNotExist
+from django_dashboard.api.Cards.card_register import register_templates, update_cards
 import pdb
 
 #BASE_DIR = os.path.normpath(os.path.normpath(os.getcwd() + os.sep + os.pardir)+ os.sep + os.pardir)
@@ -105,7 +106,7 @@ class DataResource(MultipartResource, ModelResource):
             uob = bundle.request.user
             perm = Permissions(uob)
             company = perm.get_company_scope()
-           
+            register_templates(uob)
             #logged_in_as = UserDetail.objects.get(user=uob).logged_in_as # use this in the future
             
             ##part_of_groups = uob.groups.all()
@@ -144,6 +145,7 @@ class DataResource(MultipartResource, ModelResource):
             uob = bundle.request.user
             perm = Permissions(uob)
             company = perm.get_company_scope()
+            update_cards(uob, perm, company)
             #part_of_companies = UserDetail.objects.get(user=uob).company.all()
             #logged_in_as = UserDetail.objects.get(user=uob).logged_in_as # use this in the future
             

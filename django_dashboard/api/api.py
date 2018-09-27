@@ -422,11 +422,12 @@ class UserDetailResource(ModelResource): # parent
         list_allowed_methods = ['get', 'post']
         filtering = {'first_name':ALL,
                     'last_name':ALL,
-                    'phone_number':ALL,
+                    'mobile':ALL,
+                    'email':ALL,
                     'user': ALL_WITH_RELATIONS,
                     'address': ALL_WITH_RELATIONS,
                     }
-        ordering = ['first_name','last_name','phone_number','user','logged_in_as','technician_details']
+        ordering = ['first_name','last_name','mobile','user','logged_in_as','technician_details', 'address']
         #filtering = {'username':ALL} # can use the filtering options from django
         authorization = DjangoAuthorization()
         authentication = OAuth2ScopedAuthentication(
@@ -833,6 +834,7 @@ class JobHistoryResource(ModelResource):
                     'date_completed':ALL,
                     'fixers':ALL_WITH_RELATIONS,
                     'plant':ALL_WITH_RELATIONS,
+                    'client_feedback_star':ALL,
                     }
         ordering = ['job_id','completed','job_status','verification_of_engagement','due_date','date_completed','fixers','plant','client_feedback_star','overdue_for_acceptance','priority','fault_class','assistance','description_help_need','reason_abandoning_job']
         authorization = DjangoAuthorization()

@@ -180,9 +180,9 @@ class CardAdmin(admin.TabularInline):
 class CardTemplateAdmin(admin.ModelAdmin):
     model = CardTemplate
     inlines = [CardAdmin,]
-    list_display = ('id','company','name','title','description','card_type','entity_type','image','created','updated')
-    list_filter = ('id','company','name','title','description','card_type','entity_type','image','created','updated')
-    search_fields = ('id','company','name','title','description','card_type','entity_type','image','created','updated')
+    list_display = ('id','name','title','description','card_type','entity_type','image','created','updated')
+    list_filter = ('id','name','title','description','card_type','entity_type','image','created','updated')
+    search_fields = ('id','name','title','description','card_type','entity_type','image','created','updated')
 
 class UtilisationStatusAdmin(admin.TabularInline):
     model = UtilisationStatus

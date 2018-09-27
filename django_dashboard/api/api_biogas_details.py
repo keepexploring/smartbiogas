@@ -475,6 +475,50 @@ class BiogasPlantResource(ModelResource):
 
         return self.create_response(request, bundle)
 
+    
+    @action(allowed=['put'], require_loggedin=False,static=False)
+    def orphan_or_adopt(self, request, **kwargs):
+        self.is_authenticated(request)
+        bundle = self.build_bundle(data={}, request=request)
+        data = json.loads( request.read() )
+        data = only_keep_fields(data,['orphan_or_adopt'])
+        _schema = schema['orphan_or_adopt']
+        vv= Validator(_schema)
+        if not vv.validate(data):
+            errors_to_report = vv.errors
+            raise CustomBadRequest( code="field_error", message=errors_to_report )
+
+        
+        try:
+            pk = int(kwargs['pk'])
+        except:
+            pk = kwargs['pk']
+        
+        uob = bundle.request.user
+        perm = Permissions(uob)
+        company = perm.get_company_scope()
+
+        if uob.is_superuser or perm.is_global_admin():
+            try:
+                biogas_plant = BiogasPlant.objects.get( id = pk )
+            except:
+                raise_custom_error({"error":"Biogas plant not found"}, 404)
+        elif perm.is_admin() or perm.is_technician():
+            try:
+                biogas_plant = BiogasPlant.objects.get( id = pk, associated_company__in = [company] )
+            except:
+                raise_custom_error({"error":"Biogas plant not found in your company"}, 404)
+        
+        if data['orphan_or_adopt'] == 'adopt':
+            biogas_plant.adopted_by = uob.userdetail
+        elif data['orphan_or_adopt'] == 'orphan':
+            biogas_plant.adopted_by = None
+        
+        biogas_plant.save()
+        bundle.data = { "message":"biogas plant adopted", "id": pk }
+
+        return self.create_response(request, bundle)
+
 
     @action(allowed=['post'], require_loggedin=False,static=True)
     def get_biogas_plants(self, request, **kwargs):
@@ -809,10 +853,12 @@ class BiogasPlantResource(ModelResource):
     @transaction.atomic
     def get_single_biogas_plant(self, request, **kwargs):
         self.is_authenticated(request)
+
         try:
             pk = int(kwargs['pk'])
         except:
             pk = kwargs['pk']
+
         try:
             bundle = self.build_bundle(data={}, request=request)
             uob = bundle.request.user
@@ -826,7 +872,7 @@ class BiogasPlantResource(ModelResource):
         elif perm.is_admin(): # return all the people associated with this company
             plant = BiogasPlant.objects.get( id = pk, associated_company = company )
         elif perm.is_technician(): # only return the user info of the logged in technican
-            plant = BiogasPlant.objects.get( id = pk, associated_company = company, adopted_by = uob )
+            plant = BiogasPlant.objects.get( id = pk, associated_company = company, adopted_by = uob.userdetail )
             
         else:
             raise_custom_error({"error":"You do not have permission"}, 401)
