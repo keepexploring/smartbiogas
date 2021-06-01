@@ -32,7 +32,7 @@ tables==3.4.2
 tinydb==3.8.0
 transaction==2.2.0
 universal-divergence==0.2.0
-urllib3==1.22
+urllib3==1.26.5
 zc.lockfile==1.2.1
 ZConfig==3.2.0
 ZODB==5.3.0
