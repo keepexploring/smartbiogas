@@ -63,7 +63,7 @@ text-unidecode==1.2
 tornado==5.0
 Twisted==17.9.0
 txaio==2.9.0
-urllib3==1.22
+urllib3==1.26.5
 uWSGI==2.0.17
 what3words==2.2.1
 zope.interface==4.4.3
