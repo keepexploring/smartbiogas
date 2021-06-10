@@ -11,7 +11,7 @@ chardet==3.0.4
 configparser==3.5.0
 constantly==15.1.0
 daphne==1.4.2
-Django==1.11.11
+Django==2.2.24
 django-autocomplete-light==3.2.10
 django-autofixture==0.12.1
 django-bootstrap-datepicker==1.2.3
