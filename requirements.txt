@@ -56,7 +56,7 @@ psycopg2==2.7.4
 psycopg2-binary==2.7.4
 pyaes==1.6.1
 pycountry==18.5.26
-PyJWT==1.6.1
+PyJWT==2.4.0
 python-dateutil==2.6.1
 python-mimeparse==1.6.0
 pytz==2018.3
