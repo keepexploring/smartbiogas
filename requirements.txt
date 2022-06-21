@@ -45,7 +45,7 @@ idna==2.6
 incremental==17.5.0
 ipaddress==1.0.19
 minpubsub==0.3
-numpy==1.14.3
+numpy==1.22.0
 oauthlib==2.0.6
 pathlib==1.0.1
 pathlib2==2.3.0
