@@ -9,7 +9,7 @@ falcon==1.4.1
 h5py==2.7.1
 hug==2.4.0
 idna==2.6
-joblib==0.11
+joblib==1.2.0
 numexpr==2.6.4
 numpy==1.14.2
 pandas==0.22.0
